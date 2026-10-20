@@ -77,6 +77,7 @@ label.f{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.95
 .chhead h2{font-size:1.4rem;font-weight:800}
 .chprog{font-size:.88rem;margin-left:auto}
 .soonbox{border:2px dashed var(--line);border-radius:14px;padding:16px;color:var(--muted);font-weight:700}
+.openbox{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}.openbox .f{flex:1;min-width:220px}.openbox .err{flex-basis:100%;margin:0}
 
 /* play */
 .mission{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}
@@ -660,7 +661,7 @@ function renderStart(){
      <h3>Wie speelt er?</h3>
      <label class="f" for="in-name">Voornaam en achternaam<input class="txt" id="in-name" autocomplete="off" value="${esc(last.name||"")}"></label>
      <label class="f" for="in-klas">Klas<input class="txt" id="in-klas" autocomplete="off" value="${esc(last.klas||"")}" placeholder="bv. 3B"></label>
-     <label class="f" for="in-code">Code van vorige keer (als je die hebt)<input class="txt" id="in-code" autocomplete="off" placeholder="bv. 3-240-K7QZ"></label>
+     <label class="f" for="in-code">Code van vorige keer of van je leerkracht (als je die hebt)<input class="txt" id="in-code" autocomplete="off" placeholder="bv. 3-240-K7QZ"></label>
      <div class="err" id="err"></div>
      <button class="btn" type="submit">Start</button>
    </form></div></div>` + footer();
@@ -670,6 +671,8 @@ function renderStart(){
     if(name.split(/\s+/).length<2){ $("#err").textContent="Typ je voornaam én achternaam."; return; }
     S.name=name; S.klas=klas;
     S.prog = store.get("lk:"+norm(name)) || {best:{}, unlocked:1};
+    const ci = code? chapterByCode(code) : -1;
+    if(ci>=0){ openChapter(ci); save(); S.screen="map"; S.flash=`Hoofdstuk ${ci+1} (${CHAPTERS[ci].name}) staat nu open.`; return render(); }
     if(code){
       const r = readCode(name, code);
       if(!r){ $("#err").textContent="Deze code klopt niet bij deze naam. Kijk je naam en code na, of laat het vak leeg."; return; }
@@ -682,17 +685,24 @@ function renderStart(){
     save(); S.screen="map"; render();
   });
 }
+// code = de code die de leerkracht geeft om dit hoofdstuk meteen open te zetten
 const CHAPTERS = [
-  {name:"Teken- en alineaopmaak", levels:[1,2,3,4,5,6,7,8]},
-  {name:"Stijlen", levels:[10,11,12]},
-  {name:"Opsomming en nummering", levels:[9]},
-  {name:"Tabellen", levels:[]}
+  {name:"Teken- en alineaopmaak", levels:[1,2,3,4,5,6,7,8], code:"OPMAAK7"},
+  {name:"Stijlen", levels:[10,11,12], code:"STIJL3"},
+  {name:"Opsomming en nummering", levels:[9], code:"LIJST5"},
+  {name:"Tabellen", levels:[], code:"TABEL4"}
 ];
+function chapterByCode(c){ c=String(c).toUpperCase().replace(/[\s-]/g,""); return CHAPTERS.findIndex(ch=>ch.code===c); }
+function openChapter(ci){ S.prog.open=[...new Set([...(S.prog.open||[]), ci])]; }
+/* ---------- resultaten naar een Google Formulier (de leerkracht ziet ze in een Google Sheet / Excel) ----------
+   Laat url leeg om de knop Verzenden te verbergen. */
+const SEND = { url:"", naam:"", klas:"", oefening:"", score:"", sterren:"", fouten:"" };
 function chapterOf(n){ return CHAPTERS.findIndex(c=>c.levels.includes(n)); }
 function lvLabel(n){ const L=LEVELS[n-1]; if(L.boss) return "Eindopdracht"; const ci=chapterOf(n); return ci<0? "Level "+n : `Level ${ci+1}.${CHAPTERS[ci].levels.indexOf(n)+1}`; }
 function isOpen(n){ const ci=chapterOf(n); if(ci<0) return false; const lv=CHAPTERS[ci].levels, i=lv.indexOf(n);
+  if((S.prog.open||[]).includes(ci)) return true;
   if(i>0) return !!S.prog.best[lv[i-1]]; if(ci===0) return true; return !!S.prog.best[8]; }
-function nextOf(n){ const order=CHAPTERS.flatMap(c=>c.levels); const i=order.indexOf(n); return i>=0 && i<order.length-1? order[i+1] : null; }
+function nextOf(n){ const order=CHAPTERS.flatMap(c=>c.levels); const i=order.indexOf(n); const nx = i>=0 && i<order.length-1? order[i+1] : null; return nx && isOpen(nx)? nx : null; }
 function levelCard(n){
   const L=LEVELS[n-1], b=S.prog.best[n], open=isOpen(n);
   return `<button class="lvl" data-lvl="${n}" ${open?"":"disabled"}><span class="num">${lvLabel(n)}${open?"":" · op slot"}</span><h3>${esc(L.name)}</h3><span class="d">${esc(L.d)}</span>
@@ -706,7 +716,12 @@ function renderMap(){
     ${CHAPTERS.map((c,ci)=>{ const got=c.levels.filter(n=>S.prog.best[n]).length;
       return `<section class="chapter"><div class="chhead"><span class="chnum">Hoofdstuk ${ci+1}</span><h2>${esc(c.name)}</h2>${c.levels.length?`<span class="muted chprog">${got} van ${c.levels.length} levels gedaan</span>`:""}</div>
       ${c.levels.length?`<div class="levels">${c.levels.map(levelCard).join("")}</div>`:`<div class="soonbox">Binnenkort: hier komen nieuwe levels.</div>`}</section>`; }).join("")}
+    <form id="f-open" class="card openbox" novalidate><label class="f" for="in-open">Code van je leerkracht om een hoofdstuk te openen<input class="txt" id="in-open" autocomplete="off" placeholder="bv. STIJL3"></label><button class="btn small" type="submit">Openen</button><div class="err" id="err-open"></div></form>
     <div><button class="btn ghost small" data-go="start">Andere speler</button></div>` + footer();
+  if(S.flash){ $("#err-open").style.color="var(--good)"; $("#err-open").textContent=S.flash; S.flash=""; }
+  $("#f-open").addEventListener("submit", e=>{ e.preventDefault(); const ci=chapterByCode($("#in-open").value);
+    if(ci<0){ $("#err-open").style.color=""; $("#err-open").textContent="Die code ken ik niet. Vraag ze opnieuw aan je leerkracht."; return; }
+    openChapter(ci); save(); S.flash=`Hoofdstuk ${ci+1} (${CHAPTERS[ci].name}) staat nu open.`; renderMap(); });
   app.querySelectorAll("[data-lvl]").forEach(b=>b.addEventListener("click",()=>startLevel(+b.dataset.lvl)));
 }
 
@@ -1131,11 +1146,19 @@ function renderEnd(){
     <div><div class="muted" style="margin-bottom:6px">Jouw code (lever die in op Teams, en bewaar hem om volgende keer verder te spelen):</div>
       <div class="codebox"><span class="code" id="code">${code}</span><button class="btn ghost small" id="copy">Kopieer code</button></div></div>
     <p class="muted" style="margin:0">${G.result.stars<3?"Wil je meer sterren? Speel het level gerust opnieuw.":"Drie sterren! Je kent dit nu."} ${last?"Je hebt alle levels gedaan. Probeer het nu in het echte Word!":"Probeer straks hetzelfde ook eens in het echte Word."}</p>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">${!last?`<button class="btn" id="nxt">Volgend level</button>`:""}<button class="btn ghost" id="again">Opnieuw spelen</button><button class="btn ghost" data-go="map">Naar de levels</button></div></div>` + footer();
+    ${SEND.url?`<div class="codebox"><button class="btn" id="send">Verzenden naar de leerkracht</button><span class="muted" id="sendmsg">Klik om je score door te sturen.</span></div>`:""}
+    <div style="display:flex;gap:10px;flex-wrap:wrap">${!last?`<button class="btn${SEND.url?" ghost":""}" id="nxt">Volgend level</button>`:""}<button class="btn ghost" id="again">Opnieuw spelen</button><button class="btn ghost" data-go="map">Naar de levels</button></div></div>` + footer();
   $("#copy").addEventListener("click", ()=>{ const t=$("#code").textContent;
     try{ navigator.clipboard.writeText(t).then(()=>{$("#copy").textContent="Gekopieerd";}, sel); }catch(e){ sel(); }
     function sel(){ const r=document.createRange(); r.selectNodeContents($("#code")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("#copy").textContent="Druk op Ctrl+C"; } });
   if(!last) $("#nxt").addEventListener("click", ()=>startLevel(nxt));
+  if(SEND.url) $("#send").addEventListener("click", ()=>{
+    const f=new URLSearchParams(), put=(k,v)=>{ if(SEND[k]) f.append(SEND[k], v); };
+    put("naam",S.name); put("klas",S.klas); put("oefening",`${lvLabel(n)} ${G.L.name}`); put("score",`${G.score} / ${G.result.max}`); put("sterren",G.result.stars); put("fouten",G.errors);
+    $("#send").disabled=true; $("#sendmsg").textContent="Bezig met verzenden…";
+    fetch(SEND.url,{method:"POST",mode:"no-cors",body:f}).then(()=>{ $("#send").textContent="Verzonden ✓"; $("#sendmsg").textContent="Je leerkracht heeft je score gekregen."; },
+      ()=>{ $("#send").disabled=false; $("#sendmsg").textContent="Verzenden lukte niet. Kijk of je internet hebt en probeer opnieuw."; });
+  });
   $("#again").addEventListener("click", ()=>startLevel(n));
 }
 function renderTeacher(){
