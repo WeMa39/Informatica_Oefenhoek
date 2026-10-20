@@ -207,21 +207,43 @@ const store = {
 /* ---------- code: level-punten-controle ---------- */
 function hash(s){ let h=5381; for(const c of s) h=((h*33) ^ c.charCodeAt(0)) >>> 0; return h; }
 function norm(n){ return n.toLowerCase().replace(/\s+/g," ").trim(); }
-function makeCode(name, lvl, score){
+// eerste deel van de code: "5" = levels 1 t/m 5 (oude vorm), "X1FF" = bitmasker van de afgewerkte levels
+function lvPart(levels){ const L=[...levels].sort((a,b)=>a-b); if(L.every((v,i)=>v===i+1)) return String(L.length);
+  return "X"+L.reduce((m,v)=>m+2**(v-1),0).toString(36).toUpperCase(); }
+function partLevels(p){ if(/^\d+$/.test(p)){ const n=+p; return Array.from({length:n},(_,i)=>i+1); }
+  const m=parseInt(p.slice(1),36), out=[]; for(let i=1;i<=LEVELS.length;i++) if(Math.floor(m/2**(i-1))%2) out.push(i); return out; }
+function makeCode(name, levels, score){
+  const lvl = Array.isArray(levels)? lvPart(levels) : String(levels);
   const chk = (hash(norm(name)+"|"+lvl+"|"+score+"|lintkampioen") % 1679616).toString(36).toUpperCase().padStart(4,"0");
   return `${lvl}-${score}-${chk}`;
 }
 function readCode(name, code){
-  const m = String(code).toUpperCase().replace(/\s/g,"").match(/^(\d+)-(\d+)-([0-9A-Z]{4})$/);
+  const m = String(code).toUpperCase().replace(/\s/g,"").match(/^(\d+|X[0-9A-Z]+)-(\d+)-([0-9A-Z]{4})$/);
   if(!m) return null;
-  const lvl=+m[1], score=+m[2];
-  if(lvl<1 || lvl>LEVELS.length) return null;
-  return makeCode(name,lvl,score) === `${lvl}-${score}-${m[3]}` ? {lvl, score} : null;
+  const lvl=m[1], score=+m[2], levels=partLevels(lvl);
+  if(!levels.length || (/^\d+$/.test(lvl) && +lvl>LEVELS.length)) return null;
+  return makeCode(name,lvl,score) === `${lvl}-${score}-${m[3]}` ? {levels, score} : null;
 }
 
 /* ---------- het document ---------- */
 const BASE = {font:"Calibri", size:11, bold:false, italic:false, underline:false, color:"#000000", align:"left",
   indL:0, indR:0, special:"geen", by:0, before:0, after:8, line:"Meerdere", at:1.08, border:"", effect:0, list:null, bullet:"rond", numfmt:"1.", lpos:0.63, lind:1.27};
+function defaultStyles(){ return {
+  standaard:{}, "geen-afstand":{after:0, line:"Enkel"},
+  kop1:{font:"Calibri Light", size:16, color:"#2F5496", before:12, after:0, line:"Enkel"},
+  kop2:{font:"Calibri Light", size:13, color:"#2F5496", before:2, after:0, line:"Enkel"},
+  titel:{font:"Calibri Light", size:28, after:0, line:"Enkel"} }; }
+function styleVal(doc, st, k){ const S=doc.styles; if(S[st] && k in S[st]) return S[st][k]; if(st!=="standaard" && k in S.standaard) return S.standaard[k]; return BASE[k]; }
+function resolvedStyle(doc, key){ return {...BASE, ...doc.styles.standaard, ...(key!=="standaard"? doc.styles[key]:{})}; }
+function mkDoc(margins, rows){
+  const doc = { margins, styles: defaultStyles(), paras: [] };
+  rows.forEach((t,i)=>{ const o={id:"p"+i, kind:t[0], text:t[1], grp:t[2], st:t[3]||"standaard", ov:{}};
+    o.s = new Proxy(o.ov, { get:(ov,k)=> (k in ov)? ov[k] : styleVal(doc, o.st, k), set:(ov,k,v)=>{ ov[k]=v; return true; },
+      ownKeys:(ov)=> Array.from(new Set([...Object.keys(BASE), ...Object.keys(ov)])),
+      getOwnPropertyDescriptor:(ov,k)=>({enumerable:true, configurable:true, writable:true, value:(k in ov)? ov[k] : styleVal(doc,o.st,k)}) });
+    doc.paras.push(o); });
+  return doc;
+}
 function freshDoc(){
   const T = [
     ["title","5 functies die Steve Jobs in je iPhone verborg"],
@@ -233,7 +255,7 @@ function freshDoc(){
     ["sub","De muis in je toetsenbord"],
     ["body","Een typfout verbeteren met je vinger is lastig. Hou de spatiebalk ingedrukt: je toetsenbord wordt dan een muis waarmee je de cursor precies verplaatst."]
   ];
-  return { margins:{boven:2.5,onder:2.5,links:2.5,rechts:2.5}, paras:T.map((t,i)=>({id:"p"+i, kind:t[0], text:t[1], s:{...BASE}})) };
+  return mkDoc({boven:2.5,onder:2.5,links:2.5,rechts:2.5}, T);
 }
 function tiramisuDoc(){
   const T = [["title","Tiramisu"],["sub","Ingrediënten"],
@@ -241,12 +263,39 @@ function tiramisuDoc(){
     ["sub","Bereiding"],
     ["item","Klop de eidooiers met de suiker tot een romig mengsel.","g2"],["item","Roer de mascarpone erdoor.","g2"],["item","Klop het eiwit stijf en spatel het onder het mengsel.","g2"],
     ["item","Doop de koekjes kort in de koffie en leg ze in een schaal.","g2"],["item","Wissel lagen koekjes en crème af en strooi er cacao over.","g2"]];
-  const doc = { margins:{boven:2,onder:2,links:2,rechts:2}, paras:T.map((t,i)=>({id:"p"+i, kind:t[0], text:t[1], grp:t[2], s:{...BASE}})) };
+  const doc = mkDoc({boven:2,onder:2,links:2,rechts:2}, T);
   Object.assign(doc.paras[0].s, {size:20, bold:true});
   doc.paras.filter(x=>x.kind==="sub").forEach(x=>Object.assign(x.s,{bold:true, size:13, before:12}));
   doc.paras.filter(x=>x.kind==="item").forEach(x=>Object.assign(x.s,{after:0}));
   return doc;
 }
+function filmsDoc(){
+  return mkDoc({boven:2,onder:2,links:2,rechts:2}, [
+    ["title","De beste films van 2024"],
+    ["intro","2024 was een sterk filmjaar, met grote spektakelfilms en kleine pareltjes. Dit zijn vier films die je zeker moet zien."],
+    ["kop","Dune: Part Two"],["body","Paul Atreides trekt verder door de woestijn van Arrakis. Prachtige beelden en een spannend verhaal maken dit een echte bioscoopfilm."],
+    ["kop","Inside Out 2"],["body","Riley wordt tiener en in haar hoofd verschijnen nieuwe emoties, zoals Angst en Jaloezie. Grappig en ontroerend tegelijk."],
+    ["kop","Wicked"],["body","Een musical over de jonge heksen uit Oz, lang voor Dorothy er aankwam. Vol bekende liedjes en kleurrijke decors."],
+    ["kop","The Wild Robot"],["body","Een robot strandt op een eiland en leert overleven tussen de wilde dieren. Een animatiefilm over vriendschap en zorg."]]);
+}
+function netflixDoc(){
+  return mkDoc({boven:2,onder:2,links:2,rechts:2}, [
+    ["title","De populairste series op Netflix",null,"titel"],
+    ["kop","Stranger Things",null,"kop1"],["body","In het stadje Hawkins verdwijnt een jongen. Zijn vrienden ontdekken een geheime, griezelige wereld."],
+    ["kop","Wednesday",null,"kop1"],["body","Wednesday Addams gaat naar de Nevermore Academy en lost er een reeks mysterieuze moorden op."],
+    ["kop","Squid Game",null,"kop1"],["body","Mensen met schulden doen mee aan kinderspelletjes met een enorme geldprijs, maar verliezen is levensgevaarlijk."],
+    ["kop","Bridgerton",null,"kop1"],["body","Een kostuumdrama over de familie Bridgerton in het Londen van de 19de eeuw, vol bals en roddels."]]);
+}
+function avatarDoc(){
+  return mkDoc({boven:2,onder:2,links:2,rechts:2}, [
+    ["title","Avatar: De Legende van Aang"],
+    ["intro","Avatar: De Legende van Aang is een animatiereeks over een jongen die de wereld in evenwicht moet brengen."],
+    ["kop","De wereld"],["body","De wereld bestaat uit vier naties: Water, Aarde, Vuur en Lucht. Sommige mensen kunnen hun element besturen."],
+    ["kop","Personages"],["body","Aang is de laatste luchtnomade. Samen met Katara en Sokka reist hij de wereld rond."],
+    ["kop","Setting"],["body","De reeks speelt zich af in een wereld die lijkt op het oude Azië, met tempels, dorpen en grote steden."]]);
+}
+const SWCOLORS = {"Automatisch":"#000000","Zwart":"#000000","Rood":"#FF0000","Oranje":"#ED7D31","Geel":"#FFFF00","Goud":"#FFC000","Groen":"#00B050","Blauw":"#0070C0","Donkerblauw":"#002060","Paars":"#7030A0","Grijs":"#7F7F7F","Donkergrijs":"#404040"};
+const STYLENAMES = {standaard:"Standaard","geen-afstand":"Geen afstand",kop1:"Kop 1",kop2:"Kop 2",titel:"Titel"};
 const BULLETS = [["geen","Geen"],["rond","Rond opsommingsteken ●"],["open","Open rondje ○"],["vierkant","Vierkant opsommingsteken ■"],["ruit","Ruit ◆"],["vink","Vinkje ✓"],["pijl","Pijl ➢"]];
 const BGLYPH = {rond:"●", open:"○", vierkant:"■", ruit:"◆", vink:"✓", pijl:"➢"};
 const NUMFMTS = [["geen","Geen"],["1.","1. 2. 3."],["1)","1) 2) 3)"],["I.","I. II. III."],["a)","a) b) c)"],["A.","A. B. C."]];
@@ -256,7 +305,7 @@ function numLabel(f, i){ const roman=["I","II","III","IV","V","VI","VII","VIII",
 const SUB_STYLE = {font:"Gadugi",size:12,bold:true,color:"#A6A6A6",before:12,after:6,line:"Enkel",border:"onder"};
 const BODY_STYLE = {font:"Calibri",size:10,align:"justify",indL:.5,indR:.5,special:"Eerste regel",by:1.5,line:"Exact",at:15};
 
-const FONTS = {"Calibri":"Calibri, Carlito, 'Segoe UI', sans-serif","Arial":"Arial, Helvetica, sans-serif","Stencil":"Stencil, 'Stardos Stencil', Impact, sans-serif",
+const FONTS = {"Calibri":"Calibri, Carlito, 'Segoe UI', sans-serif","Calibri Light":"'Calibri Light', Carlito, 'Segoe UI Light', 'Segoe UI', sans-serif","Arial":"Arial, Helvetica, sans-serif","Stencil":"Stencil, 'Stardos Stencil', Impact, sans-serif",
   "Gadugi":"Gadugi, 'Segoe UI', Tahoma, sans-serif","Rockwell":"Rockwell, 'Roboto Slab', Georgia, serif","Times New Roman":"'Times New Roman', Times, serif",
   "Verdana":"Verdana, Geneva, sans-serif","Comic Sans MS":"'Comic Sans MS', 'Comic Neue', cursive","Elephant":"Elephant, Georgia, serif","Franklin Gothic Book":"'Franklin Gothic Book', 'Libre Franklin', Arial, sans-serif"};
 const SIZES = [8,9,10,10.5,11,12,14,16,18,20,22,24,26,28,36,48,72];
@@ -494,6 +543,77 @@ const LEVELS = [
    {t:"Selecteer de ondertitel 'Bereiding'.", a:"sel:p8", h:"Klik op het woord 'Bereiding' in het blad."},
    {t:"Klik op [[Opsommingstekens]].", a:"btn:opsomming", h:"De knop met de bolletjes."},
    {t:"Haal het weer weg: klik nog eens op [[Opsommingstekens]].", a:"btn:opsomming", h:"Dezelfde knop nog eens."}
+ ]},
+ { name:"Stijlen toepassen", d:"Titel, Kop 1 en Geen afstand op een tekst over films zetten, zoals Oef 3.1 Films.", doc:"films", file:"Films2024", steps:[
+   {info:"Een <b>stijl</b> is een opmaak met een naam, bv. <b>Kop 1</b>. Je vindt de stijlen op het tabblad Start, in de groep <b>Stijlen</b>. Eén klik op een stijl geeft een alinea meteen alle opmaak van die stijl."},
+   SEL("p0","de hoofdtitel"),
+   {t:"Klik in de groep Stijlen op [[Titel]].", a:"style:titel", h:"De groep Stijlen staat rechts op het tabblad Start. Zoek het vak met 'Titel' eronder."},
+   SEL("p1","de inleiding"),
+   {t:"Klik op de stijl [[Geen afstand]].", a:"style:geen-afstand", h:"Het tweede vak in de groep Stijlen."},
+   SEL("p2","de filmtitel 'Dune: Part Two'"),
+   {t:"Klik op de stijl [[Kop 1]].", a:"style:kop1", h:"Het derde vak in de groep Stijlen, met blauwe letters."},
+   SEL("p4","de filmtitel 'Inside Out 2'"),
+   {t:"Klik op [[Kop 1]].", a:"style:kop1", h:"Groep Stijlen, het vak Kop 1."},
+   SEL("p6","de filmtitel 'Wicked'"),
+   {t:"Klik op [[Kop 1]].", a:"style:kop1", h:"Groep Stijlen, het vak Kop 1."},
+   SEL("p8","de filmtitel 'The Wild Robot'"),
+   {t:"Klik op [[Kop 1]].", a:"style:kop1", h:"Groep Stijlen, het vak Kop 1."},
+   {info:"Alle filmtitels zien er nu precies hetzelfde uit. Bovendien weet Word nu dat dit titels zijn: zo kan Word straks automatisch een <b>inhoudsopgave</b> maken."},
+   {t:"Klik in de tekst onder 'Dune: Part Two'.", a:"sel:p3", h:"De gewone tekst onder de eerste filmtitel."},
+   {t:"In de groep Stijlen licht nu één stijl op. Klik op die stijl.", a:"style:standaard", h:"Gewone tekst staat in de stijl Standaard: het eerste vak in de groep Stijlen."},
+   {t:"Klik in de filmtitel 'Wicked'.", a:"sel:p6", h:"Klik op het woord Wicked in het blad."},
+   {t:"Welke stijl licht nu op? Klik erop.", a:"style:kop1", h:"Je gaf deze titel daarnet de stijl Kop 1."}
+ ]},
+ { name:"Een stijl wijzigen", d:"Kop 1 en Standaard aanpassen via Wijzigen, zoals Oef 3.2 Netflix.", doc:"netflix", file:"Netflix", steps:[
+   {info:"De titels van de series staan al in de stijl <b>Kop 1</b>. Ze moeten in Verdana, 15 pt en goud. Je kan ze één voor één opmaken, maar slimmer is: je <b>wijzigt de stijl</b>. Dan veranderen alle titels tegelijk."},
+   {t:"Klik met de <b>rechtermuisknop</b> op [[Kop 1]] in de groep Stijlen.", a:"stylectx:kop1", h:"Gebruik de rechterknop van je muis op het vak Kop 1 in de groep Stijlen."},
+   {t:"Kies [[Wijzigen…]].", a:"stijl:wijzigen", h:"Het tweede woord in het menu."},
+   {t:"Typ bij het lettertype {{Verdana}} en druk op Enter.", a:"sw:font", v:"Verdana", h:"In het blok Opmaak, het eerste vak (nu Calibri Light)."},
+   {t:"Typ bij de grootte {{15}}.", a:"sw:size", v:"15", h:"Het kleine vak naast het lettertype."},
+   {t:"Kies bij de tekstkleur {{Goud}}.", a:"sw:color", v:"Goud", h:"Het lijstje met kleuren, rechts naast B, I en U."},
+   {t:"De afstand stel je in via de knop [[Opmaak]] linksonder.", a:"sw:opmaak", h:"Helemaal linksonder in het venster: Opmaak ▾."},
+   {t:"Kies [[Alinea…]].", a:"sw:alinea", h:"Het tweede woord in het lijstje."},
+   {t:"Afstand voor: {{24}}", a:"al:before", v:"24", h:"Blok Afstand, het vak Voor."},
+   {t:"Afstand na: {{12}}", a:"al:after", v:"12", h:"Blok Afstand, het vak Na."},
+   {t:"Klik op [[OK]] in het venster Alinea.", a:"al:ok", h:"Rechtsonder in het venster Alinea."},
+   {t:"Klik nu op [[OK]] in het venster Stijl wijzigen.", a:"sw:ok", h:"Rechtsonder in het venster Stijl wijzigen."},
+   {info:"Kijk naar het blad: <b>alle vier</b> de titels veranderden tegelijk. Zo werkt een stijl. Nu doe je hetzelfde met de stijl <b>Standaard</b> voor de gewone tekst."},
+   {t:"Klik met de <b>rechtermuisknop</b> op [[Standaard]].", a:"stylectx:standaard", h:"Het eerste vak in de groep Stijlen, rechtermuisknop."},
+   {t:"Kies [[Wijzigen…]].", a:"stijl:wijzigen", h:"Tweede woord in het menu."},
+   {t:"Lettertype: {{Verdana}}", a:"sw:font", v:"Verdana", h:"Eerste vak bij Opmaak."},
+   {t:"Klik op [[Uitvullen]].", a:"sw:align:justify", h:"De vierde knop met streepjes (alle streepjes even lang)."},
+   {t:"Klik op [[Opmaak]] linksonder.", a:"sw:opmaak", h:"Linksonder in het venster."},
+   {t:"Kies [[Alinea…]].", a:"sw:alinea", h:"Tweede woord in het lijstje."},
+   {t:"Afstand na: {{12}}", a:"al:after", v:"12", h:"Blok Afstand, vak Na."},
+   {t:"Regelafstand: {{Exact}}", a:"al:line", v:"Exact", h:"Blok Afstand, lijstje Regelafstand."},
+   {t:"Op: {{13}}", a:"al:at", v:"13", h:"Het vak Op, naast Regelafstand."},
+   {t:"Klik op [[OK]].", a:"al:ok", h:"Venster Alinea, rechtsonder."},
+   {t:"Klik op [[OK]].", a:"sw:ok", h:"Venster Stijl wijzigen, rechtsonder."}
+ ]},
+ { name:"Lint of stijl?", d:"De gouden regel: één keer via het lint, meermaals met een stijl. Zoals Oef 3.3 Avatar.", doc:"avatar", file:"Avatar", steps:[
+   {info:"<b>De gouden regel</b><br>Komt een opmaak maar <b>één keer</b> voor? Gebruik het lint: de groepen Lettertype en Alinea.<br>Komt een opmaak <b>meerdere keren</b> voor? Gebruik een <b>stijl</b>."},
+   {quiz:"De hoofdtitel 'Avatar: De Legende van Aang' komt één keer voor. Hoe maak je hem op?", a:"quiz:lint", h:"Eén keer = het lint."},
+   {quiz:"De inleiding komt één keer voor. Hoe maak je ze op?", a:"quiz:lint", h:"Eén keer = het lint."},
+   {quiz:"De drie ondertitels (De wereld, Personages, Setting) moeten er hetzelfde uitzien. Hoe maak je ze op?", a:"quiz:stijl", h:"Drie keer dezelfde opmaak = een stijl (hier Kop 1)."},
+   {quiz:"Alle gewone tekst moet Calibri 10 pt worden. Hoe doe je dat?", a:"quiz:stijl", h:"De gewone tekst staat op veel plaatsen: wijzig de stijl Standaard."},
+   {quiz:"Je wil één woord in de tekst vet zetten. Hoe doe je dat?", a:"quiz:lint", h:"Het is maar één woord, één keer: het lint (de knop B)."},
+   {quiz:"Onder elke foto (vier foto's) staat een bijschrift. Ze moeten allemaal grijs en cursief. Hoe doe je dat?", a:"quiz:stijl", h:"Vier keer dezelfde opmaak = een stijl."},
+   {info:"Nu ga je het doen. Eerst de hoofdtitel: die komt één keer voor, dus je gebruikt het <b>lint</b>."},
+   SEL("p0","de hoofdtitel"),
+   {t:"Geef de titel de grootte {{20}} via het lint.", a:"fontsize", v:"20", h:"Groep Lettertype, het vak met de grootte."},
+   {t:"Zet de titel in het midden met [[Centreren]].", a:"btn:centreren", h:"Groep Alinea, tweede knop met streepjes."},
+   {info:"Nu de drie ondertitels. Die komen meerdere keren voor, dus je gebruikt een <b>stijl</b>: Kop 1."},
+   SEL("p2","de ondertitel 'De wereld'"),
+   {t:"Klik op de stijl [[Kop 1]].", a:"style:kop1", h:"Groep Stijlen, het vak Kop 1."},
+   SEL("p4","de ondertitel 'Personages'"),
+   {t:"Klik op [[Kop 1]].", a:"style:kop1", h:"Groep Stijlen, het vak Kop 1."},
+   SEL("p6","de ondertitel 'Setting'"),
+   {t:"Klik op [[Kop 1]].", a:"style:kop1", h:"Groep Stijlen, het vak Kop 1."},
+   {quiz:"De drie ondertitels moeten groen worden. Klik je ze één voor één aan en kies je groen op het lint, of wijzig je de stijl Kop 1?", a:"quiz:stijl", h:"Ze staan alle drie in Kop 1. Wijzig de stijl: dan veranderen ze samen."},
+   {t:"Klik met de <b>rechtermuisknop</b> op [[Kop 1]].", a:"stylectx:kop1", h:"Rechtermuisknop op het vak Kop 1 in de groep Stijlen."},
+   {t:"Kies [[Wijzigen…]].", a:"stijl:wijzigen", h:"Tweede woord in het menu."},
+   {t:"Kies bij de tekstkleur {{Groen}}.", a:"sw:color", v:"Groen", h:"Het lijstje met kleuren in het blok Opmaak."},
+   {t:"Klik op [[OK]].", a:"sw:ok", h:"Rechtsonder in het venster."}
  ]}
 ];
 
@@ -503,7 +623,7 @@ let G = null; // spel in een level
 
 function save(){ if(S.name) store.set("lk:"+norm(S.name), S.prog); store.set("lk:last", {name:S.name, klas:S.klas}); }
 function total(){ return Object.values(S.prog.best).reduce((a,b)=>a+(b.score||0),0); }
-function done(){ return Math.max(0, ...Object.keys(S.prog.best).map(Number).filter(k=>S.prog.best[k]), 0); }
+function done(){ return Object.keys(S.prog.best).map(Number).filter(k=>S.prog.best[k] && k<=LEVELS.length); }
 function maxPts(L){ return L.steps.filter(s=>!s.info).length*10; }
 function starsFor(score, max){ const r=score/max; return r>=.9?3: r>=.7?2: 1; }
 function starHTML(n, cls="stars"){ return `<span class="${cls}" aria-label="${n} van 3 sterren">${[1,2,3].map(i=>i<=n?"★":`<span class="off">★</span>`).join("")}</span>`; }
@@ -514,7 +634,7 @@ function header(){
   const pts = total();
   return `<div class="top"><div class="brand"><svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><rect x="2" y="4" width="34" height="30" rx="6" fill="#2B579A"/><path d="M9 13h4l2.5 10 3-10h3l3 10 2.5-10h4l-4.8 14h-3.4L19 17.5 16.3 27h-3.4z" fill="#fff"/></svg>
     <div><h1>Word stap voor stap</h1>${window.self===window.top?`<a class="tag back" href="../">← Oefenhoek Informatica</a>`:`<div class="tag">Oefenhoek Informatica</div>`}</div></div>
-    ${S.name?`<div class="chips"><span class="chip">${esc(S.name)}${S.klas?" · "+esc(S.klas):""}</span><span class="chip pts">Punten <b>${pts}</b></span><span class="chip">Levels <b>${done()}/${LEVELS.length}</b></span></div>`:""}</div>`;
+    ${S.name?`<div class="chips"><span class="chip">${esc(S.name)}${S.klas?" · "+esc(S.klas):""}</span><span class="chip pts">Punten <b>${pts}</b></span><span class="chip">Levels <b>${done().length}/${LEVELS.length}</b></span></div>`:""}</div>`;
 }
 function footer(){
   return `<div class="foot muted"><span>Oefenomgeving: lijkt op Word, maar is het niet. Probeer daarna alles ook in het echte Word.</span><button class="linkbtn" data-go="teacher">Voor de leerkracht: code controleren</button></div>`;
@@ -553,28 +673,33 @@ function renderStart(){
     if(code){
       const r = readCode(name, code);
       if(!r){ $("#err").textContent="Deze code klopt niet bij deze naam. Kijk je naam en code na, of laat het vak leeg."; return; }
-      for(let i=1;i<=r.lvl;i++) if(!S.prog.best[i]) S.prog.best[i]={score:0, stars:0, fromCode:true};
+      for(const i of r.levels) if(!S.prog.best[i]) S.prog.best[i]={score:0, stars:0, fromCode:true};
       const known = Object.entries(S.prog.best).filter(([k,v])=>!v.fromCode).reduce((a,[k,v])=>a+v.score,0);
       const codeLv = Object.entries(S.prog.best).filter(([k,v])=>v.fromCode);
       if(codeLv.length){ const rest=Math.max(0,r.score-known); codeLv.forEach(([k,v],i)=>v.score = i===0?rest:0); }
-      S.prog.unlocked = Math.max(S.prog.unlocked, Math.min(LEVELS.length, r.lvl+1));
+      S.prog.unlocked = Math.max(S.prog.unlocked, Math.min(LEVELS.length, Math.max(...r.levels)+1));
     }
     save(); S.screen="map"; render();
   });
 }
 const CHAPTERS = [
   {name:"Teken- en alineaopmaak", levels:[1,2,3,4,5,6,7,8]},
-  {name:"Stijlen", levels:[]},
+  {name:"Stijlen", levels:[10,11,12]},
   {name:"Opsomming en nummering", levels:[9]},
   {name:"Tabellen", levels:[]}
 ];
+function chapterOf(n){ return CHAPTERS.findIndex(c=>c.levels.includes(n)); }
+function lvLabel(n){ const L=LEVELS[n-1]; if(L.boss) return "Eindopdracht"; const ci=chapterOf(n); return ci<0? "Level "+n : `Level ${ci+1}.${CHAPTERS[ci].levels.indexOf(n)+1}`; }
+function isOpen(n){ const ci=chapterOf(n); if(ci<0) return false; const lv=CHAPTERS[ci].levels, i=lv.indexOf(n);
+  if(i>0) return !!S.prog.best[lv[i-1]]; if(ci===0) return true; return !!S.prog.best[8]; }
+function nextOf(n){ const order=CHAPTERS.flatMap(c=>c.levels); const i=order.indexOf(n); return i>=0 && i<order.length-1? order[i+1] : null; }
 function levelCard(n){
-  const L=LEVELS[n-1], b=S.prog.best[n], open=n<=S.prog.unlocked;
-  return `<button class="lvl" data-lvl="${n}" ${open?"":"disabled"}><span class="num">${L.boss?"Eindopdracht":"Level "+n}${open?"":" · op slot"}</span><h3>${esc(L.name)}</h3><span class="d">${esc(L.d)}</span>
+  const L=LEVELS[n-1], b=S.prog.best[n], open=isOpen(n);
+  return `<button class="lvl" data-lvl="${n}" ${open?"":"disabled"}><span class="num">${lvLabel(n)}${open?"":" · op slot"}</span><h3>${esc(L.name)}</h3><span class="d">${esc(L.d)}</span>
       <span style="display:flex;justify-content:space-between;align-items:center">${starHTML(b?b.stars:0)}<span class="muted" style="font-size:.85rem">${b&&b.fromCode?"Gedaan (via code)":b&&b.score?b.score+" / "+maxPts(L)+" ptn":L.steps.filter(s=>!s.info).length+" stappen"}</span></span></button>`;
 }
 function renderMap(){
-  const code = done()? makeCode(S.name, done(), total()) : "";
+  const code = done().length? makeCode(S.name, done(), total()) : "";
   app.innerHTML = header() + `<div class="card codebox" style="justify-content:space-between">
     <div><h2 style="font-size:1.5rem">Kies een level</h2><p class="muted" style="margin:4px 0 0">Speel de levels in volgorde. Je mag een level altijd opnieuw spelen om meer sterren te halen.</p></div>
     ${code?`<div><div class="muted" style="font-size:.85rem">Jouw code om verder te spelen</div><span class="code">${code}</span></div>`:""}</div>
@@ -588,7 +713,7 @@ function renderMap(){
 /* ---------- het spel ---------- */
 function startLevel(n){
   const L = LEVELS[n-1];
-  const doc = L.doc==="tiramisu"? tiramisuDoc() : freshDoc();
+  const doc = ({tiramisu:tiramisuDoc, films:filmsDoc, netflix:netflixDoc, avatar:avatarDoc}[L.doc] || freshDoc)();
   if(L.preset==="kwast"){ Object.assign(doc.paras[2].s, SUB_STYLE); Object.assign(doc.paras[3].s, BODY_STYLE); doc.margins={boven:2,onder:2,links:2,rechts:2}; }
   if(n>=6 && !L.preset){ doc.margins={boven:2,onder:2,links:2,rechts:2}; }
   G = { n, L, i:0, miss:0, score:0, errors:0, doc, ui:{tab:"start", menu:null, dialog:null, dlg:{}, sel:null, marks:n>1, kwast:0, ctxPos:null}, msg:null, pop:"" };
@@ -601,14 +726,16 @@ function renderPlay(){
   const st = step(), L=G.L;
   const real = L.steps.filter(s=>!s.info).length, doneSteps = L.steps.slice(0,G.i).filter(s=>!s.info).length;
   app.innerHTML = header() + `<div class="card mission">
-    <div style="min-width:0"><div class="stepline"><b style="color:var(--word)">${L.boss?"Eindopdracht":"Level "+G.n}: ${esc(L.name)}</b><span>Stap ${Math.min(doneSteps+1,real)} van ${real}</span><span class="bar" aria-hidden="true"><i style="width:${doneSteps/real*100}%"></i></span></div>
-      <div class="say" id="say">${st.info? st.info : fmt(st.t, L.boss)}</div>
+    <div style="min-width:0"><div class="stepline"><b style="color:var(--word)">${lvLabel(G.n)}: ${esc(L.name)}</b><span>Stap ${Math.min(doneSteps+1,real)} van ${real}</span><span class="bar" aria-hidden="true"><i style="width:${doneSteps/real*100}%"></i></span></div>
+      <div class="say" id="say">${st.info? st.info : st.quiz? fmt(st.quiz) : fmt(st.t, L.boss)}</div>
+      ${st.quiz?`<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-quiz="lint" data-name="Lint">Via het lint</button><button class="btn" data-quiz="stijl" data-name="Stijl">Met een stijl</button></div>`:""}
       ${st.info?`<div style="margin-top:12px"><button class="btn" id="next">Verder</button></div>`:""}
       <div class="fb ${G.msg?"show "+G.msg.k:""}" id="fb" role="status">${G.msg?G.msg.h:""}</div></div>
     <div class="side"><span class="chip pts">Dit level <b>${G.score}</b></span><span class="pop" id="pop">${G.pop}</span><button class="btn ghost small" data-go="map">Stoppen</button></div></div>
     ${wordHTML()}` + footer();
   G.pop="";
   if(st.info) $("#next").addEventListener("click", ()=>{ G.msg=null; advance(); });
+  app.querySelectorAll("[data-quiz]").forEach(b=>b.addEventListener("click", ()=>act2("quiz:"+b.dataset.quiz, undefined, b)));
   bindWord();
   if(!st.info && G.miss>=2) markTarget();
   const pop=$("#pop"); if(pop.textContent){ pop.classList.add("anim"); }
@@ -658,7 +785,7 @@ function ribbonStart(){
        ${B("btn:regelafstand","Regel- en alinea-afstand",I.line)}${B("btn:arcering","Arcering",'<svg viewBox="0 0 16 16"><path d="M3 10 9 4l4 4-6 6z" fill="#fff" stroke="#333"/><rect x="1" y="13" width="14" height="2.5" fill="#FFFF00"/></svg>')}
        <span class="split">${B("btn:rand","Rand",I.border)}${B("menu:randen","Randen: pijltje (meer randen)","▾","rb arrow")}</span></div></div>`, "launch:alinea")
    + grp("Stijlen", `<div class="stylegal">${[["standaard","Standaard","AaBbCcDd",""],["geen-afstand","Geen afstand","AaBbCcDd",""],["kop1","Kop 1","AaBbCc","color:#2F5496;font-size:14px"],["kop2","Kop 2","AaBbCcD","color:#2F5496;font-size:12px"],["titel","Titel","AaB","font-size:18px"]]
-      .map(([k,n,t,c])=>B("style:"+k,"Stijl "+n,`<span style="${c}">${t}</span><span class="sm">${n}</span>`)).join("")}</div>`)
+      .map(([k,n,t,c])=>B("style:"+k,"Stijl "+n,`<span style="${c}">${t}</span><span class="sm">${n}</span>`,"rb"+(selP()&&selP().st===k?" on":""))).join("")}</div>`, "launch:stijlen")
    + grp("Bewerken", `<div class="col">${B("btn:zoeken","Zoeken","Zoeken")}${B("btn:vervangen","Vervangen","Vervangen")}${B("btn:selecteren","Selecteren","Selecteren ▾")}</div>`)
    + `<datalist id="dl-fonts">${fontOpts}</datalist><datalist id="dl-sizes">${sizeOpts}</datalist>`;
 }
@@ -702,6 +829,10 @@ function menuHTML(){
   if(m==="nummering"){
     return `<div class="menu" data-for="menu:nummering"><div class="mh">Nummeringsbibliotheek</div><div class="effects" style="grid-template-columns:repeat(3,64px)">${NUMFMTS.map(([k,n])=>`<button class="fx" data-act="num" data-val="${k}" data-name="Nummering ${esc(n)}" title="Nummering ${esc(n)}" aria-label="Nummering ${esc(n)}" style="width:64px;height:64px;font-size:11px;font-weight:400;line-height:1.5;text-align:left;padding:4px 6px">${k==="geen"?"Geen":[0,1,2].map(i=>numLabel(k,i)+" ——").join("<br>")}</button>`).join("")}</div><div class="sep"></div>${B("btn:nieuwe-nummering","Nieuwe getalnotatie definiëren…","Nieuwe getalnotatie definiëren…","mi")}</div>`;
   }
+  if(m==="stylectx"){
+    const c=G.ui.ctxPos||{x:600,y:150};
+    return `<div class="menu" data-ctx="1" style="left:${c.x}px;top:${c.y}px;width:290px">${B("ctxi:bijwerken","Bijwerken zodat dit overeenkomt met selectie","Bijwerken zodat dit overeenkomt met selectie","mi")}${B("stijl:wijzigen","Wijzigen…","Wijzigen…","mi")}${B("ctxi:alles","Alle exemplaren selecteren","Alle exemplaren selecteren","mi")}${B("ctxi:naam","Naam wijzigen…","Naam wijzigen…","mi")}${B("ctxi:verwijder","Verwijderen uit stijlgalerie","Verwijderen uit stijlgalerie","mi")}</div>`;
+  }
   if(m==="ctx"){
     const c=G.ui.ctxPos||{x:200,y:200};
     return `<div class="menu" data-ctx="1" style="left:${c.x}px;top:${c.y}px;width:230px">${[["knippen","Knippen"],["kopieren","Kopiëren"],["plakken","Plakopties"]].map(([k,n])=>B("ctxi:"+k,n,n,"mi")).join("")}<div class="sep"></div>
@@ -733,7 +864,33 @@ function dialogHTML(){
       <label for="li-ind">Tekstinspringing:</label><input id="li-ind" data-act="li:ind" data-name="Tekstinspringing" value="${f(v.lind)} cm">
       <label>Gevolgd door:</label><select disabled><option>Tabteken</option></select></fieldset></div>
     <div class="df">${B("li:ok","OK","OK","db primary")}${B("li:x","Annuleren","Annuleren","db")}</div></div></div>`;
-  if(d==="alinea"){
+  if(d==="alinea") return alineaDlg(v);
+  if(d==="stijl") return stijlDlg(v) + (G.ui.sub==="alinea"? alineaDlg(G.ui.dlg2) : "");
+  return "";
+}
+function stijlDlg(v){
+  const key=G.ui.dlgStyle, nm=STYLENAMES[key]||key, f=x=>String(x).replace(".",",");
+  const colorName = Object.keys(SWCOLORS).find(n=>SWCOLORS[n].toLowerCase()===String(v.color).toLowerCase() && n!=="Automatisch") || "Automatisch";
+  const al=[["left","Links uitlijnen"],["center","Centreren"],["right","Rechts uitlijnen"],["justify","Uitvullen"]];
+  return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Stijl wijzigen" style="width:min(470px,96%)"><div class="dt"><span>Stijl wijzigen</span>${B("sw:x","Sluiten (kruisje)","✕","db")}</div>
+    <div class="dc"><fieldset style="grid-template-columns:auto 1fr"><legend>Eigenschappen</legend>
+      <label>Naam:</label><input value="${esc(nm)}" disabled><label>Stijl gebaseerd op:</label><input value="${key==="standaard"?"(geen stijl)":"Standaard"}" disabled></fieldset>
+    <fieldset style="display:flex;flex-wrap:wrap;gap:6px;align-items:center"><legend>Opmaak</legend>
+      <input class="combo font" style="width:140px" list="dl-fonts2" data-act="sw:font" data-name="Lettertype (stijl)" aria-label="Lettertype" value="${esc(v.font)}">
+      <input class="combo size" style="width:52px" list="dl-sizes2" data-act="sw:size" data-name="Tekengrootte (stijl)" aria-label="Tekengrootte" value="${f(v.size)}">
+      ${B("sw:bold","Vet (B)",'<span class="gl">B</span>',"rb"+(v.bold?" on":""))}${B("sw:italic","Cursief (I)",'<span class="gl" style="font-style:italic">I</span>',"rb"+(v.italic?" on":""))}${B("sw:underline","Onderstrepen (U)",'<span class="gl" style="text-decoration:underline">U</span>',"rb"+(v.underline?" on":""))}
+      <select data-act="sw:color" data-name="Tekstkleur (stijl)" aria-label="Tekstkleur" style="width:120px">${Object.keys(SWCOLORS).map(n=>`<option ${n===colorName?"selected":""}>${n}</option>`).join("")}</select>
+      <span style="flex-basis:100%;height:0"></span>${al.map(([a,n])=>B("sw:align:"+a,n,I.al({left:"links",center:"centreren",right:"rechts",justify:"uitvullen"}[a]),"rb"+(v.align===a?" on":""))).join("")}
+    </fieldset>
+    <div class="preview" style="justify-content:${{left:"flex-start",center:"center",right:"flex-end",justify:"flex-start"}[v.align]};padding:0 10px"><span style="font-family:${FONTS[v.font]||v.font};font-size:${Math.min(v.size,20)*1.2}px;font-weight:${v.bold?700:400};font-style:${v.italic?"italic":"normal"};color:${v.color}">${esc(nm)} – voorbeeld</span></div>
+    <datalist id="dl-fonts2">${Object.keys(FONTS).map(x=>`<option value="${x}">`).join("")}</datalist><datalist id="dl-sizes2">${SIZES.map(z=>`<option value="${String(z).replace(".",",")}">`).join("")}</datalist></div>
+    <div class="df" style="justify-content:space-between;position:relative">${B("sw:opmaak","Opmaak (knop linksonder)","Opmaak ▾","db")}
+      ${G.ui.swMenu?`<div class="menu" style="left:14px;bottom:40px;top:auto;position:absolute">${[["lettertype","Lettertype…"],["alinea","Alinea…"],["tabs","Tabs…"],["rand","Rand…"],["taal","Taal…"],["nummering","Nummering…"]].map(([k,n])=>B("sw:"+k,n,n,"mi")).join("")}</div>`:""}
+      <span style="display:flex;gap:8px">${B("sw:ok","OK","OK","db primary")}${B("sw:x","Annuleren","Annuleren","db")}</span></div></div></div>`;
+}
+function alineaDlg(v){
+  const f = x=> String(x).replace(".",",");
+  {
     const sel=(id,act,name,opts,val)=>`<select id="${id}" data-act="${act}" data-name="${name}">${opts.map(o=>`<option ${o===val?"selected":""}>${o}</option>`).join("")}</select>`;
     return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Alinea"><div class="dt"><span>Alinea</span>${B("al:x","Sluiten (kruisje)","✕","db")}</div>
     <div class="dtabs"><span class="on">Inspringingen en afstand</span><span>Regel- en pagina-einden</span></div><div class="dc">
@@ -804,6 +961,9 @@ function bindWord(){
     act2(act, el.dataset.val, el);
   });
   w.addEventListener("contextmenu", e=>{
+    const sg=e.target.closest('[data-act^="style:"]');
+    if(sg){ e.preventDefault(); const wb0=w.getBoundingClientRect(); G.ui._ctxNext={x:Math.min(e.clientX-wb0.left, wb0.width-300), y:e.clientY-wb0.top};
+      act2("stylectx:"+sg.dataset.act.slice(6), undefined, sg, true); return; }
     const el=e.target.closest(".p[data-act]"); if(!el) return;
     e.preventDefault();
     const wb=w.getBoundingClientRect(); G.ui._ctxNext={x:Math.min(e.clientX-wb.left, wb.width-240), y:e.clientY-wb.top};
@@ -851,7 +1011,7 @@ function act2(act, val, el, right){
   } else {
     G.miss++; G.errors++;
     const wrongName = nameOf(act,val,el);
-    const what = (st.a.startsWith("ctx:") && act.startsWith("sel:"))? `Dat was een gewone klik met de <b>linkermuisknop</b>. Gebruik de <b>rechtermuisknop</b>.` : (right && !st.a.startsWith("ctx:"))? `Dat was een klik met de <b>rechtermuisknop</b>. Hier heb je de gewone (linker)muisknop nodig.` : (st.a===act && st.v!==undefined)? `Dat is niet de juiste waarde. Typ of kies <b>${esc(String(st.v).replace(".",","))}</b>.` : `Dat was <b>${esc(wrongName)}</b>. Je zoekt iets anders.`;
+    const what = st.quiz? `Dat klopt niet.` : ((st.a.startsWith("ctx:") && act.startsWith("sel:")) || (st.a.startsWith("stylectx:") && act.startsWith("style:")))? `Dat was een gewone klik met de <b>linkermuisknop</b>. Gebruik de <b>rechtermuisknop</b>.` : (right && !/^(ctx|stylectx):/.test(st.a))? `Dat was een klik met de <b>rechtermuisknop</b>. Hier heb je de gewone (linker)muisknop nodig.` : (st.a===act && st.v!==undefined)? `Dat is niet de juiste waarde. Typ of kies <b>${esc(String(st.v).replace(".",","))}</b>.` : `Dat was <b>${esc(wrongName)}</b>. Je zoekt iets anders.`;
     G.msg = {k: G.miss>=1? "hint":"bad", h: `${what}<br><b>Tip:</b> ${esc(st.h)}${G.miss>=2?" <b>Kijk: de juiste plaats knippert.</b>":""}`};
     renderPlay();
   }
@@ -871,6 +1031,22 @@ function apply1(act, val){
   const ui=G.ui, p=selP(), s=p&&p.s;
   const [k, sub] = act.split(":");
   if(k==="tab"){ ui.tab=sub; ui.menu=null; return; }
+  if(k==="style"){ selList().forEach(x=>{ x.st=sub; for(const kk of Object.keys(x.ov)) delete x.ov[kk]; }); return; }
+  if(k==="stylectx"){ ui.menu="stylectx"; ui.ctxPos=ui._ctxNext; ui.styleKey=sub; return; }
+  if(act==="stijl:wijzigen"){ ui.menu=null; ui.dialog="stijl"; ui.dlgStyle=ui.styleKey; ui.dlg=resolvedStyle(G.doc, ui.styleKey); ui.sub=null; ui.swMenu=false; return; }
+  if(k==="sw"){ const d=ui.dlg; const rest=act.split(":").slice(2).join(":");
+    if(sub==="ok"){ const key=ui.dlgStyle, base= key==="standaard"? {...BASE} : resolvedStyle(G.doc,"standaard"), out={};
+      for(const kk in d) if(d[kk]!==base[kk]) out[kk]=d[kk];
+      G.doc.styles[key]=out; ui.dialog=null; ui.swMenu=false; return; }
+    if(sub==="x"){ ui.dialog=null; ui.swMenu=false; return; }
+    if(sub==="font"){ d.font=Object.keys(FONTS).find(f=>f.toLowerCase()===String(val).trim().toLowerCase())||val; return; }
+    if(sub==="size"){ d.size=numOf(val); return; }
+    if(sub==="bold"||sub==="italic"||sub==="underline"){ d[sub]=!d[sub]; return; }
+    if(sub==="color"){ d.color=SWCOLORS[val]||d.color; return; }
+    if(sub==="align"){ d.align=rest; return; }
+    if(sub==="opmaak"){ ui.swMenu=!ui.swMenu; return; }
+    if(sub==="alinea"){ ui.swMenu=false; ui.sub="alinea"; ui.dlg2={...d}; return; }
+    return; }
   if(k==="ctx"){
     if(sub==="lijst"){ ui.menu=null; ui.dialog="lijst"; ui.dlg={lpos:s.lpos, lind:s.lind}; return; }
     ui.sel=sub; ui.menu="ctx"; ui.ctxPos=ui._ctxNext; return; }
@@ -912,9 +1088,9 @@ function apply1(act, val){
   if(k==="pg"){ if(sub==="ok"){ G.doc.margins={...ui.dlg}; ui.dialog=null; return; } if(sub==="x"){ ui.dialog=null; return; } ui.dlg[sub]=numOf(val); return; }
   if(act==="launch:alinea"){ ui.dialog="alinea"; ui.dlg={...s}; return; }
   if(k==="al"){
-    const d=ui.dlg;
-    if(sub==="ok"){ Object.assign(s, d); ui.dialog=null; return; }
-    if(sub==="x"){ ui.dialog=null; return; }
+    const d= ui.sub==="alinea"? ui.dlg2 : ui.dlg;
+    if(sub==="ok"){ if(ui.sub==="alinea"){ Object.assign(ui.dlg, d); ui.sub=null; return; } Object.assign(s, d); ui.dialog=null; return; }
+    if(sub==="x"){ if(ui.sub==="alinea"){ ui.sub=null; return; } ui.dialog=null; return; }
     if(sub==="special"){ d.special= val==="(geen)"?"geen":val; return; }
     if(sub==="line"){ d.line=val; if(val==="Exact"||val==="Ten minste") d.at=d.at>3?d.at:12; if(val==="Meerdere") d.at=1.08; return; }
     if(sub==="align"){ d.align={Links:"left",Gecentreerd:"center",Rechts:"right",Uitgevuld:"justify"}[val]; return; }
@@ -928,6 +1104,8 @@ function advance(){
 }
 function markTarget(){
   const st=step(); let el=document.querySelector(`#word [data-act="${CSS.escape(st.a)}"]`);
+  if(st.quiz) el=document.querySelector(`[data-quiz="${st.a.slice(5)}"]`);
+  if(st.a.startsWith("stylectx:")) el=document.querySelector(`#word [data-act="style:${st.a.slice(9)}"]`);
   if(st.a==="kwast1"||st.a==="kwast2"||st.a==="esc") el=document.querySelector('#word [data-act="kwast"]');
   if(st.a.startsWith("ctx:") && st.a!=="ctx:lijst") el=document.querySelector(`#word [data-act="sel:${st.a.slice(4)}"]`);
   if(st.a==="bullet"||st.a==="num") el=document.querySelector(`#word [data-act="${st.a}"][data-val="${CSS.escape(String(st.v))}"]`);
@@ -944,9 +1122,9 @@ function finish(){
   save(); G.result={stars, max}; S.screen="end"; render(); window.scrollTo({top:0});
 }
 function renderEnd(){
-  const n=G.n, code=makeCode(S.name, done(), total()), last=n===LEVELS.length;
+  const n=G.n, code=makeCode(S.name, done(), total()), nxt=nextOf(n), last=!nxt;
   app.innerHTML = header() + `<div class="card done">
-    <span class="muted" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">${G.L.boss?"Eindopdracht":"Level "+n} afgewerkt</span>
+    <span class="muted" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">${lvLabel(n)} afgewerkt</span>
     <h2 style="font-size:2rem">${esc(G.L.name)}</h2>
     ${starHTML(G.result.stars,"bigstars")}
     <div class="stats"><div><span class="muted">Punten</span><b>${G.score} / ${G.result.max}</b></div><div><span class="muted">Foutjes</span><b>${G.errors}</b></div><div><span class="muted">Totaal</span><b>${total()}</b></div></div>
@@ -957,7 +1135,7 @@ function renderEnd(){
   $("#copy").addEventListener("click", ()=>{ const t=$("#code").textContent;
     try{ navigator.clipboard.writeText(t).then(()=>{$("#copy").textContent="Gekopieerd";}, sel); }catch(e){ sel(); }
     function sel(){ const r=document.createRange(); r.selectNodeContents($("#code")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("#copy").textContent="Druk op Ctrl+C"; } });
-  if(!last) $("#nxt").addEventListener("click", ()=>startLevel(n+1));
+  if(!last) $("#nxt").addEventListener("click", ()=>startLevel(nxt));
   $("#again").addEventListener("click", ()=>startLevel(n));
 }
 function renderTeacher(){
@@ -967,12 +1145,12 @@ function renderTeacher(){
     <label class="f" for="t-name">Naam leerling<input class="txt" id="t-name" autocomplete="off"></label>
     <label class="f" for="t-code">Code<input class="txt" id="t-code" autocomplete="off" placeholder="bv. 3-240-K7QZ"></label>
     <button class="btn" type="submit">Controleer</button><div id="t-res"></div></form>
-    <details><summary>Wat betekent de code?</summary><p class="muted">Eerste getal: het hoogste level dat afgewerkt is (van ${LEVELS.length}). Tweede getal: het totaal aantal punten over alle levels. Per stap zijn er 10 punten te verdienen: 10 bij een juiste eerste klik, 6 na één fout, 3 na meer fouten. De levels: ${LEVELS.map((L,i)=>`${i+1}. ${esc(L.name)} (${maxPts(L)} ptn)`).join(" · ")}.</p></details>
+    <details><summary>Wat betekent de code?</summary><p class="muted">Eerste deel: welke levels afgewerkt zijn (de controle hierboven zet dat voor je om). Tweede getal: het totaal aantal punten over alle levels. Per stap zijn er 10 punten te verdienen: 10 bij een juiste eerste klik, 6 na één fout, 3 na meer fouten. De levels (nummer in de code → level in het spel): ${LEVELS.map((L,i)=>`${i+1} = ${lvLabel(i+1)} ${esc(L.name)} (${maxPts(L)} ptn)`).join(" · ")}.</p></details>
     <div><button class="btn ghost small" data-go="${S.name?"map":"start"}">Terug</button></div></div>` + footer();
   $("#f-t").addEventListener("submit", e=>{ e.preventDefault();
     const r=readCode($("#t-name").value, $("#t-code").value), out=$("#t-res");
     if(r){ out.className="result"; out.style.background="var(--good-bg)"; out.style.color="var(--good)";
-      out.innerHTML=`Geldig. Level ${r.lvl} van ${LEVELS.length} afgewerkt (${esc(LEVELS[r.lvl-1].name)}), ${r.score} punten in totaal.`; }
+      out.innerHTML=`Geldig. ${r.score} punten in totaal. Afgewerkt: `+CHAPTERS.filter(c=>c.levels.length).map(c=>{ const d=c.levels.filter(n=>r.levels.includes(n)); return `<br><b>${esc(c.name)}</b>: ${d.length} van ${c.levels.length}${d.length && d.length<c.levels.length? " ("+d.map(n=>lvLabel(n)).join(", ")+")":""}`; }).join(""); }
     else { out.className="result"; out.style.background="var(--bad-bg)"; out.style.color="var(--bad)"; out.textContent="Deze code past niet bij deze naam. Kijk de schrijfwijze van de naam na."; }
   });
 }
