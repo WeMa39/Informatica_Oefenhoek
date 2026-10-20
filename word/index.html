@@ -70,6 +70,14 @@ label.f{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.95
 .codebox{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .code{font-family:ui-monospace,Consolas,monospace;font-size:1.6rem;font-weight:700;letter-spacing:.08em;background:var(--hint-bg);color:var(--ink);padding:6px 14px;border-radius:10px;border:2px dashed var(--gold)}
 
+/* hoofdstukken */
+.chapter{display:flex;flex-direction:column;gap:10px}
+.chhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--line);padding-bottom:6px}
+.chnum{font-family:var(--display);font-weight:800;color:var(--word);text-transform:uppercase;letter-spacing:.06em;font-size:.85rem}
+.chhead h2{font-size:1.4rem;font-weight:800}
+.chprog{font-size:.88rem;margin-left:auto}
+.soonbox{border:2px dashed var(--line);border-radius:14px;padding:16px;color:var(--muted);font-weight:700}
+
 /* play */
 .mission{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}
 .mission .say{font-size:1.25rem;font-weight:700;line-height:1.35}
@@ -554,14 +562,25 @@ function renderStart(){
     save(); S.screen="map"; render();
   });
 }
+const CHAPTERS = [
+  {name:"Teken- en alineaopmaak", levels:[1,2,3,4,5,6,7,8]},
+  {name:"Stijlen", levels:[]},
+  {name:"Opsomming en nummering", levels:[9]},
+  {name:"Tabellen", levels:[]}
+];
+function levelCard(n){
+  const L=LEVELS[n-1], b=S.prog.best[n], open=n<=S.prog.unlocked;
+  return `<button class="lvl" data-lvl="${n}" ${open?"":"disabled"}><span class="num">${L.boss?"Eindopdracht":"Level "+n}${open?"":" · op slot"}</span><h3>${esc(L.name)}</h3><span class="d">${esc(L.d)}</span>
+      <span style="display:flex;justify-content:space-between;align-items:center">${starHTML(b?b.stars:0)}<span class="muted" style="font-size:.85rem">${b&&b.fromCode?"Gedaan (via code)":b&&b.score?b.score+" / "+maxPts(L)+" ptn":L.steps.filter(s=>!s.info).length+" stappen"}</span></span></button>`;
+}
 function renderMap(){
   const code = done()? makeCode(S.name, done(), total()) : "";
   app.innerHTML = header() + `<div class="card codebox" style="justify-content:space-between">
     <div><h2 style="font-size:1.5rem">Kies een level</h2><p class="muted" style="margin:4px 0 0">Speel de levels in volgorde. Je mag een level altijd opnieuw spelen om meer sterren te halen.</p></div>
     ${code?`<div><div class="muted" style="font-size:.85rem">Jouw code om verder te spelen</div><span class="code">${code}</span></div>`:""}</div>
-    <div class="levels">${LEVELS.map((L,i)=>{const n=i+1, b=S.prog.best[n], open=n<=S.prog.unlocked;
-      return `<button class="lvl" data-lvl="${n}" ${open?"":"disabled"}><span class="num">${L.boss?"Eindopdracht":"Level "+n}${open?"":" · op slot"}</span><h3>${esc(L.name)}</h3><span class="d">${esc(L.d)}</span>
-      <span style="display:flex;justify-content:space-between;align-items:center">${starHTML(b?b.stars:0)}<span class="muted" style="font-size:.85rem">${b&&b.score?b.score+" / "+maxPts(L)+" ptn":L.steps.filter(s=>!s.info).length+" stappen"}</span></span></button>`;}).join("")}</div>
+    ${CHAPTERS.map((c,ci)=>{ const got=c.levels.filter(n=>S.prog.best[n]).length;
+      return `<section class="chapter"><div class="chhead"><span class="chnum">Hoofdstuk ${ci+1}</span><h2>${esc(c.name)}</h2>${c.levels.length?`<span class="muted chprog">${got} van ${c.levels.length} levels gedaan</span>`:""}</div>
+      ${c.levels.length?`<div class="levels">${c.levels.map(levelCard).join("")}</div>`:`<div class="soonbox">Binnenkort: hier komen nieuwe levels.</div>`}</section>`; }).join("")}
     <div><button class="btn ghost small" data-go="start">Andere speler</button></div>` + footer();
   app.querySelectorAll("[data-lvl]").forEach(b=>b.addEventListener("click",()=>startLevel(+b.dataset.lvl)));
 }
