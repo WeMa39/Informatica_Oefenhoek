@@ -40,6 +40,7 @@ button{font:inherit;cursor:pointer}
 .chip b{font-variant-numeric:tabular-nums}
 .chip.pts b{color:var(--gold-ink)}
 .btn{border:0;border-radius:10px;padding:10px 18px;font-weight:700;background:var(--word);color:var(--on-word)}
+a.btn{display:inline-block;text-decoration:none}
 .btn.ghost{background:transparent;color:var(--word);border:2px solid var(--word)}
 .btn.small{padding:6px 12px;font-size:.9rem}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
@@ -694,9 +695,13 @@ const CHAPTERS = [
 ];
 function chapterByCode(c){ c=String(c).toUpperCase().replace(/[\s-]/g,""); return CHAPTERS.findIndex(ch=>ch.code===c); }
 function openChapter(ci){ S.prog.open=[...new Set([...(S.prog.open||[]), ci])]; }
-/* ---------- resultaten naar een Google Formulier (de leerkracht ziet ze in een Google Sheet / Excel) ----------
-   Laat url leeg om de knop Verzenden te verbergen. */
-const SEND = { url:"", naam:"", klas:"", oefening:"", score:"", sterren:"", fouten:"" };
+/* ---------- resultaten naar het Microsoft Formulier van de leerkracht (antwoorden openen in Excel) ----------
+   De knop opent het formulier al ingevuld; de leerling klikt daar nog op Verzenden. Laat url leeg om de knop te verbergen. */
+const SEND = { url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=wH3qjxKF_Eq-VW1TfMsk0dTXxUbVzpNFlRWpZdO0ecpUNlU4VllLME5HTjRXOVZORlRBQlZYSUNNVC4u",
+  naam:"r6d898367e4114917ae8fb3c71d36cd40", klas:"r689bac117801495f82b09a7480b5614d", oefening:"r158faeaa328c46a988dc41bd353e3fa2",
+  score:"rb94ccc6e19104e5d80bee87245761c55", sterren:"rdad37066f57f49398b67790915ae03b5", fouten:"r83fd65a3163e48c1abd8433ac1cdfa71" };
+function sendURL(n){ const v={naam:S.name, klas:S.klas, oefening:`${lvLabel(n)} ${G.L.name}`, score:`${G.score} / ${G.result.max}`, sterren:G.result.stars, fouten:G.errors};
+  return SEND.url + Object.keys(v).filter(k=>SEND[k]).map(k=>"&"+SEND[k]+"="+encodeURIComponent(v[k])).join(""); }
 function chapterOf(n){ return CHAPTERS.findIndex(c=>c.levels.includes(n)); }
 function lvLabel(n){ const L=LEVELS[n-1]; if(L.boss) return "Eindopdracht"; const ci=chapterOf(n); return ci<0? "Level "+n : `Level ${ci+1}.${CHAPTERS[ci].levels.indexOf(n)+1}`; }
 function isOpen(n){ const ci=chapterOf(n); if(ci<0) return false; const lv=CHAPTERS[ci].levels, i=lv.indexOf(n);
@@ -1146,19 +1151,13 @@ function renderEnd(){
     <div><div class="muted" style="margin-bottom:6px">Jouw code (lever die in op Teams, en bewaar hem om volgende keer verder te spelen):</div>
       <div class="codebox"><span class="code" id="code">${code}</span><button class="btn ghost small" id="copy">Kopieer code</button></div></div>
     <p class="muted" style="margin:0">${G.result.stars<3?"Wil je meer sterren? Speel het level gerust opnieuw.":"Drie sterren! Je kent dit nu."} ${last?"Je hebt alle levels gedaan. Probeer het nu in het echte Word!":"Probeer straks hetzelfde ook eens in het echte Word."}</p>
-    ${SEND.url?`<div class="codebox"><button class="btn" id="send">Verzenden naar de leerkracht</button><span class="muted" id="sendmsg">Klik om je score door te sturen.</span></div>`:""}
+    ${SEND.url?`<div class="codebox"><a class="btn" id="send" href="${esc(sendURL(n))}" target="_blank" rel="noopener">Verzenden naar de leerkracht</a><span class="muted" id="sendmsg">Er opent een formulier dat al ingevuld is. Klik daar onderaan op <b>Verzenden</b>.</span></div>`:""}
     <div style="display:flex;gap:10px;flex-wrap:wrap">${!last?`<button class="btn${SEND.url?" ghost":""}" id="nxt">Volgend level</button>`:""}<button class="btn ghost" id="again">Opnieuw spelen</button><button class="btn ghost" data-go="map">Naar de levels</button></div></div>` + footer();
   $("#copy").addEventListener("click", ()=>{ const t=$("#code").textContent;
     try{ navigator.clipboard.writeText(t).then(()=>{$("#copy").textContent="Gekopieerd";}, sel); }catch(e){ sel(); }
     function sel(){ const r=document.createRange(); r.selectNodeContents($("#code")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("#copy").textContent="Druk op Ctrl+C"; } });
   if(!last) $("#nxt").addEventListener("click", ()=>startLevel(nxt));
-  if(SEND.url) $("#send").addEventListener("click", ()=>{
-    const f=new URLSearchParams(), put=(k,v)=>{ if(SEND[k]) f.append(SEND[k], v); };
-    put("naam",S.name); put("klas",S.klas); put("oefening",`${lvLabel(n)} ${G.L.name}`); put("score",`${G.score} / ${G.result.max}`); put("sterren",G.result.stars); put("fouten",G.errors);
-    $("#send").disabled=true; $("#sendmsg").textContent="Bezig met verzenden…";
-    fetch(SEND.url,{method:"POST",mode:"no-cors",body:f}).then(()=>{ $("#send").textContent="Verzonden ✓"; $("#sendmsg").textContent="Je leerkracht heeft je score gekregen."; },
-      ()=>{ $("#send").disabled=false; $("#sendmsg").textContent="Verzenden lukte niet. Kijk of je internet hebt en probeer opnieuw."; });
-  });
+  if(SEND.url) $("#send").addEventListener("click", ()=>{ $("#send").textContent="Formulier geopend ✓"; $("#sendmsg").innerHTML="Vergeet niet in het formulier op <b>Verzenden</b> te klikken. Daarna mag je dat tabblad sluiten."; });
   $("#again").addEventListener("click", ()=>startLevel(n));
 }
 function renderTeacher(){
