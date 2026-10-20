@@ -1,0 +1,966 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0">
+<title>Word stap voor stap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=Stardos+Stencil:wght@700&display=swap">
+<style>
+/* Layout: spelkader met missiekaart boven, daaronder een nagebouwd Word-venster dat altijd licht blijft (zoals echt Word). */
+:root{
+  --bg:#EEF2F8; --panel:#FFFFFF; --ink:#16233A; --muted:#55627A; --line:#D3DAE6;
+  --word:#2B579A; --word-deep:#1E3F73; --gold:#F2B705; --gold-ink:#5A4300;
+  --on-word:#FFFFFF; --good:#1E7B45; --good-bg:#DDF3E5; --bad:#B3261E; --bad-bg:#FBE3E1; --hint-bg:#FFF4CC;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --ui:"Segoe UI", "Selawik", system-ui, -apple-system, sans-serif;
+  /* Word-venster: bewust altijd licht */
+  --w-bg:#F3F3F3; --w-rib:#FAFAFA; --w-ink:#262626; --w-line:#D6D6D6; --w-hover:#E1E9F5; --w-on:#C5D6EE; --w-canvas:#E6E6E6;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1726; --panel:#18233A; --ink:#E8EEF8; --muted:#A3B0C6; --line:#2C3B57;
+  --word:#7EA6E8; --word-deep:#A9C4F0; --gold:#F5C83A; --gold-ink:#F5C83A;
+  --on-word:#0F1726; --good:#6FD39A; --good-bg:#173A2A; --bad:#FF8A80; --bad-bg:#3D1C1C; --hint-bg:#3A3215; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1726; --panel:#18233A; --ink:#E8EEF8; --muted:#A3B0C6; --line:#2C3B57;
+  --word:#7EA6E8; --word-deep:#A9C4F0; --gold:#F5C83A; --gold-ink:#F5C83A;
+  --on-word:#0F1726; --good:#6FD39A; --good-bg:#173A2A; --bad:#FF8A80; --bad-bg:#3D1C1C; --hint-bg:#3A3215; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:14px 40px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;line-height:1.1}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand h1{font-size:1.7rem;font-weight:800;letter-spacing:-.01em}
+.brand a.back{text-decoration:none;color:var(--word)}
+.brand a.back:hover{text-decoration:underline}
+.brand .tag{font-size:.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.9rem;display:flex;gap:6px;align-items:center}
+.chip b{font-variant-numeric:tabular-nums}
+.chip.pts b{color:var(--gold-ink)}
+.btn{border:0;border-radius:10px;padding:10px 18px;font-weight:700;background:var(--word);color:var(--on-word)}
+.btn.ghost{background:transparent;color:var(--word);border:2px solid var(--word)}
+.btn.small{padding:6px 12px;font-size:.9rem}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.muted{color:var(--muted)}
+input.txt{font:inherit;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+label.f{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.95rem}
+
+/* start */
+.start{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+@media (max-width:760px){.start{grid-template-columns:1fr}}
+.start h2{font-size:2.2rem;font-weight:800}
+.start form{display:flex;flex-direction:column;gap:12px}
+.err{color:var(--bad);font-weight:700;min-height:1.2em}
+.rules{display:grid;gap:8px;margin:12px 0 0;padding:0;list-style:none}
+.rules li{display:flex;gap:10px;align-items:flex-start}
+.rules .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--word);color:var(--panel);display:grid;place-items:center;font-weight:800;font-size:.85rem}
+
+/* map */
+.levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.lvl{text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;color:var(--ink);min-height:132px}
+.lvl:hover:not([disabled]){border-color:var(--word)}
+.lvl[disabled]{opacity:.5;cursor:not-allowed}
+.lvl .num{font-family:var(--display);font-weight:800;color:var(--word);font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}
+.lvl h3{font-size:1.15rem}
+.lvl .d{font-size:.88rem;color:var(--muted);flex:1}
+.stars{color:var(--gold);letter-spacing:2px;font-size:1.1rem}
+.stars .off{color:var(--line)}
+.codebox{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.code{font-family:ui-monospace,Consolas,monospace;font-size:1.6rem;font-weight:700;letter-spacing:.08em;background:var(--hint-bg);color:var(--ink);padding:6px 14px;border-radius:10px;border:2px dashed var(--gold)}
+
+/* play */
+.mission{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}
+.mission .say{font-size:1.25rem;font-weight:700;line-height:1.35}
+.say .k{color:var(--word);background:color-mix(in srgb,var(--word) 12%,transparent);padding:0 6px;border-radius:6px;white-space:nowrap}
+.say .v{background:var(--hint-bg);padding:0 6px;border-radius:6px;white-space:nowrap}
+.stepline{display:flex;gap:10px;align-items:center;font-size:.9rem;color:var(--muted);margin-bottom:6px;flex-wrap:wrap}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;flex:1;min-width:120px}
+.bar i{display:block;height:100%;background:var(--gold);transition:width .3s}
+.fb{margin-top:10px;padding:8px 12px;border-radius:10px;font-size:.98rem;display:none}
+.fb.show{display:block}
+.fb.good{background:var(--good-bg);color:var(--good);font-weight:700}
+.fb.bad{background:var(--bad-bg);color:var(--bad)}
+.fb.hint{background:var(--hint-bg);color:var(--ink)}
+.side{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.pop{font-family:var(--display);font-weight:800;color:var(--gold-ink);font-size:1.4rem;min-height:1.6rem}
+.pop.anim{animation:pop .7s ease-out}
+@keyframes pop{0%{transform:translateY(8px) scale(.8);opacity:0}40%{transform:translateY(0) scale(1.15);opacity:1}100%{transform:none}}
+
+/* ---------- Word-venster ---------- */
+.word{position:relative;border-radius:10px;overflow:hidden;border:1px solid #B9B9B9;background:var(--w-bg);color:var(--w-ink);font-family:var(--ui);font-size:12px;box-shadow:0 6px 24px rgba(16,30,60,.15)}
+.wtitle{background:var(--word-fixed,#2B579A);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:6px 12px;font-size:12px}
+.wtitle .doc{opacity:.95}
+.wtabs{display:flex;gap:2px;background:#2B579A;padding:0 8px;overflow-x:auto}
+.wtab{background:transparent;border:0;color:#fff;padding:6px 12px;font-size:12.5px;border-radius:4px 4px 0 0;white-space:nowrap;font-family:var(--ui)}
+.wtab:hover{background:rgba(255,255,255,.15)}
+.wtab.on{background:var(--w-rib);color:#2B579A;font-weight:600}
+.wtab.file{background:#1E3F73}
+.ribbonwrap{background:var(--w-rib);border-bottom:1px solid var(--w-line);overflow-x:auto}
+.ribbon{display:flex;align-items:stretch;min-height:104px;padding:4px 6px;width:max-content}
+.grp{display:flex;flex-direction:column;border-right:1px solid var(--w-line);padding:2px 8px;position:relative}
+.grp .gb{display:flex;gap:2px;align-items:flex-start;flex:1}
+.grp .gname{font-size:11px;color:#666;text-align:center;padding-top:2px;display:flex;justify-content:center;align-items:center;gap:6px}
+.launch{border:0;background:transparent;width:16px;height:14px;padding:0;color:#555;display:inline-grid;place-items:center;border-radius:2px;position:absolute;right:2px;bottom:2px}
+.launch:hover{background:var(--w-hover)}
+.col{display:flex;flex-direction:column;gap:3px}
+.row{display:flex;gap:2px;align-items:center}
+.rb{border:1px solid transparent;background:transparent;border-radius:3px;color:var(--w-ink);font-family:var(--ui);font-size:12px;display:inline-flex;align-items:center;justify-content:center;gap:3px;min-width:26px;height:26px;padding:0 4px}
+.rb:hover{background:var(--w-hover);border-color:#B9CDE8}
+.rb.on{background:var(--w-on);border-color:#8FB0DC}
+.rb.big{flex-direction:column;height:80px;min-width:48px;padding:4px 6px;font-size:11.5px;line-height:1.1;text-align:center}
+.rb.big svg{width:30px;height:30px}
+.rb.arrow{min-width:12px;padding:0 1px}
+.rb svg{width:16px;height:16px}
+.rb .gl{font-weight:700;font-size:14px;font-family:"Times New Roman",serif}
+.split{display:inline-flex}
+.split .rb:first-child{border-radius:3px 0 0 3px;padding-right:2px}
+.split .rb:last-child{border-radius:0 3px 3px 0}
+.combo{height:24px;border:1px solid #C6C6C6;background:#fff;color:var(--w-ink);font-family:var(--ui);font-size:12px;padding:0 4px;border-radius:2px}
+.combo.font{width:130px}.combo.size{width:46px}
+.stylegal{display:flex;gap:2px}
+.stylegal .rb{flex-direction:column;width:68px;height:62px;border:1px solid #E1E1E1;background:#fff;gap:2px}
+.stylegal .rb .sm{font-size:10px;color:#555}
+.menu{position:absolute;z-index:20;background:#fff;border:1px solid #BDBDBD;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:4px;min-width:170px;color:var(--w-ink);font-family:var(--ui)}
+.menu .mi{display:flex;width:100%;text-align:left;border:0;background:transparent;padding:6px 10px;gap:10px;align-items:center;font-size:12px;color:var(--w-ink);border-radius:2px}
+.menu .mi:hover{background:var(--w-hover)}
+.menu .mi small{color:#666;display:block}
+.menu .sep{height:1px;background:#E1E1E1;margin:4px 0}
+.menu .mh{font-weight:700;font-size:11px;padding:4px 8px;color:#444;background:#F0F0F0}
+.swatches{display:grid;grid-template-columns:repeat(10,18px);gap:2px 4px;padding:6px}
+.sw{width:18px;height:18px;border:1px solid #C8C8C8;padding:0}
+.sw:hover{outline:2px solid #F29436}
+.effects{display:grid;grid-template-columns:repeat(3,44px);gap:6px;padding:8px}
+.fx{width:44px;height:44px;border:1px solid #E1E1E1;background:#fff;font:700 28px/1 "Calibri","Segoe UI",sans-serif;padding:0}
+.fx:hover{border-color:#F29436}
+
+.wbody{display:flex;justify-content:center;background:var(--w-canvas);height:440px;overflow:auto;padding:18px 12px;position:relative}
+.page{background:#fff;width:672px;flex:none;min-height:950px;box-shadow:0 1px 4px rgba(0,0,0,.25);position:relative;transition:padding .35s}
+.page .area{outline:1px dashed #D0D0D0;min-height:300px}
+.page.kwast,.page.kwast .p{cursor:copy}
+.p{cursor:text;border-radius:2px;color:#000;transition:background .15s}
+.p:hover{background:rgba(43,87,154,.06)}
+.p.sel{background:#C9DAF2}
+.mark{color:#5B7DB1;font-family:"Segoe UI",sans-serif;font-weight:400;font-style:normal;text-decoration:none}
+.wstatus{background:#F0F0F0;border-top:1px solid var(--w-line);padding:3px 12px;display:flex;gap:18px;font-size:11px;color:#444;flex-wrap:wrap}
+.wstatus .kw{color:#B35C00;font-weight:700}
+
+/* dialog */
+.dlgback{position:absolute;inset:0;background:rgba(0,0,0,.18);display:grid;place-items:start center;padding-top:20px;z-index:30}
+.dlg{background:#fff;border:1px solid #9A9A9A;box-shadow:0 10px 30px rgba(0,0,0,.3);width:min(430px,94%);font-family:var(--ui);font-size:12px;color:var(--w-ink)}
+.dlg .dt{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #E1E1E1;font-size:13px}
+.dlg .dtabs{display:flex;gap:2px;padding:6px 10px 0}
+.dlg .dtabs span{padding:4px 10px;border:1px solid #CFCFCF;border-bottom:0;background:#F5F5F5}
+.dlg .dtabs span.on{background:#fff;font-weight:600}
+.dlg .dc{padding:10px 14px;border-top:1px solid #CFCFCF;display:flex;flex-direction:column;gap:10px}
+.dlg fieldset{border:0;border-top:1px solid #E1E1E1;padding:6px 0 0;margin:0;display:grid;grid-template-columns:auto 90px auto 110px;gap:6px 10px;align-items:center}
+.dlg legend{font-weight:700;padding-right:6px;color:#2B579A}
+.dlg input,.dlg select{font-family:var(--ui);font-size:12px;height:24px;border:1px solid #ABABAB;padding:0 4px;width:100%;color:var(--w-ink);background:#fff}
+.dlg .df{display:flex;justify-content:flex-end;gap:8px;padding:10px 14px;border-top:1px solid #E1E1E1}
+.dlg .db{min-width:76px;height:26px;border:1px solid #ABABAB;background:#F0F0F0;font-family:var(--ui);font-size:12px;color:var(--w-ink)}
+.dlg .db.primary{border-color:#2B579A}
+.dlg .db:hover{background:var(--w-hover)}
+.preview{border:1px solid #CFCFCF;height:54px;display:flex;align-items:center;justify-content:center;color:#888;font-size:11px}
+
+/* hint highlight */
+.target{animation:glow 1s ease-in-out infinite;position:relative;z-index:5}
+@keyframes glow{0%,100%{box-shadow:0 0 0 3px #F2B705, 0 0 0 7px rgba(242,183,5,.35)}50%{box-shadow:0 0 0 3px #F2B705, 0 0 0 12px rgba(242,183,5,0)}}
+@media (prefers-reduced-motion:reduce){.target{animation:none;box-shadow:0 0 0 4px #F2B705}.pop.anim{animation:none}}
+
+/* end */
+.done{display:grid;gap:14px;justify-items:start}
+.done .bigstars{font-size:3rem;color:var(--gold);letter-spacing:6px}
+.done .bigstars .off{color:var(--line)}
+.stats{display:flex;gap:24px;flex-wrap:wrap}
+.stats div{display:flex;flex-direction:column}
+.stats b{font-family:var(--display);font-size:1.8rem;font-variant-numeric:tabular-nums}
+.foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:.85rem}
+.linkbtn{background:none;border:0;color:var(--word);text-decoration:underline;padding:0}
+.teacher{display:grid;gap:10px;max-width:520px}
+.result{padding:10px 12px;border-radius:10px;font-weight:700}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+"use strict";
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const CM = 32, PT = CM/28.3465;
+
+/* ---------- opslag (enkel gemak: de code is de echte bewaarplaats) ---------- */
+const store = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------- code: level-punten-controle ---------- */
+function hash(s){ let h=5381; for(const c of s) h=((h*33) ^ c.charCodeAt(0)) >>> 0; return h; }
+function norm(n){ return n.toLowerCase().replace(/\s+/g," ").trim(); }
+function makeCode(name, lvl, score){
+  const chk = (hash(norm(name)+"|"+lvl+"|"+score+"|lintkampioen") % 1679616).toString(36).toUpperCase().padStart(4,"0");
+  return `${lvl}-${score}-${chk}`;
+}
+function readCode(name, code){
+  const m = String(code).toUpperCase().replace(/\s/g,"").match(/^(\d+)-(\d+)-([0-9A-Z]{4})$/);
+  if(!m) return null;
+  const lvl=+m[1], score=+m[2];
+  if(lvl<1 || lvl>LEVELS.length) return null;
+  return makeCode(name,lvl,score) === `${lvl}-${score}-${m[3]}` ? {lvl, score} : null;
+}
+
+/* ---------- het document ---------- */
+const BASE = {font:"Calibri", size:11, bold:false, italic:false, underline:false, color:"#000000", align:"left",
+  indL:0, indR:0, special:"geen", by:0, before:0, after:8, line:"Meerdere", at:1.08, border:"", effect:0, list:null, bullet:"rond", numfmt:"1.", lpos:0.63, lind:1.27};
+function freshDoc(){
+  const T = [
+    ["title","5 functies die Steve Jobs in je iPhone verborg"],
+    ["intro","Steve Jobs verborg handige functies in de iPhone. Een expert van een Apple-winkel legt uit hoe je ze vindt."],
+    ["sub","Vergrootglas"],
+    ["body","Dat je kan zoomen met de camera van je iPhone weet iedereen. Maar wist je dat je iPhone ook een vergrootglas heeft? Je zet het aan via Instellingen en Toegankelijkheid."],
+    ["sub","Siri en bijnamen"],
+    ["body","Heb je drie keer 'Marie' in je adresboek? Geef je contacten een bijnaam. Dan weet Siri meteen wie je bedoelt als je 'bel mama' zegt."],
+    ["sub","De muis in je toetsenbord"],
+    ["body","Een typfout verbeteren met je vinger is lastig. Hou de spatiebalk ingedrukt: je toetsenbord wordt dan een muis waarmee je de cursor precies verplaatst."]
+  ];
+  return { margins:{boven:2.5,onder:2.5,links:2.5,rechts:2.5}, paras:T.map((t,i)=>({id:"p"+i, kind:t[0], text:t[1], s:{...BASE}})) };
+}
+function tiramisuDoc(){
+  const T = [["title","Tiramisu"],["sub","Ingrediënten"],
+    ["item","250 g mascarpone","g1"],["item","3 eieren","g1"],["item","75 g suiker","g1"],["item","200 g lange vingers","g1"],["item","2 kopjes sterke koffie","g1"],["item","cacaopoeder","g1"],
+    ["sub","Bereiding"],
+    ["item","Klop de eidooiers met de suiker tot een romig mengsel.","g2"],["item","Roer de mascarpone erdoor.","g2"],["item","Klop het eiwit stijf en spatel het onder het mengsel.","g2"],
+    ["item","Doop de koekjes kort in de koffie en leg ze in een schaal.","g2"],["item","Wissel lagen koekjes en crème af en strooi er cacao over.","g2"]];
+  const doc = { margins:{boven:2,onder:2,links:2,rechts:2}, paras:T.map((t,i)=>({id:"p"+i, kind:t[0], text:t[1], grp:t[2], s:{...BASE}})) };
+  Object.assign(doc.paras[0].s, {size:20, bold:true});
+  doc.paras.filter(x=>x.kind==="sub").forEach(x=>Object.assign(x.s,{bold:true, size:13, before:12}));
+  doc.paras.filter(x=>x.kind==="item").forEach(x=>Object.assign(x.s,{after:0}));
+  return doc;
+}
+const BULLETS = [["geen","Geen"],["rond","Rond opsommingsteken ●"],["open","Open rondje ○"],["vierkant","Vierkant opsommingsteken ■"],["ruit","Ruit ◆"],["vink","Vinkje ✓"],["pijl","Pijl ➢"]];
+const BGLYPH = {rond:"●", open:"○", vierkant:"■", ruit:"◆", vink:"✓", pijl:"➢"};
+const NUMFMTS = [["geen","Geen"],["1.","1. 2. 3."],["1)","1) 2) 3)"],["I.","I. II. III."],["a)","a) b) c)"],["A.","A. B. C."]];
+function numLabel(f, i){ const roman=["I","II","III","IV","V","VI","VII","VIII","IX","X"];
+  if(f==="1.") return (i+1)+"."; if(f==="1)") return (i+1)+")"; if(f==="I.") return roman[i]+".";
+  if(f==="a)") return String.fromCharCode(97+i)+")"; if(f==="A.") return String.fromCharCode(65+i)+"."; return ""; }
+const SUB_STYLE = {font:"Gadugi",size:12,bold:true,color:"#A6A6A6",before:12,after:6,line:"Enkel",border:"onder"};
+const BODY_STYLE = {font:"Calibri",size:10,align:"justify",indL:.5,indR:.5,special:"Eerste regel",by:1.5,line:"Exact",at:15};
+
+const FONTS = {"Calibri":"Calibri, Carlito, 'Segoe UI', sans-serif","Arial":"Arial, Helvetica, sans-serif","Stencil":"Stencil, 'Stardos Stencil', Impact, sans-serif",
+  "Gadugi":"Gadugi, 'Segoe UI', Tahoma, sans-serif","Rockwell":"Rockwell, 'Roboto Slab', Georgia, serif","Times New Roman":"'Times New Roman', Times, serif",
+  "Verdana":"Verdana, Geneva, sans-serif","Comic Sans MS":"'Comic Sans MS', 'Comic Neue', cursive","Elephant":"Elephant, Georgia, serif","Franklin Gothic Book":"'Franklin Gothic Book', 'Libre Franklin', Arial, sans-serif"};
+const SIZES = [8,9,10,10.5,11,12,14,16,18,20,22,24,26,28,36,48,72];
+const EFFECTS = [
+  {n:"Opvulling: zwart, tekstkleur 1; schaduw", c:"#000", css:"text-shadow:2px 2px 2px rgba(0,0,0,.35)"},
+  {n:"Opvulling: blauw, accentkleur 1; schaduw", c:"#4472C4", css:"text-shadow:2px 2px 2px rgba(0,0,0,.35)"},
+  {n:"Opvulling: wit; omtrek: oranje, accentkleur 2; gloed", c:"#fff", css:"-webkit-text-stroke:1px #ED7D31;text-shadow:0 0 6px #F8CBAD"},
+  {n:"Opvulling: grijs, accentkleur 3; scherpe schuine rand", c:"#A5A5A5", css:"text-shadow:1px 1px 0 #7B7B7B,-1px -1px 0 #E0E0E0"},
+  {n:"Opvulling: goud, accentkleur 4; zachte schuine rand", c:"#FFC000", css:"text-shadow:1px 1px 1px #A07800"},
+  {n:"Opvulling: wit; omtrek: blauw, accentkleur 5; schaduw", c:"#fff", css:"-webkit-text-stroke:1px #5B9BD5;text-shadow:2px 2px 2px rgba(0,0,0,.3)"}
+];
+
+/* themakleuren zoals in Word */
+function mix(hex, other, t){ const a=parseInt(hex.slice(1),16), b=parseInt(other.slice(1),16);
+  const ch=(x,y)=>Math.round(x+(y-x)*t); const r=ch(a>>16,b>>16), g=ch(a>>8&255,b>>8&255), bl=ch(a&255,b&255);
+  return "#"+((1<<24)+(r<<16)+(g<<8)+bl).toString(16).slice(1).toUpperCase(); }
+const THEME = [["Wit, Achtergrond 1","#FFFFFF"],["Zwart, Tekst 1","#000000"],["Grijsblauw, Tekst 2","#44546A"],["Grijs, Achtergrond 2","#E7E6E6"],
+  ["Blauw, Accent 1","#4472C4"],["Oranje, Accent 2","#ED7D31"],["Grijs, Accent 3","#A5A5A5"],["Goud, Accent 4","#FFC000"],["Blauw, Accent 5","#5B9BD5"],["Groen, Accent 6","#70AD47"]];
+function swatchRows(){
+  const rows=[THEME.map(([n,c])=>({n,c}))];
+  const white=[["donkerder 5%",.05],["donkerder 15%",.15],["donkerder 25%",.25],["donkerder 35%",.35],["donkerder 50%",.5]];
+  const black=[["lichter 50%",.5],["lichter 35%",.35],["lichter 25%",.25],["lichter 15%",.15],["lichter 5%",.05]];
+  const other=[["lichter 80%","l",.8],["lichter 60%","l",.6],["lichter 40%","l",.4],["donkerder 25%","d",.25],["donkerder 50%","d",.5]];
+  for(let i=0;i<5;i++) rows.push(THEME.map(([n,c],j)=>{
+    if(j===0) return {n:`${n}, ${white[i][0]}`, c:mix(c,"#000000",white[i][1])};
+    if(j===1) return {n:`${n}, ${black[i][0]}`, c:mix(c,"#FFFFFF",black[i][1])};
+    if(j===3) return {n:`${n}, ${white[i][0]}`, c:mix(c,"#000000",white[i][1]*.9)};
+    const o=other[i]; return {n:`${n}, ${o[0]}`, c: o[1]==="l"? mix(c,"#FFFFFF",o[2]) : mix(c,"#000000",o[2])};
+  }));
+  return rows;
+}
+const STD = [["Donkerrood","#C00000"],["Rood","#FF0000"],["Oranje","#FFC000"],["Geel","#FFFF00"],["Lichtgroen","#92D050"],["Groen","#00B050"],["Lichtblauw","#00B0F0"],["Blauw","#0070C0"],["Donkerblauw","#002060"],["Paars","#7030A0"]];
+const GREY35 = "Wit, Achtergrond 1, donkerder 35%";
+const COLORS = {}; swatchRows().flat().forEach(x=>COLORS[x.n]=x.c); STD.forEach(([n,c])=>COLORS[n]=c);
+
+/* ---------- de levels ---------- */
+/* stap: {t: opdracht, a: actie, v: waarde, h: hint}  of {info:"tekst"}
+   In t: [[knop]] = iets om op te klikken, {{waarde}} = iets om te typen of te kiezen */
+const SEL = (p, wat) => ({t:`Selecteer ${wat}: klik erop in het document.`, a:"sel:"+p, h:`Klik in het witte blad op ${wat}. In het echte Word sleep je met de muis over de tekst.`});
+const LEVELS = [
+ { name:"Het lint verkennen", d:"Tabbladen vinden en de niet-afdrukbare tekens aanzetten.", steps:[
+   {info:"Dit is een nagebouwd Word. Bovenaan zie je het <b>lint</b> met tabbladen: Start, Invoegen, Indeling… Onder het lint staat je blad. Voer telkens de blauwe opdracht uit. Elke juiste klik levert punten op!"},
+   {t:"Klik op het tabblad [[Indeling]].", a:"tab:indeling", h:"De tabbladen staan in de blauwe balk bovenaan. Zoek het woord Indeling."},
+   {t:"Klik op het tabblad [[Invoegen]].", a:"tab:invoegen", h:"Invoegen staat tussen Start en Ontwerpen."},
+   {t:"Klik op het tabblad [[Beeld]].", a:"tab:beeld", h:"Beeld staat helemaal rechts in de blauwe balk."},
+   {t:"Ga terug naar het tabblad [[Start]].", a:"tab:start", h:"Start is het eerste tabblad na Bestand."},
+   {info:"Op het tabblad Start staan de knoppen die je het meest nodig hebt. Ze zitten in <b>groepen</b>: Klembord, Lettertype, Alinea en Stijlen. De naam van de groep staat onderaan in het grijs."},
+   {t:"Klik op [[¶]] om de niet-afdrukbare tekens te tonen.", a:"btn:pilcrow", h:"De knop ¶ zit in de groep Alinea, rechts bovenaan in die groep."},
+   {info:"Zie je de puntjes tussen de woorden? Dat zijn <b>spaties</b>. Het teken ¶ staat op elke plaats waar iemand op <b>Enter</b> drukte: daar eindigt een alinea. Deze tekens worden nooit afgedrukt."},
+   {t:"Klik nog eens op [[¶]] om de tekens te verbergen.", a:"btn:pilcrow", h:"Het is dezelfde knop als daarnet, in de groep Alinea."},
+   {t:"Zet de tekens weer aan met [[¶]]. Ze helpen je bij het werken.", a:"btn:pilcrow", h:"Groep Alinea, de knop ¶."},
+   {t:"Klik op het tabblad [[Indeling]].", a:"tab:indeling", h:"In de blauwe balk bovenaan."},
+   {t:"Klik op [[Marges]] om te zien welke marges er zijn.", a:"btn:marges", h:"Marges is de eerste grote knop links op het tabblad Indeling."},
+   {t:"Kies [[Smal]] in het lijstje. Kijk hoe de stippellijn op je blad verschuift.", a:"marge:smal", h:"Smal staat in het lijstje dat net openging."},
+   {t:"Ga terug naar het tabblad [[Start]].", a:"tab:start", h:"Start staat links in de blauwe balk."}
+ ]},
+ { name:"Selecteren en vet maken", d:"Eerst selecteren, dan opmaken: vet, cursief en onderstrepen.", steps:[
+   {info:"Gouden regel: <b>eerst selecteren, dan opmaken</b>. Word moet weten wélke tekst je wil veranderen. Hier klik je op een stuk tekst om het te selecteren. Het wordt dan blauw."},
+   SEL("p0","de titel"),
+   {t:"Maak de titel vet: klik op [[B]].", a:"btn:vet", h:"B staat voor 'bold' (vet). Je vindt hem in de groep Lettertype."},
+   SEL("p2","de ondertitel 'Vergrootglas'"),
+   {t:"Maak hem vet met [[B]].", a:"btn:vet", h:"Groep Lettertype, de knop B."},
+   SEL("p4","de ondertitel 'Siri en bijnamen'"),
+   {t:"Maak hem vet met [[B]].", a:"btn:vet", h:"Groep Lettertype, de knop B."},
+   SEL("p6","de ondertitel 'De muis in je toetsenbord'"),
+   {t:"Maak hem vet met [[B]].", a:"btn:vet", h:"Groep Lettertype, de knop B."},
+   SEL("p1","de inleiding (de tekst onder de titel)"),
+   {t:"Zet de inleiding schuin: klik op [[I]] (cursief).", a:"btn:cursief", h:"I staat voor 'italic' (cursief). Hij staat naast de B."},
+   SEL("p0","de titel"),
+   {t:"Onderstreep de titel met [[U]].", a:"btn:onderstreept", h:"U staat voor 'underline'. Hij staat naast de I."},
+   {info:"Oei, onderstrepen past hier niet. Goed nieuws: de knoppen B, I en U werken als een <b>schakelaar</b>. Klik je nog eens, dan gaat de opmaak weer weg."},
+   {t:"Haal de onderstreping weg: klik nog eens op [[U]].", a:"btn:onderstreept", h:"Dezelfde knop U. De titel is nog geselecteerd."}
+ ]},
+ { name:"Lettertype en grootte", d:"Een ander lettertype kiezen, de grootte aanpassen en kleur geven.", steps:[
+   {info:"In de groep <b>Lettertype</b> staan twee vakjes: links de naam van het lettertype (nu Calibri), rechts de grootte (nu 11). Klik in het vakje, typ wat je wil en druk op <b>Enter</b>. Je kan ook het pijltje gebruiken."},
+   SEL("p0","de titel"),
+   {t:"Typ in het vak met het lettertype {{Stencil}} en druk op Enter.", a:"fontname", v:"Stencil", h:"Het vak waarin nu 'Calibri' staat, linksboven in de groep Lettertype."},
+   {t:"Typ in het vak met de grootte {{25}} en druk op Enter.", a:"fontsize", v:"25", h:"Het kleine vak naast het lettertype, waar nu 11 staat."},
+   SEL("p2","de ondertitel 'Vergrootglas'"),
+   {t:"Geef hem het lettertype {{Gadugi}}.", a:"fontname", v:"Gadugi", h:"Klik in het vak met de naam van het lettertype, typ Gadugi en druk op Enter."},
+   {t:"Geef hem de grootte {{12}}.", a:"fontsize", v:"12", h:"Het kleine vak naast het lettertype."},
+   SEL("p4","de ondertitel 'Siri en bijnamen'"),
+   {t:"Lettertype {{Gadugi}}.", a:"fontname", v:"Gadugi", h:"Vak met de naam van het lettertype."},
+   {t:"Grootte {{12}}.", a:"fontsize", v:"12", h:"Vak met de grootte."},
+   SEL("p6","de ondertitel 'De muis in je toetsenbord'"),
+   {t:"Lettertype {{Gadugi}}.", a:"fontname", v:"Gadugi", h:"Vak met de naam van het lettertype."},
+   {t:"Grootte {{12}}.", a:"fontsize", v:"12", h:"Vak met de grootte."},
+   SEL("p3","de eerste gewone alinea (onder 'Vergrootglas')"),
+   {t:"Maak de tekst kleiner: grootte {{10}}.", a:"fontsize", v:"10", h:"Vak met de grootte, nu staat er 11."},
+   SEL("p2","de ondertitel 'Vergrootglas'"),
+   {t:"Klik op het kleine pijltje naast [[Tekenkleur]] (de A met de rode streep).", a:"menu:kleur", h:"In de groep Lettertype, onderaan rechts: een A met een gekleurde streep. Klik op het pijltje ernaast."},
+   {t:"Kies {{Wit, Achtergrond 1, donkerder 35%}}. Hou je muis stil op een kleur om de naam te zien.", a:"color", v:GREY35, h:"Het is de eerste kolom (wit), vierde vakje onder het witte vak. Hou je muis erop: de naam verschijnt."},
+   SEL("p0","de titel"),
+   {t:"Klik op de knop [[Teksteffecten]] (de A met de blauwe gloed).", a:"menu:effect", h:"In de groep Lettertype, onderaan, naast de markeerstift."},
+   {t:"Kies het effect {{Opvulling: grijs, accentkleur 3}}.", a:"effect", v:"3", h:"Hou je muis op de effecten om hun naam te zien. Het grijze effect staat in de tweede rij, links."}
+ ]},
+ { name:"Uitlijnen", d:"Tekst links, gecentreerd, rechts of uitgevuld zetten.", steps:[
+   {info:"In de groep <b>Alinea</b> staan vier knoppen met streepjes. Kijk goed naar de streepjes: ze tonen hoe de tekst komt te staan. Links uitlijnen, centreren, rechts uitlijnen en uitvullen (alles even breed)."},
+   SEL("p0","de titel"),
+   {t:"Zet de titel in het midden: klik op [[Centreren]].", a:"btn:centreren", h:"Groep Alinea, de tweede knop met streepjes (streepjes in het midden)."},
+   SEL("p1","de inleiding"),
+   {t:"Klik op [[Uitvullen]] zodat links en rechts mooi recht zijn.", a:"btn:uitvullen", h:"Groep Alinea, de vierde knop met streepjes (alle streepjes even lang)."},
+   SEL("p3","de alinea onder 'Vergrootglas'"),
+   {t:"Klik op [[Uitvullen]].", a:"btn:uitvullen", h:"Vierde knop met streepjes."},
+   SEL("p5","de alinea onder 'Siri en bijnamen'"),
+   {t:"Klik op [[Uitvullen]].", a:"btn:uitvullen", h:"Vierde knop met streepjes."},
+   SEL("p7","de laatste alinea"),
+   {t:"Klik op [[Uitvullen]].", a:"btn:uitvullen", h:"Vierde knop met streepjes."},
+   SEL("p0","de titel"),
+   {t:"Probeer eens: zet de titel [[Rechts uitlijnen]].", a:"btn:rechts", h:"De derde knop met streepjes (streepjes tegen de rechterkant)."},
+   {t:"Dat staat raar. Zet de titel terug in het midden met [[Centreren]].", a:"btn:centreren", h:"De tweede knop met streepjes."}
+ ]},
+ { name:"Marges instellen", d:"De marges op 2 cm zetten volgens de NBN-normen.", steps:[
+   {info:"De <b>marges</b> zijn de witte randen rond je tekst. Volgens de <b>NBN-normen</b> zijn ze 2 cm: boven, onder, links en rechts. De stippellijn op je blad toont waar de marges liggen."},
+   {t:"Klik op het tabblad [[Indeling]].", a:"tab:indeling", h:"Blauwe balk bovenaan."},
+   {t:"Klik op [[Marges]].", a:"btn:marges", h:"De eerste grote knop links."},
+   {t:"Klik helemaal onderaan op [[Aangepaste marges…]].", a:"marge:aangepast", h:"In het lijstje, onder de lijn."},
+   {t:"Er opent een venster. Typ {{2}} in het vak Boven en druk op Enter.", a:"pg:boven", v:"2", h:"Het vak Boven staat linksboven in het venster."},
+   {t:"Typ {{2}} in het vak Onder.", a:"pg:onder", v:"2", h:"Het vak Onder staat rechts naast Boven."},
+   {t:"Typ {{2}} in het vak Links.", a:"pg:links", v:"2", h:"Het vak Links staat onder Boven."},
+   {t:"Typ {{2}} in het vak Rechts.", a:"pg:rechts", v:"2", h:"Het vak Rechts staat onder Onder."},
+   {t:"Klik op [[OK]].", a:"pg:ok", h:"De knop OK staat rechtsonder in het venster."},
+   {info:"Kijk naar de stippellijn: je marges zijn kleiner geworden. Nu nog een keer, zodat je het onthoudt. Daarna lukt het je ook in het echte Word."},
+   {t:"Klik op [[Marges]].", a:"btn:marges", h:"Tabblad Indeling, eerste grote knop."},
+   {t:"Kies [[Breed]] in het lijstje.", a:"marge:breed", h:"Breed staat in het lijstje."},
+   {t:"Oei, dat zijn geen NBN-marges. Klik opnieuw op [[Marges]].", a:"btn:marges", h:"Eerste grote knop op het tabblad Indeling."},
+   {t:"Klik op [[Aangepaste marges…]].", a:"marge:aangepast", h:"Onderaan in het lijstje."},
+   {t:"Boven: {{2}}", a:"pg:boven", v:"2", h:"Het vak Boven."},
+   {t:"Onder: {{2}}", a:"pg:onder", v:"2", h:"Het vak Onder."},
+   {t:"Links: {{2}}", a:"pg:links", v:"2", h:"Het vak Links."},
+   {t:"Rechts: {{2}}", a:"pg:rechts", v:"2", h:"Het vak Rechts."},
+   {t:"Klik op [[OK]].", a:"pg:ok", h:"Rechtsonder in het venster."},
+   {t:"Ga terug naar het tabblad [[Start]].", a:"tab:start", h:"Blauwe balk bovenaan."}
+ ]},
+ { name:"Het venster Alinea", d:"Inspringen, alinea-afstand en regelafstand precies instellen.", steps:[
+   {info:"Sommige instellingen zie je niet op het lint. Daarvoor open je het <b>venster Alinea</b>: klik op het <b>kleine pijltje</b> rechtsonder in de groep Alinea."},
+   SEL("p1","de inleiding"),
+   {t:"Klik op het kleine pijltje [[↘]] rechtsonder in de groep Alinea.", a:"launch:alinea", h:"Kijk onderaan de groep Alinea, naast het woord 'Alinea'. Daar staat een heel klein pijltje."},
+   {t:"Bij Inspringing: typ {{1,5}} in het vak Links.", a:"al:indL", v:"1.5", h:"In het blok Inspringing, het eerste vak."},
+   {t:"Typ {{1,5}} in het vak Rechts.", a:"al:indR", v:"1.5", h:"In het blok Inspringing, onder Links."},
+   {t:"Kies bij Regelafstand {{Enkel}}.", a:"al:line", v:"Enkel", h:"In het blok Afstand, rechts: het lijstje Regelafstand."},
+   {t:"Klik op [[OK]].", a:"al:ok", h:"Rechtsonder in het venster."},
+   SEL("p0","de titel"),
+   {t:"Open het venster Alinea met [[↘]].", a:"launch:alinea", h:"Het kleine pijltje rechtsonder in de groep Alinea."},
+   {t:"Typ {{18}} in het vak Na.", a:"al:after", v:"18", h:"In het blok Afstand, het vak Na."},
+   {t:"Klik op [[OK]].", a:"al:ok", h:"Rechtsonder."},
+   SEL("p2","de ondertitel 'Vergrootglas'"),
+   {t:"Open het venster Alinea met [[↘]].", a:"launch:alinea", h:"Het kleine pijltje rechtsonder in de groep Alinea."},
+   {t:"Typ {{12}} in het vak Voor.", a:"al:before", v:"12", h:"In het blok Afstand, het vak Voor."},
+   {t:"Typ {{6}} in het vak Na.", a:"al:after", v:"6", h:"In het blok Afstand, het vak Na."},
+   {t:"Klik op [[OK]].", a:"al:ok", h:"Rechtsonder."},
+   {t:"Zet een lijn onder de ondertitel: klik op het pijltje naast [[Randen]].", a:"menu:randen", h:"Groep Alinea, onderste rij, helemaal rechts: een vierkantje met een pijltje."},
+   {t:"Kies [[Onderrand]].", a:"rand:onder", h:"Bovenaan in het lijstje."},
+   SEL("p3","de alinea onder 'Vergrootglas'"),
+   {t:"Open het venster Alinea met [[↘]].", a:"launch:alinea", h:"Het kleine pijltje rechtsonder in de groep Alinea."},
+   {t:"Inspringing Links: {{0,5}}", a:"al:indL", v:"0.5", h:"Blok Inspringing, vak Links."},
+   {t:"Inspringing Rechts: {{0,5}}", a:"al:indR", v:"0.5", h:"Blok Inspringing, vak Rechts."},
+   {t:"Kies bij Speciaal {{Eerste regel}}.", a:"al:special", v:"Eerste regel", h:"Blok Inspringing, rechts: het lijstje Speciaal."},
+   {t:"Typ {{1,5}} in het vak Met.", a:"al:by", v:"1.5", h:"Naast Speciaal staat het vak Met."},
+   {t:"Kies bij Regelafstand {{Exact}}.", a:"al:line", v:"Exact", h:"Blok Afstand, lijstje Regelafstand."},
+   {t:"Typ {{15}} in het vak Op.", a:"al:at", v:"15", h:"Naast Regelafstand staat het vak Op."},
+   {t:"Klik op [[OK]].", a:"al:ok", h:"Rechtsonder."}
+ ]},
+ { name:"Kopiëren met de kwast", d:"Opmaak overnemen met Opmaak kopiëren: één keer en meerdere keren.", preset:"kwast", steps:[
+   {info:"De ondertitel 'Vergrootglas' en de alinea eronder zijn al opgemaakt. De andere nog niet. In plaats van alles opnieuw te doen, gebruik je de <b>kwast</b> (Opmaak kopiëren). Hij staat helemaal links op het tabblad Start."},
+   SEL("p2","de opgemaakte ondertitel 'Vergrootglas'"),
+   {t:"Klik <b>één keer</b> op de kwast [[Opmaak kopiëren]].", a:"kwast1", h:"Helemaal links op het lint, in de groep Klembord: het kwastje."},
+   {t:"Je muis is nu een kwast. Klik op de ondertitel 'Siri en bijnamen'.", a:"sel:p4", h:"Klik in het blad op de tekst 'Siri en bijnamen'."},
+   {info:"Gelukt! Na één klik op de kwast werkt hij maar <b>één keer</b>. Wil je meerdere stukken tekst opmaken? Dan <b>dubbelklik</b> je op de kwast."},
+   SEL("p3","de opgemaakte alinea onder 'Vergrootglas'"),
+   {t:"<b>Dubbelklik</b> op de kwast [[Opmaak kopiëren]].", a:"kwast2", h:"Klik twee keer snel na elkaar op het kwastje, helemaal links."},
+   {t:"Klik op de alinea onder 'Siri en bijnamen'.", a:"sel:p5", h:"De gewone tekst onder de ondertitel 'Siri en bijnamen'."},
+   {t:"Klik op de laatste alinea.", a:"sel:p7", h:"De tekst helemaal onderaan."},
+   {t:"Klaar? Zet de kwast uit: druk op de toets {{Esc}} of klik nog eens op [[Opmaak kopiëren]].", a:"esc", h:"De toets Esc staat helemaal linksboven op je toetsenbord."},
+   SEL("p4","de ondertitel 'Siri en bijnamen'"),
+   {t:"Dubbelklik op de kwast [[Opmaak kopiëren]].", a:"kwast2", h:"Twee keer snel klikken op het kwastje."},
+   {t:"Klik op de ondertitel 'De muis in je toetsenbord'.", a:"sel:p6", h:"De laatste ondertitel."},
+   {t:"Zet de kwast uit met {{Esc}}.", a:"esc", h:"Toets Esc, linksboven op je toetsenbord."}
+ ]},
+ { name:"Eindopdracht iPhone", d:"Alles samen, met minder uitleg. Laat zien wat je kan!", boss:true, steps:[
+   {info:"Dit is de <b>eindopdracht</b>. De opdrachten zijn korter en de knoppen worden niet meer in het blauw getoond. Maak je een fout, dan krijg je wel nog een tip."},
+   {t:"Zet de marges op 2 cm. Begin met het juiste tabblad.", a:"tab:indeling", h:"De marges vind je op het tabblad Indeling."},
+   {t:"Open het lijstje met marges.", a:"btn:marges", h:"De knop Marges."},
+   {t:"Kies de mogelijkheid om zelf marges in te typen.", a:"marge:aangepast", h:"Aangepaste marges…, onderaan."},
+   {t:"Boven: 2 cm", a:"pg:boven", v:"2", h:"Vak Boven."},
+   {t:"Onder: 2 cm", a:"pg:onder", v:"2", h:"Vak Onder."},
+   {t:"Links: 2 cm", a:"pg:links", v:"2", h:"Vak Links."},
+   {t:"Rechts: 2 cm", a:"pg:rechts", v:"2", h:"Vak Rechts."},
+   {t:"Bevestig.", a:"pg:ok", h:"De knop OK."},
+   {t:"Ga naar het tabblad met de opmaakknoppen.", a:"tab:start", h:"Tabblad Start."},
+   {t:"Selecteer de titel.", a:"sel:p0", h:"Klik op de titel in het blad."},
+   {t:"Lettertype: Stencil", a:"fontname", v:"Stencil", h:"Vak met de naam van het lettertype."},
+   {t:"Grootte: 25", a:"fontsize", v:"25", h:"Vak met de grootte."},
+   {t:"Maak de titel vet.", a:"btn:vet", h:"De knop B."},
+   {t:"Zet de titel in het midden.", a:"btn:centreren", h:"Groep Alinea, knop Centreren."},
+   {t:"Selecteer de ondertitel 'Vergrootglas'.", a:"sel:p2", h:"Klik erop in het blad."},
+   {t:"Lettertype: Gadugi", a:"fontname", v:"Gadugi", h:"Vak met de naam van het lettertype."},
+   {t:"Grootte: 12", a:"fontsize", v:"12", h:"Vak met de grootte."},
+   {t:"Vet.", a:"btn:vet", h:"De knop B."},
+   {t:"Kopieer de opmaak naar de twee andere ondertitels. Zet eerst de kwast aan voor meerdere keren.", a:"kwast2", h:"Dubbelklik op Opmaak kopiëren (het kwastje)."},
+   {t:"Ondertitel 'Siri en bijnamen'.", a:"sel:p4", h:"Klik erop in het blad."},
+   {t:"Ondertitel 'De muis in je toetsenbord'.", a:"sel:p6", h:"Klik erop in het blad."},
+   {t:"Zet de kwast uit.", a:"esc", h:"Toets Esc."},
+   {t:"Selecteer de alinea onder 'Vergrootglas'.", a:"sel:p3", h:"Klik erop in het blad."},
+   {t:"Grootte: 10", a:"fontsize", v:"10", h:"Vak met de grootte."},
+   {t:"Vul de tekst uit.", a:"btn:uitvullen", h:"Groep Alinea, vierde knop met streepjes."},
+   {t:"Kopieer deze opmaak naar de twee andere alinea's.", a:"kwast2", h:"Dubbelklik op het kwastje."},
+   {t:"Alinea onder 'Siri en bijnamen'.", a:"sel:p5", h:"Klik erop."},
+   {t:"Laatste alinea.", a:"sel:p7", h:"Klik erop."},
+   {t:"Zet de kwast uit.", a:"esc", h:"Toets Esc."}
+ ]},
+ { name:"Opsommingen en nummering", d:"Een recept met een opsomming en een genummerde lijst, zoals Oef 5.1 Tiramisu.", doc:"tiramisu", file:"Tiramisu", steps:[
+   {info:"Een <b>opsomming</b> zet een teken voor elke regel, bv. een bolletje of een vierkantje. Dat gebruik je als de volgorde niet belangrijk is, zoals bij ingrediënten. Een <b>nummering</b> zet er 1, 2, 3 voor. Dat gebruik je als de volgorde wél belangrijk is, zoals bij de stappen van een recept."},
+   {t:"Selecteer de ingrediënten: klik op één ingrediënt. Hier wordt dan meteen de hele lijst geselecteerd.", a:"sel:g1", h:"Klik in het blad op bv. '3 eieren'. In het echte Word sleep je met de muis over alle ingrediënten."},
+   {t:"Klik op de knop [[Opsommingstekens]].", a:"btn:opsomming", h:"Groep Alinea, de eerste knop linksboven: drie bolletjes met streepjes."},
+   {info:"Je ziet nu ronde bolletjes. De opdracht vraagt een <b>vierkantje</b>. Een ander teken kies je met het <b>pijltje naast de knop</b>."},
+   {t:"Klik op het kleine pijltje naast [[Opsommingstekens]].", a:"menu:opsomming", h:"Rechts naast de knop met de bolletjes staat een klein pijltje ▾."},
+   {t:"Kies het {{vierkantje ■}}.", a:"bullet", v:"vierkant", h:"Hou je muis op de tekens om hun naam te zien. Je zoekt 'Vierkant opsommingsteken'."},
+   {t:"Selecteer nu de stappen van de bereiding: klik op één stap.", a:"sel:g2", h:"Klik op bv. 'Roer de mascarpone erdoor.'"},
+   {t:"Klik op de knop [[Nummering]].", a:"btn:nummering", h:"Groep Alinea, de tweede knop linksboven: 1 en 2 met streepjes."},
+   {t:"Klik op het kleine pijltje naast [[Nummering]].", a:"menu:nummering", h:"Rechts naast de knop met de nummers staat een klein pijltje ▾."},
+   {t:"Kies de nummering {{1) 2) 3)}}.", a:"num", v:"1)", h:"Hou je muis op de mogelijkheden. Je zoekt de cijfers met een haakje."},
+   {info:"Nu de <b>inspringing</b>. De opdracht: het opsommingsteken komt tegen de linkermarge (<b>0 cm</b>) en de tekst begint op <b>1 cm</b>. Dat stel je in met de <b>rechtermuisknop</b>."},
+   {t:"Klik met de <b>rechtermuisknop</b> op een ingrediënt.", a:"ctx:g1", h:"Gebruik de rechterknop van je muis (of tik met twee vingers op het touchpad) op bv. '75 g suiker'."},
+   {t:"Kies [[Lijstinspringing aanpassen…]] in het menu.", a:"ctx:lijst", h:"In het menu dat net openging, onderaan."},
+   {t:"Typ {{0}} bij Positie opsommingsteken.", a:"li:pos", v:"0", h:"Het eerste vak in het venster."},
+   {t:"Typ {{1}} bij Tekstinspringing.", a:"li:ind", v:"1", h:"Het tweede vak in het venster."},
+   {t:"Klik op [[OK]].", a:"li:ok", h:"Rechtsonder in het venster."},
+   {t:"Doe hetzelfde voor de bereiding: klik met de <b>rechtermuisknop</b> op een stap.", a:"ctx:g2", h:"Rechtermuisknop op bv. 'Roer de mascarpone erdoor.'"},
+   {t:"Kies [[Lijstinspringing aanpassen…]].", a:"ctx:lijst", h:"Onderaan in het menu."},
+   {t:"Positie nummer: {{0}}", a:"li:pos", v:"0", h:"Het eerste vak."},
+   {t:"Tekstinspringing: {{1}}", a:"li:ind", v:"1", h:"Het tweede vak."},
+   {t:"Klik op [[OK]].", a:"li:ok", h:"Rechtsonder."},
+   {info:"Oei: 'Bereiding' is een ondertitel, geen ingrediënt. Stel dat je per ongeluk een opsommingsteken voor een titel zet. Dan klik je gewoon nog eens op de knop, net zoals bij vet. Probeer maar."},
+   {t:"Selecteer de ondertitel 'Bereiding'.", a:"sel:p8", h:"Klik op het woord 'Bereiding' in het blad."},
+   {t:"Klik op [[Opsommingstekens]].", a:"btn:opsomming", h:"De knop met de bolletjes."},
+   {t:"Haal het weer weg: klik nog eens op [[Opsommingstekens]].", a:"btn:opsomming", h:"Dezelfde knop nog eens."}
+ ]}
+];
+
+/* ---------- toestand ---------- */
+let S = { screen:"start", name:"", klas:"", prog:{best:{}, unlocked:1} };
+let G = null; // spel in een level
+
+function save(){ if(S.name) store.set("lk:"+norm(S.name), S.prog); store.set("lk:last", {name:S.name, klas:S.klas}); }
+function total(){ return Object.values(S.prog.best).reduce((a,b)=>a+(b.score||0),0); }
+function done(){ return Math.max(0, ...Object.keys(S.prog.best).map(Number).filter(k=>S.prog.best[k]), 0); }
+function maxPts(L){ return L.steps.filter(s=>!s.info).length*10; }
+function starsFor(score, max){ const r=score/max; return r>=.9?3: r>=.7?2: 1; }
+function starHTML(n, cls="stars"){ return `<span class="${cls}" aria-label="${n} van 3 sterren">${[1,2,3].map(i=>i<=n?"★":`<span class="off">★</span>`).join("")}</span>`; }
+
+/* ---------- schermen ---------- */
+const app = $("#app");
+function header(){
+  const pts = total();
+  return `<div class="top"><div class="brand"><svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><rect x="2" y="4" width="34" height="30" rx="6" fill="#2B579A"/><path d="M9 13h4l2.5 10 3-10h3l3 10 2.5-10h4l-4.8 14h-3.4L19 17.5 16.3 27h-3.4z" fill="#fff"/></svg>
+    <div><h1>Word stap voor stap</h1>${window.self===window.top?`<a class="tag back" href="../">← Oefenhoek Informatica</a>`:`<div class="tag">Oefenhoek Informatica</div>`}</div></div>
+    ${S.name?`<div class="chips"><span class="chip">${esc(S.name)}${S.klas?" · "+esc(S.klas):""}</span><span class="chip pts">Punten <b>${pts}</b></span><span class="chip">Levels <b>${done()}/${LEVELS.length}</b></span></div>`:""}</div>`;
+}
+function footer(){
+  return `<div class="foot muted"><span>Oefenomgeving: lijkt op Word, maar is het niet. Probeer daarna alles ook in het echte Word.</span><button class="linkbtn" data-go="teacher">Voor de leerkracht: code controleren</button></div>`;
+}
+function render(){
+  if(S.screen==="start") return renderStart();
+  if(S.screen==="map") return renderMap();
+  if(S.screen==="play") return renderPlay();
+  if(S.screen==="end") return renderEnd();
+  if(S.screen==="teacher") return renderTeacher();
+}
+function renderStart(){
+  const last = store.get("lk:last")||{};
+  app.innerHTML = header() + `<div class="start">
+   <div class="card"><h2>Word leren, één klik per keer.</h2>
+     <p class="muted">Je werkt in een nagebouwd Word. Elke opdracht is één klik of één ding typen. Doe je het juist, dan scoor je punten.</p>
+     <ul class="rules">
+       <li><span class="n">1</span><span>Lees de opdracht bovenaan en voer ze uit.</span></li>
+       <li><span class="n">2</span><span>Juist van de eerste keer: <b>10 punten</b>. Een fout? Je krijgt een tip. Nog een fout? De knop begint te knipperen.</span></li>
+       <li><span class="n">3</span><span>Na elk level krijg je een <b>code</b>. Lever die in op Teams. Met die code speel je de volgende les verder.</span></li>
+     </ul></div>
+   <div class="card"><form id="f-start" novalidate>
+     <h3>Wie speelt er?</h3>
+     <label class="f" for="in-name">Voornaam en achternaam<input class="txt" id="in-name" autocomplete="off" value="${esc(last.name||"")}"></label>
+     <label class="f" for="in-klas">Klas<input class="txt" id="in-klas" autocomplete="off" value="${esc(last.klas||"")}" placeholder="bv. 3B"></label>
+     <label class="f" for="in-code">Code van vorige keer (als je die hebt)<input class="txt" id="in-code" autocomplete="off" placeholder="bv. 3-240-K7QZ"></label>
+     <div class="err" id="err"></div>
+     <button class="btn" type="submit">Start</button>
+   </form></div></div>` + footer();
+  $("#f-start").addEventListener("submit", e=>{
+    e.preventDefault();
+    const name=$("#in-name").value.trim(), klas=$("#in-klas").value.trim(), code=$("#in-code").value.trim();
+    if(name.split(/\s+/).length<2){ $("#err").textContent="Typ je voornaam én achternaam."; return; }
+    S.name=name; S.klas=klas;
+    S.prog = store.get("lk:"+norm(name)) || {best:{}, unlocked:1};
+    if(code){
+      const r = readCode(name, code);
+      if(!r){ $("#err").textContent="Deze code klopt niet bij deze naam. Kijk je naam en code na, of laat het vak leeg."; return; }
+      for(let i=1;i<=r.lvl;i++) if(!S.prog.best[i]) S.prog.best[i]={score:0, stars:0, fromCode:true};
+      const known = Object.entries(S.prog.best).filter(([k,v])=>!v.fromCode).reduce((a,[k,v])=>a+v.score,0);
+      const codeLv = Object.entries(S.prog.best).filter(([k,v])=>v.fromCode);
+      if(codeLv.length){ const rest=Math.max(0,r.score-known); codeLv.forEach(([k,v],i)=>v.score = i===0?rest:0); }
+      S.prog.unlocked = Math.max(S.prog.unlocked, Math.min(LEVELS.length, r.lvl+1));
+    }
+    save(); S.screen="map"; render();
+  });
+}
+function renderMap(){
+  const code = done()? makeCode(S.name, done(), total()) : "";
+  app.innerHTML = header() + `<div class="card codebox" style="justify-content:space-between">
+    <div><h2 style="font-size:1.5rem">Kies een level</h2><p class="muted" style="margin:4px 0 0">Speel de levels in volgorde. Je mag een level altijd opnieuw spelen om meer sterren te halen.</p></div>
+    ${code?`<div><div class="muted" style="font-size:.85rem">Jouw code om verder te spelen</div><span class="code">${code}</span></div>`:""}</div>
+    <div class="levels">${LEVELS.map((L,i)=>{const n=i+1, b=S.prog.best[n], open=n<=S.prog.unlocked;
+      return `<button class="lvl" data-lvl="${n}" ${open?"":"disabled"}><span class="num">${L.boss?"Eindopdracht":"Level "+n}${open?"":" · op slot"}</span><h3>${esc(L.name)}</h3><span class="d">${esc(L.d)}</span>
+      <span style="display:flex;justify-content:space-between;align-items:center">${starHTML(b?b.stars:0)}<span class="muted" style="font-size:.85rem">${b&&b.score?b.score+" / "+maxPts(L)+" ptn":L.steps.filter(s=>!s.info).length+" stappen"}</span></span></button>`;}).join("")}</div>
+    <div><button class="btn ghost small" data-go="start">Andere speler</button></div>` + footer();
+  app.querySelectorAll("[data-lvl]").forEach(b=>b.addEventListener("click",()=>startLevel(+b.dataset.lvl)));
+}
+
+/* ---------- het spel ---------- */
+function startLevel(n){
+  const L = LEVELS[n-1];
+  const doc = L.doc==="tiramisu"? tiramisuDoc() : freshDoc();
+  if(L.preset==="kwast"){ Object.assign(doc.paras[2].s, SUB_STYLE); Object.assign(doc.paras[3].s, BODY_STYLE); doc.margins={boven:2,onder:2,links:2,rechts:2}; }
+  if(n>=6 && !L.preset){ doc.margins={boven:2,onder:2,links:2,rechts:2}; }
+  G = { n, L, i:0, miss:0, score:0, errors:0, doc, ui:{tab:"start", menu:null, dialog:null, dlg:{}, sel:null, marks:n>1, kwast:0, ctxPos:null}, msg:null, pop:"" };
+  S.screen="play"; render(); window.scrollTo({top:0});
+}
+function step(){ return G.L.steps[G.i]; }
+function fmt(t, boss){ return t.replace(/\[\[(.+?)\]\]/g, (m,x)=> boss?esc(x):`<span class="k">${esc(x)}</span>`).replace(/\{\{(.+?)\}\}/g,(m,x)=>`<span class="v">${esc(x)}</span>`); }
+
+function renderPlay(){
+  const st = step(), L=G.L;
+  const real = L.steps.filter(s=>!s.info).length, doneSteps = L.steps.slice(0,G.i).filter(s=>!s.info).length;
+  app.innerHTML = header() + `<div class="card mission">
+    <div style="min-width:0"><div class="stepline"><b style="color:var(--word)">${L.boss?"Eindopdracht":"Level "+G.n}: ${esc(L.name)}</b><span>Stap ${Math.min(doneSteps+1,real)} van ${real}</span><span class="bar" aria-hidden="true"><i style="width:${doneSteps/real*100}%"></i></span></div>
+      <div class="say" id="say">${st.info? st.info : fmt(st.t, L.boss)}</div>
+      ${st.info?`<div style="margin-top:12px"><button class="btn" id="next">Verder</button></div>`:""}
+      <div class="fb ${G.msg?"show "+G.msg.k:""}" id="fb" role="status">${G.msg?G.msg.h:""}</div></div>
+    <div class="side"><span class="chip pts">Dit level <b>${G.score}</b></span><span class="pop" id="pop">${G.pop}</span><button class="btn ghost small" data-go="map">Stoppen</button></div></div>
+    ${wordHTML()}` + footer();
+  G.pop="";
+  if(st.info) $("#next").addEventListener("click", ()=>{ G.msg=null; advance(); });
+  bindWord();
+  if(!st.info && G.miss>=2) markTarget();
+  const pop=$("#pop"); if(pop.textContent){ pop.classList.add("anim"); }
+}
+
+/* ---------- Word-venster bouwen ---------- */
+const I = {
+ paste:'<svg viewBox="0 0 32 32"><rect x="7" y="5" width="18" height="23" rx="2" fill="#C8A165"/><rect x="11" y="3" width="10" height="5" rx="1" fill="#6B6B6B"/><rect x="13" y="12" width="14" height="17" fill="#fff" stroke="#2B579A"/><path d="M16 17h8M16 20h8M16 23h6" stroke="#2B579A"/></svg>',
+ cut:'<svg viewBox="0 0 16 16"><circle cx="4" cy="12" r="2.2" fill="none" stroke="#333"/><circle cx="12" cy="12" r="2.2" fill="none" stroke="#333"/><path d="M5.5 10.5 11 2M10.5 10.5 5 2" stroke="#333"/></svg>',
+ copy:'<svg viewBox="0 0 16 16"><rect x="2" y="2" width="8" height="10" fill="#fff" stroke="#333"/><rect x="6" y="5" width="8" height="10" fill="#fff" stroke="#2B579A"/></svg>',
+ brush:'<svg viewBox="0 0 16 16"><rect x="3" y="1.5" width="10" height="5" rx="1" fill="#F2B705" stroke="#8A6A00"/><path d="M8 6.5v3" stroke="#555" stroke-width="2"/><path d="M6.5 9.5h3l-.5 5h-2z" fill="#8B5A2B"/></svg>',
+ al:(t)=>{const L={links:[[2,12],[2,9],[2,12],[2,8]],centreren:[[2,12],[4,8],[2,12],[5,6]],rechts:[[2,12],[5,9],[2,12],[6,8]],uitvullen:[[2,12],[2,12],[2,12],[2,12]]}[t];
+   return `<svg viewBox="0 0 16 16">${L.map((x,i)=>`<rect x="${x[0]}" y="${3+i*3}" width="${x[1]}" height="1.4" fill="#333"/>`).join("")}</svg>`;},
+ bullets:'<svg viewBox="0 0 16 16"><circle cx="3" cy="4" r="1.3" fill="#333"/><circle cx="3" cy="8" r="1.3" fill="#333"/><circle cx="3" cy="12" r="1.3" fill="#333"/><path d="M6 4h8M6 8h8M6 12h8" stroke="#333"/></svg>',
+ numbers:'<svg viewBox="0 0 16 16"><text x="0.5" y="6" font-size="5" fill="#333">1</text><text x="0.5" y="13" font-size="5" fill="#333">2</text><path d="M6 4h8M6 11h8" stroke="#333"/></svg>',
+ line:'<svg viewBox="0 0 16 16"><path d="M7 3h8M7 6h8M7 9h8M7 12h8" stroke="#333"/><path d="M3 2v12M1.5 4 3 2l1.5 2M1.5 12 3 14l1.5-2" stroke="#2B579A" fill="none"/></svg>',
+ border:'<svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" fill="none" stroke="#999" stroke-dasharray="1 1"/><path d="M2 14h12" stroke="#000" stroke-width="2"/></svg>',
+ indentL:'<svg viewBox="0 0 16 16"><path d="M7 4h8M7 8h8M7 12h8" stroke="#333"/><path d="M5 6 2 8l3 2" fill="none" stroke="#2B579A"/></svg>',
+ indentR:'<svg viewBox="0 0 16 16"><path d="M7 4h8M7 8h8M7 12h8" stroke="#333"/><path d="M2 6l3 2-3 2" fill="none" stroke="#2B579A"/></svg>',
+ margins:'<svg viewBox="0 0 32 32"><rect x="6" y="3" width="20" height="26" fill="#fff" stroke="#555"/><rect x="10" y="7" width="12" height="18" fill="#DCE6F4" stroke="#2B579A" stroke-dasharray="2 1"/></svg>',
+ orient:'<svg viewBox="0 0 32 32"><rect x="4" y="9" width="22" height="16" fill="#fff" stroke="#555"/><rect x="12" y="4" width="14" height="19" fill="#fff" stroke="#2B579A"/></svg>',
+ size:'<svg viewBox="0 0 32 32"><rect x="8" y="4" width="16" height="24" fill="#fff" stroke="#555"/><path d="M5 4v24M27 4v24" stroke="#2B579A"/></svg>',
+ cols:'<svg viewBox="0 0 32 32"><rect x="5" y="4" width="22" height="24" fill="#fff" stroke="#555"/><path d="M8 9h7M8 13h7M8 17h7M17 9h7M17 13h7M17 17h7" stroke="#2B579A"/></svg>',
+ gen:(c)=>`<svg viewBox="0 0 32 32"><rect x="6" y="5" width="20" height="22" rx="2" fill="#fff" stroke="#555"/><rect x="10" y="10" width="12" height="8" fill="${c}"/></svg>`
+};
+function B(act, name, inner, cls="rb"){ return `<button class="${cls}" data-act="${act}" data-name="${esc(name)}" title="${esc(name)}" aria-label="${esc(name)}">${inner}</button>`; }
+function big(act,name,icon,label){ return B(act,name,`${icon}<span>${label}</span>`,"rb big"); }
+function grp(name, inner, launch){ return `<div class="grp"><div class="gb">${inner}</div><div class="gname">${name}</div>${launch?B(launch,"Instellingen voor "+name.toLowerCase()+" (klein pijltje)",'<svg width="9" height="9" viewBox="0 0 9 9"><path d="M1 1h7v7M8 8 2 2" stroke="#444" fill="none"/></svg>',"launch"):""}</div>`; }
+
+function curStyle(){ const p = selP(); return p? p.s : null; }
+function ribbonStart(){
+  const s = curStyle()||{}; const on = k=> s[k]?" on":"";
+  const fontOpts = Object.keys(FONTS).map(f=>`<option value="${f}">`).join(""), sizeOpts = SIZES.map(z=>`<option value="${String(z).replace(".",",")}">`).join("");
+  return grp("Klembord", big("btn:plakken","Plakken",I.paste,"Plakken")+`<div class="col">${B("btn:knippen","Knippen",I.cut)}${B("btn:kopieren","Kopiëren",I.copy)}${B("kwast","Opmaak kopiëren (kwast)",I.brush,"rb"+(G.ui.kwast?" on":""))}</div>`)
+   + grp("Lettertype", `<div class="col"><div class="row">
+       <input class="combo font" list="dl-fonts" data-act="fontname" data-name="Lettertype" title="Lettertype" aria-label="Lettertype" value="${esc(s.font||"Calibri")}">
+       <input class="combo size" list="dl-sizes" data-act="fontsize" data-name="Tekengrootte" title="Tekengrootte" aria-label="Tekengrootte" value="${String(s.size||11).replace(".",",")}">
+       ${B("btn:groter","Tekengrootte vergroten",'<span class="gl">A<sup>▲</sup></span>')}${B("btn:kleiner","Tekengrootte verkleinen",'<span class="gl">A<sup>▼</sup></span>')}</div>
+     <div class="row">${B("btn:vet","Vet (B)",'<span class="gl">B</span>',"rb"+on("bold"))}${B("btn:cursief","Cursief (I)",'<span class="gl" style="font-style:italic">I</span>',"rb"+on("italic"))}${B("btn:onderstreept","Onderstrepen (U)",'<span class="gl" style="text-decoration:underline">U</span>',"rb"+on("underline"))}
+       ${B("btn:doorhalen","Doorhalen",'<span class="gl" style="text-decoration:line-through">abc</span>')}${B("btn:subscript","Subscript",'<span class="gl">x<sub>2</sub></span>')}${B("btn:superscript","Superscript",'<span class="gl">x<sup>2</sup></span>')}</div>
+     <div class="row">${B("menu:effect","Teksteffecten en typografie",'<span class="gl" style="color:#4472C4;text-shadow:0 0 3px #9DC3E6">A</span>')}${B("btn:markeren","Markeerstift",'<span class="gl" style="background:#FFFF00;padding:0 2px">ab</span>')}
+       <span class="split">${B("btn:kleur","Tekenkleur",`<span class="gl" style="border-bottom:4px solid #C00000;line-height:1">A</span>`)}${B("menu:kleur","Tekenkleur: pijltje (meer kleuren)","▾","rb arrow")}</span>
+       ${B("btn:wissen","Alle opmaak wissen",'<span class="gl">A<span style="color:#C00000">⌫</span></span>')}</div></div>`, "launch:lettertype")
+   + grp("Alinea", `<div class="col"><div class="row"><span class="split">${B("btn:opsomming","Opsommingstekens",I.bullets,"rb"+(s.list==="bullet"?" on":""))}${B("menu:opsomming","Opsommingstekens: pijltje (meer tekens)","▾","rb arrow")}</span><span class="split">${B("btn:nummering","Nummering",I.numbers,"rb"+(s.list==="number"?" on":""))}${B("menu:nummering","Nummering: pijltje (meer nummers)","▾","rb arrow")}</span>${B("btn:inspringen-min","Inspringing verkleinen",I.indentL)}${B("btn:inspringen-plus","Inspringing vergroten",I.indentR)}
+       ${B("btn:sorteren","Sorteren",'<span class="gl" style="font-size:10px">A↓Z</span>')}${B("btn:pilcrow","Alles weergeven (¶)",'<span class="gl">¶</span>',"rb"+(G.ui.marks?" on":""))}</div>
+     <div class="row">${["links","centreren","rechts","uitvullen"].map(a=>B("btn:"+a,{links:"Links uitlijnen",centreren:"Centreren",rechts:"Rechts uitlijnen",uitvullen:"Uitvullen"}[a],I.al(a),"rb"+(s.align===({links:"left",centreren:"center",rechts:"right",uitvullen:"justify"}[a])?" on":""))).join("")}
+       ${B("btn:regelafstand","Regel- en alinea-afstand",I.line)}${B("btn:arcering","Arcering",'<svg viewBox="0 0 16 16"><path d="M3 10 9 4l4 4-6 6z" fill="#fff" stroke="#333"/><rect x="1" y="13" width="14" height="2.5" fill="#FFFF00"/></svg>')}
+       <span class="split">${B("btn:rand","Rand",I.border)}${B("menu:randen","Randen: pijltje (meer randen)","▾","rb arrow")}</span></div></div>`, "launch:alinea")
+   + grp("Stijlen", `<div class="stylegal">${[["standaard","Standaard","AaBbCcDd",""],["geen-afstand","Geen afstand","AaBbCcDd",""],["kop1","Kop 1","AaBbCc","color:#2F5496;font-size:14px"],["kop2","Kop 2","AaBbCcD","color:#2F5496;font-size:12px"],["titel","Titel","AaB","font-size:18px"]]
+      .map(([k,n,t,c])=>B("style:"+k,"Stijl "+n,`<span style="${c}">${t}</span><span class="sm">${n}</span>`)).join("")}</div>`)
+   + grp("Bewerken", `<div class="col">${B("btn:zoeken","Zoeken","Zoeken")}${B("btn:vervangen","Vervangen","Vervangen")}${B("btn:selecteren","Selecteren","Selecteren ▾")}</div>`)
+   + `<datalist id="dl-fonts">${fontOpts}</datalist><datalist id="dl-sizes">${sizeOpts}</datalist>`;
+}
+function ribbonIndeling(){
+  return grp("Pagina-instelling", big("btn:marges","Marges",I.margins,"Marges ▾")+big("btn:afdrukstand","Afdrukstand",I.orient,"Afdrukstand ▾")+big("btn:formaat","Formaat",I.size,"Formaat ▾")+big("btn:kolommen","Kolommen",I.cols,"Kolommen ▾")
+      +`<div class="col">${B("btn:eindemarkeringen","Eindemarkeringen","Eindemarkeringen ▾")}${B("btn:regelnummers","Regelnummers","Regelnummers ▾")}${B("btn:afbreken","Afbreking","Afbreking ▾")}</div>`, "launch:pagina")
+   + grp("Alinea", `<div class="col"><b style="font-weight:600">Inspringen</b><div class="row">Links: ${B("btn:ind-links","Inspringen links","0 cm")}</div><div class="row">Rechts: ${B("btn:ind-rechts","Inspringen rechts","0 cm")}</div></div>
+      <div class="col"><b style="font-weight:600">Afstand</b><div class="row">Voor: ${B("btn:afst-voor","Afstand voor","0 pt")}</div><div class="row">Na: ${B("btn:afst-na","Afstand na","8 pt")}</div></div>`, "launch:alinea2")
+   + grp("Schikken", big("btn:positie","Positie",I.gen("#9DC3E6"),"Positie")+big("btn:terugloop","Tekstterugloop",I.gen("#F4B183"),"Tekst-<br>terugloop")+big("btn:draaien","Draaien",I.gen("#C5E0B4"),"Draaien"));
+}
+function ribbonOther(t){
+  const sets = {
+    bestand:[["Opslaan","#2B579A"],["Opslaan als","#2B579A"],["Afdrukken","#555"],["Delen","#70AD47"],["Sluiten","#C00000"]],
+    invoegen:[["Voorblad","#9DC3E6"],["Lege pagina","#fff"],["Pagina-einde","#ddd"],["Tabel","#5B9BD5"],["Afbeeldingen","#70AD47"],["Vormen","#ED7D31"],["SmartArt","#A5A5A5"],["Grafiek","#FFC000"],["Koptekst","#9DC3E6"],["Voettekst","#9DC3E6"],["Paginanummer","#2B579A"],["Tekstvak","#fff"],["Symbool","#7030A0"]],
+    ontwerpen:[["Thema's","#ED7D31"],["Kleuren","#FFC000"],["Lettertypen","#2B579A"],["Watermerk","#ddd"],["Paginakleur","#C5E0B4"],["Paginaranden","#555"]],
+    verwijzingen:[["Inhoudsopgave","#2B579A"],["Voetnoot invoegen","#555"],["Bijschrift invoegen","#70AD47"],["Index","#A5A5A5"]],
+    verzendlijsten:[["Enveloppen","#FFC000"],["Etiketten","#9DC3E6"],["Afdruk samenvoegen","#70AD47"]],
+    controleren:[["Spelling en grammatica","#C00000"],["Woorden tellen","#2B579A"],["Taal","#70AD47"],["Nieuwe opmerking","#FFC000"],["Wijzigingen bijhouden","#ED7D31"]],
+    beeld:[["Leesmodus","#9DC3E6"],["Afdrukweergave","#2B579A"],["Weblay-out","#70AD47"],["Liniaal","#FFC000"],["Rasterlijnen","#A5A5A5"],["In-/uitzoomen","#555"],["100%","#ddd"]]
+  }[t];
+  return grp(t[0].toUpperCase()+t.slice(1), sets.map(([n,c])=>big("btn:"+t+"-"+n.toLowerCase().replace(/[^a-z0-9]+/g,"-"), n, I.gen(c), n)).join(""));
+}
+function menuHTML(){
+  const m = G.ui.menu; if(!m) return "";
+  if(m==="marges"){
+    const opts=[["normaal","Normaal","Boven: 2,5 cm  Onder: 2,5 cm  Links: 2,5 cm  Rechts: 2,5 cm"],["smal","Smal","Alle marges: 1,27 cm"],["gemiddeld","Gemiddeld","Boven/onder: 2,54 cm  Links/rechts: 1,91 cm"],["breed","Breed","Boven/onder: 2,54 cm  Links/rechts: 5,08 cm"],["gespiegeld","Gespiegeld","Binnen: 3,18 cm  Buiten: 2,54 cm"]];
+    return `<div class="menu" data-for="btn:marges" style="width:280px">${opts.map(([k,n,d])=>B("marge:"+k,"Marges: "+n,`${I.margins.replace('viewBox','width="26" height="26" viewBox')}<span><b>${n}</b><small>${d}</small></span>`,"mi")).join("")}<div class="sep"></div>${B("marge:aangepast","Aangepaste marges…","<span style='padding-left:36px'>Aangepaste marges…</span>","mi")}</div>`;
+  }
+  if(m==="kleur"){
+    const rows=swatchRows();
+    return `<div class="menu" data-for="menu:kleur"><div class="mh">Automatisch</div><div class="mh">Themakleuren</div><div class="swatches">${rows.flat().map(x=>`<button class="sw" data-act="color" data-val="${esc(x.n)}" data-name="${esc(x.n)}" title="${esc(x.n)}" aria-label="${esc(x.n)}" style="background:${x.c}"></button>`).join("")}</div>
+      <div class="mh">Standaardkleuren</div><div class="swatches">${STD.map(([n,c])=>`<button class="sw" data-act="color" data-val="${n}" data-name="${n}" title="${n}" aria-label="${n}" style="background:${c}"></button>`).join("")}</div><div class="sep"></div>${B("btn:meer-kleuren","Meer kleuren…","Meer kleuren…","mi")}</div>`;
+  }
+  if(m==="effect"){
+    return `<div class="menu" data-for="menu:effect"><div class="effects">${EFFECTS.map((e,i)=>`<button class="fx" data-act="effect" data-val="${i}" data-name="${esc(e.n)}" title="${esc(e.n)}" aria-label="${esc(e.n)}" style="color:${e.c};${e.css}">A</button>`).join("")}</div><div class="sep"></div>
+      ${["Omtrek","Schaduw","Weerspiegeling","Gloed"].map(n=>B("btn:fx-"+n.toLowerCase(),n,n+" ▸","mi")).join("")}</div>`;
+  }
+  if(m==="opsomming"){
+    return `<div class="menu" data-for="menu:opsomming"><div class="mh">Bibliotheek met opsommingstekens</div><div class="effects">${BULLETS.map(([k,n])=>`<button class="fx" data-act="bullet" data-val="${k}" data-name="${esc(n)}" title="${esc(n)}" aria-label="${esc(n)}" style="font-size:20px">${k==="geen"?'<span style="font-size:11px;font-weight:400">Geen</span>':BGLYPH[k]}</button>`).join("")}</div><div class="sep"></div>${B("btn:nieuw-teken","Nieuw opsommingsteken definiëren…","Nieuw opsommingsteken definiëren…","mi")}</div>`;
+  }
+  if(m==="nummering"){
+    return `<div class="menu" data-for="menu:nummering"><div class="mh">Nummeringsbibliotheek</div><div class="effects" style="grid-template-columns:repeat(3,64px)">${NUMFMTS.map(([k,n])=>`<button class="fx" data-act="num" data-val="${k}" data-name="Nummering ${esc(n)}" title="Nummering ${esc(n)}" aria-label="Nummering ${esc(n)}" style="width:64px;height:64px;font-size:11px;font-weight:400;line-height:1.5;text-align:left;padding:4px 6px">${k==="geen"?"Geen":[0,1,2].map(i=>numLabel(k,i)+" ——").join("<br>")}</button>`).join("")}</div><div class="sep"></div>${B("btn:nieuwe-nummering","Nieuwe getalnotatie definiëren…","Nieuwe getalnotatie definiëren…","mi")}</div>`;
+  }
+  if(m==="ctx"){
+    const c=G.ui.ctxPos||{x:200,y:200};
+    return `<div class="menu" data-ctx="1" style="left:${c.x}px;top:${c.y}px;width:230px">${[["knippen","Knippen"],["kopieren","Kopiëren"],["plakken","Plakopties"]].map(([k,n])=>B("ctxi:"+k,n,n,"mi")).join("")}<div class="sep"></div>
+      ${[["lettertype","Lettertype…"],["alinea","Alinea…"]].map(([k,n])=>B("ctxi:"+k,n,n,"mi")).join("")}<div class="sep"></div>
+      ${B("ctxi:opsomming","Opsommingstekens ▸","Opsommingstekens ▸","mi")}${B("ctxi:nummering","Nummering ▸","Nummering ▸","mi")}${B("ctx:lijst","Lijstinspringing aanpassen…","Lijstinspringing aanpassen…","mi")}${B("ctxi:nieuwe-lijst","Opnieuw nummeren vanaf 1","Opnieuw nummeren vanaf 1","mi")}</div>`;
+  }
+  if(m==="randen"){
+    const opts=[["onder","Onderrand"],["boven","Bovenrand"],["links","Linkerrand"],["rechts","Rechterrand"],["geen","Geen rand"],["alle","Alle randen"],["buiten","Randen buiten"]];
+    return `<div class="menu" data-for="menu:randen">${opts.map(([k,n])=>B("rand:"+k,n,`<span>${n}</span>`,"mi")).join("")}<div class="sep"></div>${B("rand:dlg","Randen en arcering…","Randen en arcering…","mi")}</div>`;
+  }
+  return "";
+}
+function dialogHTML(){
+  const d=G.ui.dialog, v=G.ui.dlg; if(!d) return "";
+  const f = x=> String(x).replace(".",",");
+  if(d==="pagina") return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Pagina-instelling"><div class="dt"><span>Pagina-instelling</span>${B("pg:x","Sluiten (kruisje)","✕","db")}</div>
+    <div class="dtabs"><span class="on">Marges</span><span>Papier</span><span>Indeling</span></div><div class="dc">
+    <fieldset><legend>Marges</legend>
+      <label for="pg-boven">Boven:</label><input id="pg-boven" data-act="pg:boven" data-name="Marge boven" value="${f(v.boven)} cm">
+      <label for="pg-onder">Onder:</label><input id="pg-onder" data-act="pg:onder" data-name="Marge onder" value="${f(v.onder)} cm">
+      <label for="pg-links">Links:</label><input id="pg-links" data-act="pg:links" data-name="Marge links" value="${f(v.links)} cm">
+      <label for="pg-rechts">Rechts:</label><input id="pg-rechts" data-act="pg:rechts" data-name="Marge rechts" value="${f(v.rechts)} cm">
+      <label>Rugmarge:</label><input value="0 cm" disabled><label>Rugmarge:</label><input value="Links" disabled></fieldset>
+    <fieldset><legend>Afdrukstand</legend><span>Staand</span><span></span><span>Liggend</span><span></span></fieldset></div>
+    <div class="df">${B("pg:standaard","Als standaard instellen","Als standaard instellen","db")}${B("pg:ok","OK","OK","db primary")}${B("pg:x","Annuleren","Annuleren","db")}</div></div></div>`;
+  if(d==="lijst") return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Lijstinspringing aanpassen" style="width:min(340px,94%)"><div class="dt"><span>Lijstinspringing aanpassen</span>${B("li:x","Sluiten (kruisje)","✕","db")}</div>
+    <div class="dc"><fieldset style="grid-template-columns:auto 100px"><legend>Inspringing</legend>
+      <label for="li-pos">Positie opsommingsteken:</label><input id="li-pos" data-act="li:pos" data-name="Positie opsommingsteken" value="${f(v.lpos)} cm">
+      <label for="li-ind">Tekstinspringing:</label><input id="li-ind" data-act="li:ind" data-name="Tekstinspringing" value="${f(v.lind)} cm">
+      <label>Gevolgd door:</label><select disabled><option>Tabteken</option></select></fieldset></div>
+    <div class="df">${B("li:ok","OK","OK","db primary")}${B("li:x","Annuleren","Annuleren","db")}</div></div></div>`;
+  if(d==="alinea"){
+    const sel=(id,act,name,opts,val)=>`<select id="${id}" data-act="${act}" data-name="${name}">${opts.map(o=>`<option ${o===val?"selected":""}>${o}</option>`).join("")}</select>`;
+    return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Alinea"><div class="dt"><span>Alinea</span>${B("al:x","Sluiten (kruisje)","✕","db")}</div>
+    <div class="dtabs"><span class="on">Inspringingen en afstand</span><span>Regel- en pagina-einden</span></div><div class="dc">
+    <fieldset><legend>Algemeen</legend><label for="al-align">Uitlijning:</label>${sel("al-align","al:align","Uitlijning",["Links","Gecentreerd","Rechts","Uitgevuld"],{left:"Links",center:"Gecentreerd",right:"Rechts",justify:"Uitgevuld"}[v.align])}<span></span><span></span></fieldset>
+    <fieldset><legend>Inspringing</legend>
+      <label for="al-indL">Links:</label><input id="al-indL" data-act="al:indL" data-name="Inspringing links" value="${f(v.indL)} cm">
+      <label for="al-special">Speciaal:</label>${sel("al-special","al:special","Speciaal",["(geen)","Eerste regel","Verkeerd om"],v.special==="geen"?"(geen)":v.special)}
+      <label for="al-indR">Rechts:</label><input id="al-indR" data-act="al:indR" data-name="Inspringing rechts" value="${f(v.indR)} cm">
+      <label for="al-by">Met:</label><input id="al-by" data-act="al:by" data-name="Met (speciale inspringing)" value="${v.by?f(v.by)+" cm":""}"></fieldset>
+    <fieldset><legend>Afstand</legend>
+      <label for="al-before">Voor:</label><input id="al-before" data-act="al:before" data-name="Afstand voor" value="${f(v.before)} pt">
+      <label for="al-line">Regelafstand:</label>${sel("al-line","al:line","Regelafstand",["Enkel","1,5 regel","Dubbel","Ten minste","Exact","Meerdere"],v.line)}
+      <label for="al-after">Na:</label><input id="al-after" data-act="al:after" data-name="Afstand na" value="${f(v.after)} pt">
+      <label for="al-at">Op:</label><input id="al-at" data-act="al:at" data-name="Op (regelafstand)" value="${v.line==="Exact"||v.line==="Ten minste"?f(v.at)+" pt":v.line==="Meerdere"?f(v.at):""}"></fieldset>
+    <div class="preview">Voorbeeld</div></div>
+    <div class="df">${B("al:tabs","Tabs…","Tabs…","db")}${B("al:standaard","Als standaard instellen","Als standaard instellen","db")}${B("al:ok","OK","OK","db primary")}${B("al:x","Annuleren","Annuleren","db")}</div></div></div>`;
+  }
+  return "";
+}
+function paraCSS(s){
+  const fam = FONTS[s.font] || `'${s.font}', sans-serif`;
+  let lh = s.line==="Exact"? (s.at*PT)+"px" : s.line==="Enkel"? "1.2" : s.line==="1,5 regel"? "1.75" : s.line==="Dubbel"? "2.3" : String(1.15*s.at);
+  const ef = s.effect? EFFECTS[s.effect-1] : null;
+  return `font-family:${fam};font-size:${(s.size*PT).toFixed(2)}px;font-weight:${s.bold?700:400};font-style:${s.italic?"italic":"normal"};text-decoration:${s.underline?"underline":"none"};
+    color:${ef?ef.c:s.color};${ef?ef.css+";":""}text-align:${s.align};padding-left:${(s.indL+(s.list?s.lind:0))*CM}px;padding-right:${s.indR*CM}px;text-indent:${s.list? -(s.lind-s.lpos)*CM : s.special==="Eerste regel"?s.by*CM:s.special==="Verkeerd om"?-s.by*CM:0}px;
+    margin:${s.before*PT}px 0 ${s.after*PT}px;line-height:${lh};${s.border==="onder"?"border-bottom:1.5px solid #A6A6A6;padding-bottom:2px;":""}`;
+}
+function docHTML(){
+  const m=G.doc.margins, marks=G.ui.marks;
+  return `<div class="page${G.ui.kwast?" kwast":""}" style="padding:${m.boven*CM}px ${m.rechts*CM}px ${m.onder*CM}px ${m.links*CM}px"><div class="area">
+    ${G.doc.paras.map(p=>{ let t=esc(p.text); if(marks) t=t.replace(/ /g,'<span class="mark">·</span>\u200B');
+      const key=p.grp||p.id, s=p.s;
+      if(s.list){ const nr=G.doc.paras.filter(x=>x.grp&&x.grp===p.grp&&x.s.list==="number").indexOf(p);
+        const mk = s.list==="bullet"? (BGLYPH[s.bullet]||"●") : numLabel(s.numfmt, Math.max(0,nr));
+        t=`<span style="display:inline-block;text-indent:0;min-width:${Math.max(.3,(s.lind-s.lpos))*CM}px;font-weight:400">${mk}${marks?'<span class="mark">→</span>':""}</span>`+t; }
+      return `<div class="p${G.ui.sel===key?" sel":""}" data-act="sel:${key}" data-name="tekst '${esc(p.text.slice(0,28))}${p.text.length>28?"…":""}'" style="${paraCSS(p.s)}">${t}${marks?'<span class="mark">¶</span>':""}</div>`;}).join("")}
+    ${marks?'<div class="p" style="font-size:12px"><span class="mark">¶</span></div>':""}</div></div>`;
+}
+function wordHTML(){
+  const tabs=["bestand","start","invoegen","ontwerpen","indeling","verwijzingen","verzendlijsten","controleren","beeld"];
+  const tn = t=> t==="bestand"?"Bestand": t[0].toUpperCase()+t.slice(1);
+  const rib = G.ui.tab==="start"? ribbonStart() : G.ui.tab==="indeling"? ribbonIndeling() : ribbonOther(G.ui.tab);
+  const words = G.doc.paras.reduce((a,p)=>a+p.text.split(/\s+/).length,0);
+  return `<div class="word" id="word"><div class="wtitle"><span>↶ ↷</span><span class="doc">klas_${G.L.file||"Iphone"}_${esc((S.name.split(/\s+/)[0]||"voornaam"))} - Word</span><span>— ☐ ✕</span></div>
+    <div class="wtabs">${tabs.map(t=>`<button class="wtab${t==="bestand"?" file":""}${G.ui.tab===t?" on":""}" data-act="tab:${t}" data-name="tabblad ${tn(t)}">${tn(t)}</button>`).join("")}</div>
+    <div class="ribbonwrap" id="ribwrap"><div class="ribbon">${rib}</div></div>
+    <div class="wbody" id="wbody">${docHTML()}</div>
+    <div class="wstatus"><span>Pagina 1 van 1</span><span>${words} woorden</span><span>Nederlands (België)</span>${G.ui.kwast?`<span class="kw">Opmaak kopiëren staat aan${G.ui.kwast===2?" (meerdere keren)":""}</span>`:""}</div>${menuHTML()}${dialogHTML()}</div>`;
+}
+
+/* ---------- interactie ---------- */
+let kwTimer=null, wbScroll=0, ribScroll=0, lastAct={k:"",t:0};
+function bindWord(){
+  const w=$("#word"); if(!w) return;
+  const wb=$("#wbody"); wb.scrollTop=wbScroll; wb.addEventListener("scroll",()=>{wbScroll=wb.scrollTop;});
+  const rw=$("#ribwrap"); rw.scrollLeft=ribScroll; rw.addEventListener("scroll",()=>{ribScroll=rw.scrollLeft; placeMenu();});
+  placeMenu();
+  w.addEventListener("input", e=>{ const el=e.target; if(el.list && e.inputType==="insertReplacementText") act2(el.dataset.act, el.value, el); });
+  w.addEventListener("click", e=>{
+    const el=e.target.closest("[data-act]"); if(!el || !w.contains(el)) return;
+    if(el.tagName==="INPUT"||el.tagName==="SELECT") return;
+    const act=el.dataset.act;
+    if(act==="kwast"){ // enkel of dubbel klikken
+      if(kwTimer){ clearTimeout(kwTimer); kwTimer=null; act2("kwast2", undefined, el); }
+      else kwTimer=setTimeout(()=>{ kwTimer=null; act2("kwast1", undefined, el); }, 320);
+      return;
+    }
+    act2(act, el.dataset.val, el);
+  });
+  w.addEventListener("contextmenu", e=>{
+    const el=e.target.closest(".p[data-act]"); if(!el) return;
+    e.preventDefault();
+    const wb=w.getBoundingClientRect(); G.ui._ctxNext={x:Math.min(e.clientX-wb.left, wb.width-240), y:e.clientY-wb.top};
+    act2(el.dataset.act.replace("sel:","ctx:"), undefined, el, true);
+  });
+  w.addEventListener("change", e=>{ const el=e.target; if(el.dataset && el.dataset.act) act2(el.dataset.act, el.value, el); });
+  w.addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.tagName==="INPUT"){ e.preventDefault(); e.target.blur(); } });
+}
+function placeMenu(){
+  const m=document.querySelector("#word .menu"); if(!m) return;
+  if(m.dataset.ctx){ const W=$("#word"); const top=parseFloat(m.style.top), maxTop=W.clientHeight-m.offsetHeight-6;
+    if(top>maxTop) m.style.top=Math.max(4,maxTop)+"px"; return; }
+  const o=document.querySelector(`#word [data-act="${m.dataset.for}"]`), w=$("#word"); if(!o) return;
+  const ob=o.getBoundingClientRect(), wb=w.getBoundingClientRect();
+  m.style.top=(ob.bottom-wb.top+2)+"px";
+  m.style.left=Math.max(4, Math.min(ob.left-wb.left, wb.width-m.offsetWidth-4))+"px";
+}
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && S.screen==="play" && G && !step().info){ e.preventDefault(); act2("esc"); } });
+
+function numOf(x){ const m=String(x).replace(",",".").match(/-?\d+(\.\d+)?/); return m? parseFloat(m[0]) : NaN; }
+function same(a, want){
+  if(want===undefined) return true;
+  const na=numOf(a), nw=numOf(want);
+  if(!isNaN(nw) && /^[\d.,\s]*(cm|pt)?\s*$/i.test(String(want))) return Math.abs(na-nw)<1e-6;
+  return String(a).trim().toLowerCase()===String(want).trim().toLowerCase();
+}
+function nameOf(act, val, el){
+  if(act==="esc") return "de toets Esc";
+  if(act==="kwast1") return "Opmaak kopiëren (één klik)";
+  if(act==="kwast2") return "Opmaak kopiëren (dubbelklik)";
+  if(el && el.dataset.name) return el.dataset.name + (el.tagName==="INPUT"||el.tagName==="SELECT"? ` (je koos '${val}')` : "");
+  return act;
+}
+
+function act2(act, val, el, right){
+  if(!G || S.screen!=="play") return;
+  const st=step(); if(st.info) return;
+  const key=act+"|"+val, now=Date.now(); if(lastAct.k===key && now-lastAct.t<600) return; lastAct={k:key,t:now};
+  if(st.a==="esc" && (act==="kwast1"||act==="kwast2") && G.ui.kwast) act="esc";
+  if(act===st.a && same(val, st.v)){
+    apply(act, val);
+    const pts = G.miss===0?10: G.miss===1?6:3;
+    G.score+=pts; G.pop="+"+pts; G.msg={k:"good", h: ["Juist!","Goed zo!","Top!","Helemaal juist!","Knap!"][G.i%5] + (G.miss?"":" Van de eerste keer.")};
+    advance();
+  } else {
+    G.miss++; G.errors++;
+    const wrongName = nameOf(act,val,el);
+    const what = (st.a.startsWith("ctx:") && act.startsWith("sel:"))? `Dat was een gewone klik met de <b>linkermuisknop</b>. Gebruik de <b>rechtermuisknop</b>.` : (right && !st.a.startsWith("ctx:"))? `Dat was een klik met de <b>rechtermuisknop</b>. Hier heb je de gewone (linker)muisknop nodig.` : (st.a===act && st.v!==undefined)? `Dat is niet de juiste waarde. Typ of kies <b>${esc(String(st.v).replace(".",","))}</b>.` : `Dat was <b>${esc(wrongName)}</b>. Je zoekt iets anders.`;
+    G.msg = {k: G.miss>=1? "hint":"bad", h: `${what}<br><b>Tip:</b> ${esc(st.h)}${G.miss>=2?" <b>Kijk: de juiste plaats knippert.</b>":""}`};
+    renderPlay();
+  }
+}
+function selList(key){ const k=key||G.ui.sel; return G.doc.paras.filter(p=>p.id===k||(p.grp&&p.grp===k)); }
+function selP(){ return selList()[0]; }
+function apply(act, val){
+  const all=selList(), before = all[0]? {...all[0].s} : null;
+  apply1(act, val);
+  const now=selList();
+  if(before && now[0] && now.length>1 && now[0]===all[0]){
+    const diff={}; for(const k in now[0].s) if(now[0].s[k]!==before[k]) diff[k]=now[0].s[k];
+    now.slice(1).forEach(x=>Object.assign(x.s, diff));
+  }
+}
+function apply1(act, val){
+  const ui=G.ui, p=selP(), s=p&&p.s;
+  const [k, sub] = act.split(":");
+  if(k==="tab"){ ui.tab=sub; ui.menu=null; return; }
+  if(k==="ctx"){
+    if(sub==="lijst"){ ui.menu=null; ui.dialog="lijst"; ui.dlg={lpos:s.lpos, lind:s.lind}; return; }
+    ui.sel=sub; ui.menu="ctx"; ui.ctxPos=ui._ctxNext; return; }
+  if(k==="li"){ const d=ui.dlg;
+    if(sub==="ok"){ Object.assign(s, {lpos:d.lpos, lind:d.lind}); ui.dialog=null; return; }
+    if(sub==="x"){ ui.dialog=null; return; }
+    d[sub==="pos"?"lpos":"lind"]=numOf(val); return; }
+  if(act==="bullet"){ s.list= val==="geen"? null : "bullet"; s.bullet=val; ui.menu=null; return; }
+  if(act==="num"){ s.list= val==="geen"? null : "number"; s.numfmt=val; ui.menu=null; return; }
+  if(k==="sel"){ const tgts=selList(sub);
+    if(ui.kwast && ui.copy){ tgts.forEach(t=>Object.assign(t.s, ui.copy)); if(ui.kwast===1){ ui.kwast=0; ui.copy=null; } }
+    ui.sel=sub; return; }
+  if(act==="kwast1"||act==="kwast2"){ if(ui.kwast){ ui.kwast=0; ui.copy=null; return; } ui.kwast=act==="kwast1"?1:2; ui.copy= s? {...s}:null; return; }
+  if(act==="esc"){ ui.kwast=0; ui.copy=null; ui.menu=null; return; }
+  if(k==="menu"){ ui.menu=sub; return; }
+  if(k==="btn"){
+    if(sub==="pilcrow"){ ui.marks=!ui.marks; return; }
+    if(sub==="opsomming" && s){ s.list = s.list==="bullet"? null : "bullet"; if(s.list && !BGLYPH[s.bullet]) s.bullet="rond"; return; }
+    if(sub==="nummering" && s){ s.list = s.list==="number"? null : "number"; if(s.list && s.numfmt==="geen") s.numfmt="1."; return; }
+    if(sub==="marges"){ ui.menu="marges"; return; }
+    if(!s) return;
+    if(sub==="vet") s.bold=!s.bold; if(sub==="cursief") s.italic=!s.italic; if(sub==="onderstreept") s.underline=!s.underline;
+    if({links:1,centreren:1,rechts:1,uitvullen:1}[sub]) s.align={links:"left",centreren:"center",rechts:"right",uitvullen:"justify"}[sub];
+    return;
+  }
+  if(act==="fontname"){ s.font=Object.keys(FONTS).find(f=>f.toLowerCase()===String(val).trim().toLowerCase())||val; return; }
+  if(act==="fontsize"){ s.size=numOf(val); return; }
+  if(act==="color"){ s.color=COLORS[val]||s.color; s.effect=0; ui.menu=null; return; }
+  if(act==="effect"){ s.effect=(+val)+1; ui.menu=null; return; }
+  if(k==="rand"){ if(s) s.border=sub==="onder"?"onder":""; ui.menu=null; return; }
+  if(k==="marge"){
+    ui.menu=null;
+    const presets={normaal:2.5,smal:1.27,gemiddeld:2.54,breed:2.54};
+    if(sub==="aangepast"){ ui.dialog="pagina"; ui.dlg={...G.doc.margins}; return; }
+    if(sub==="breed"){ G.doc.margins={boven:2.54,onder:2.54,links:5.08,rechts:5.08}; return; }
+    if(sub==="gemiddeld"){ G.doc.margins={boven:2.54,onder:2.54,links:1.91,rechts:1.91}; return; }
+    const v=presets[sub]||2.5; G.doc.margins={boven:v,onder:v,links:v,rechts:v}; return;
+  }
+  if(k==="pg"){ if(sub==="ok"){ G.doc.margins={...ui.dlg}; ui.dialog=null; return; } if(sub==="x"){ ui.dialog=null; return; } ui.dlg[sub]=numOf(val); return; }
+  if(act==="launch:alinea"){ ui.dialog="alinea"; ui.dlg={...s}; return; }
+  if(k==="al"){
+    const d=ui.dlg;
+    if(sub==="ok"){ Object.assign(s, d); ui.dialog=null; return; }
+    if(sub==="x"){ ui.dialog=null; return; }
+    if(sub==="special"){ d.special= val==="(geen)"?"geen":val; return; }
+    if(sub==="line"){ d.line=val; if(val==="Exact"||val==="Ten minste") d.at=d.at>3?d.at:12; if(val==="Meerdere") d.at=1.08; return; }
+    if(sub==="align"){ d.align={Links:"left",Gecentreerd:"center",Rechts:"right",Uitgevuld:"justify"}[val]; return; }
+    d[sub]=numOf(val); return;
+  }
+}
+function advance(){
+  G.i++; G.miss=0;
+  if(G.i>=G.L.steps.length) return finish();
+  renderPlay();
+}
+function markTarget(){
+  const st=step(); let el=document.querySelector(`#word [data-act="${CSS.escape(st.a)}"]`);
+  if(st.a==="kwast1"||st.a==="kwast2"||st.a==="esc") el=document.querySelector('#word [data-act="kwast"]');
+  if(st.a.startsWith("ctx:") && st.a!=="ctx:lijst") el=document.querySelector(`#word [data-act="sel:${st.a.slice(4)}"]`);
+  if(st.a==="bullet"||st.a==="num") el=document.querySelector(`#word [data-act="${st.a}"][data-val="${CSS.escape(String(st.v))}"]`);
+  if(st.a==="color"||st.a==="effect") el=document.querySelector(`#word [data-act="${st.a}"][data-val="${CSS.escape(String(st.v))}"]`);
+  if(el){ el.classList.add("target"); el.scrollIntoView({block:"nearest",inline:"nearest"}); }
+}
+
+/* ---------- einde level ---------- */
+function finish(){
+  const n=G.n, max=maxPts(G.L), stars=starsFor(G.score,max);
+  const prev=S.prog.best[n];
+  if(!prev || prev.fromCode || G.score>prev.score) S.prog.best[n]={score:G.score, stars, errors:G.errors};
+  S.prog.unlocked=Math.max(S.prog.unlocked, Math.min(LEVELS.length, n+1));
+  save(); G.result={stars, max}; S.screen="end"; render(); window.scrollTo({top:0});
+}
+function renderEnd(){
+  const n=G.n, code=makeCode(S.name, done(), total()), last=n===LEVELS.length;
+  app.innerHTML = header() + `<div class="card done">
+    <span class="muted" style="text-transform:uppercase;letter-spacing:.08em;font-weight:700">${G.L.boss?"Eindopdracht":"Level "+n} afgewerkt</span>
+    <h2 style="font-size:2rem">${esc(G.L.name)}</h2>
+    ${starHTML(G.result.stars,"bigstars")}
+    <div class="stats"><div><span class="muted">Punten</span><b>${G.score} / ${G.result.max}</b></div><div><span class="muted">Foutjes</span><b>${G.errors}</b></div><div><span class="muted">Totaal</span><b>${total()}</b></div></div>
+    <div><div class="muted" style="margin-bottom:6px">Jouw code (lever die in op Teams, en bewaar hem om volgende keer verder te spelen):</div>
+      <div class="codebox"><span class="code" id="code">${code}</span><button class="btn ghost small" id="copy">Kopieer code</button></div></div>
+    <p class="muted" style="margin:0">${G.result.stars<3?"Wil je meer sterren? Speel het level gerust opnieuw.":"Drie sterren! Je kent dit nu."} ${last?"Je hebt alle levels gedaan. Probeer het nu in het echte Word!":"Probeer straks hetzelfde ook eens in het echte Word."}</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">${!last?`<button class="btn" id="nxt">Volgend level</button>`:""}<button class="btn ghost" id="again">Opnieuw spelen</button><button class="btn ghost" data-go="map">Naar de levels</button></div></div>` + footer();
+  $("#copy").addEventListener("click", ()=>{ const t=$("#code").textContent;
+    try{ navigator.clipboard.writeText(t).then(()=>{$("#copy").textContent="Gekopieerd";}, sel); }catch(e){ sel(); }
+    function sel(){ const r=document.createRange(); r.selectNodeContents($("#code")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("#copy").textContent="Druk op Ctrl+C"; } });
+  if(!last) $("#nxt").addEventListener("click", ()=>startLevel(n+1));
+  $("#again").addEventListener("click", ()=>startLevel(n));
+}
+function renderTeacher(){
+  app.innerHTML = header() + `<div class="card teacher"><h2 style="font-size:1.6rem">Code controleren</h2>
+    <p class="muted" style="margin:0">Typ de naam precies zoals de leerling hem invulde en de code die je kreeg. Je ziet dan tot welk level de leerling kwam en hoeveel punten hij of zij had. Een code past maar bij één naam, dus overnemen van een klasgenoot lukt niet.</p>
+    <form id="f-t" novalidate style="display:grid;gap:10px">
+    <label class="f" for="t-name">Naam leerling<input class="txt" id="t-name" autocomplete="off"></label>
+    <label class="f" for="t-code">Code<input class="txt" id="t-code" autocomplete="off" placeholder="bv. 3-240-K7QZ"></label>
+    <button class="btn" type="submit">Controleer</button><div id="t-res"></div></form>
+    <details><summary>Wat betekent de code?</summary><p class="muted">Eerste getal: het hoogste level dat afgewerkt is (van ${LEVELS.length}). Tweede getal: het totaal aantal punten over alle levels. Per stap zijn er 10 punten te verdienen: 10 bij een juiste eerste klik, 6 na één fout, 3 na meer fouten. De levels: ${LEVELS.map((L,i)=>`${i+1}. ${esc(L.name)} (${maxPts(L)} ptn)`).join(" · ")}.</p></details>
+    <div><button class="btn ghost small" data-go="${S.name?"map":"start"}">Terug</button></div></div>` + footer();
+  $("#f-t").addEventListener("submit", e=>{ e.preventDefault();
+    const r=readCode($("#t-name").value, $("#t-code").value), out=$("#t-res");
+    if(r){ out.className="result"; out.style.background="var(--good-bg)"; out.style.color="var(--good)";
+      out.innerHTML=`Geldig. Level ${r.lvl} van ${LEVELS.length} afgewerkt (${esc(LEVELS[r.lvl-1].name)}), ${r.score} punten in totaal.`; }
+    else { out.className="result"; out.style.background="var(--bad-bg)"; out.style.color="var(--bad)"; out.textContent="Deze code past niet bij deze naam. Kijk de schrijfwijze van de naam na."; }
+  });
+}
+app.addEventListener("click", e=>{ const g=e.target.closest("[data-go]"); if(!g) return; S.screen=g.dataset.go; G=null; render(); });
+
+render();
+})();
+</script>
+
+</body></html>
