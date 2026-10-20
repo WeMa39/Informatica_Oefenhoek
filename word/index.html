@@ -59,6 +59,12 @@ label.f{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.95
 .rules .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--word);color:var(--panel);display:grid;place-items:center;font-weight:800;font-size:.85rem}
 
 /* map */
+.task{background:var(--panel);border:2px solid var(--word);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.task.locked{border-color:var(--line);opacity:.6}
+.task .num{font-family:var(--display);font-weight:800;color:var(--word);font-size:.85rem;letter-spacing:.06em;text-transform:uppercase}
+.task .d{color:var(--muted)}
+.tsteps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+.tsteps a.btn{margin:2px 4px 2px 0}
 .levels{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
 .lvl{text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;color:var(--ink);min-height:132px}
 .lvl:hover:not([disabled]){border-color:var(--word)}
@@ -132,6 +138,7 @@ label.f{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.95
 .stylegal{display:flex;gap:2px}
 .stylegal .rb{flex-direction:column;width:68px;height:62px;border:1px solid #E1E1E1;background:#fff;gap:2px}
 .stylegal .rb .sm{font-size:10px;color:#555}
+.stylegal .rb.on{background:var(--w-on);border:2px solid #2B579A}
 .menu{position:absolute;z-index:20;background:#fff;border:1px solid #BDBDBD;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:4px;min-width:170px;color:var(--w-ink);font-family:var(--ui)}
 .menu .mi{display:flex;width:100%;text-align:left;border:0;background:transparent;padding:6px 10px;gap:10px;align-items:center;font-size:12px;color:var(--w-ink);border-radius:2px}
 .menu .mi:hover{background:var(--w-hover)}
@@ -689,7 +696,9 @@ function renderStart(){
 // code = de code die de leerkracht geeft om dit hoofdstuk meteen open te zetten
 const CHAPTERS = [
   {name:"Teken- en alineaopmaak", levels:[1,2,3,4,5,6,7,8], code:"OPMAAK7"},
-  {name:"Stijlen", levels:[10,11,12], code:"STIJL3"},
+  {name:"Stijlen", levels:[10,11,12], code:"STIJL3",
+   task:{name:"Oef 3.4 Festivals", after:12, d:"Nu in het echte Word: maak zelf de stijlen aan en pas de gouden regel toe op een tekst over festivals.",
+     files:[["Opdrachtfiche (pdf)","festivals-fiche.pdf"],["Starttekst (Word)","festivals-opgave.docx"]]}},
   {name:"Opsomming en nummering", levels:[9], code:"LIJST5"},
   {name:"Tabellen", levels:[], code:"TABEL4"}
 ];
@@ -700,7 +709,7 @@ function openChapter(ci){ S.prog.open=[...new Set([...(S.prog.open||[]), ci])]; 
 const SEND = { url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=wH3qjxKF_Eq-VW1TfMsk0dTXxUbVzpNFlRWpZdO0ecpUNlU4VllLME5HTjRXOVZORlRBQlZYSUNNVC4u",
   naam:"r6d898367e4114917ae8fb3c71d36cd40", klas:"r689bac117801495f82b09a7480b5614d", oefening:"r158faeaa328c46a988dc41bd353e3fa2",
   score:"rb94ccc6e19104e5d80bee87245761c55", sterren:"rdad37066f57f49398b67790915ae03b5", fouten:"r83fd65a3163e48c1abd8433ac1cdfa71" };
-function sendURL(n){ const v={naam:S.name, klas:S.klas, oefening:`${lvLabel(n)} ${G.L.name}`, score:`${G.score} / ${G.result.max}`, sterren:G.result.stars, fouten:G.errors};
+function sendURL(n, v){ v = v || {naam:S.name, klas:S.klas, oefening:`${lvLabel(n)} ${G.L.name}`, score:`${G.score} / ${G.result.max}`, sterren:G.result.stars, fouten:G.errors};
   return SEND.url + Object.keys(v).filter(k=>SEND[k]).map(k=>"&"+SEND[k]+"="+encodeURIComponent(v[k])).join(""); }
 function chapterOf(n){ return CHAPTERS.findIndex(c=>c.levels.includes(n)); }
 function lvLabel(n){ const L=LEVELS[n-1]; if(L.boss) return "Eindopdracht"; const ci=chapterOf(n); return ci<0? "Level "+n : `Level ${ci+1}.${CHAPTERS[ci].levels.indexOf(n)+1}`; }
@@ -713,6 +722,18 @@ function levelCard(n){
   return `<button class="lvl" data-lvl="${n}" ${open?"":"disabled"}><span class="num">${lvLabel(n)}${open?"":" · op slot"}</span><h3>${esc(L.name)}</h3><span class="d">${esc(L.d)}</span>
       <span style="display:flex;justify-content:space-between;align-items:center">${starHTML(b?b.stars:0)}<span class="muted" style="font-size:.85rem">${b&&b.fromCode?"Gedaan (via code)":b&&b.score?b.score+" / "+maxPts(L)+" ptn":L.steps.filter(s=>!s.info).length+" stappen"}</span></span></button>`;
 }
+function taskCard(c, ci){
+  const t=c.task, open=!!S.prog.best[t.after] || (S.prog.open||[]).includes(ci), done=(S.prog.tasks||{})[ci];
+  if(!open) return `<div class="task locked"><span class="num">Opdracht in Word · op slot</span><h3>${esc(t.name)}</h3><span class="d">Gaat open als je ${lvLabel(t.after)} afgewerkt hebt.</span></div>`;
+  return `<div class="task"><span class="num">Opdracht in Word${done?" · ingeleverd ✓":""}</span><h3>${esc(t.name)}</h3><span class="d">${esc(t.d)}</span>
+    <ol class="tsteps">
+      <li>Download de bestanden: ${t.files.map(([l,f])=>`<a class="btn ghost small" href="${f}" download>${esc(l)}</a>`).join(" ")}</li>
+      <li>Open de starttekst in <b>Word</b> en volg de opdrachtfiche stap voor stap.</li>
+      <li>Bewaar het bestand als <b>${esc(((S.klas||"klas")+"_"+t.name.replace(/^Oef [\d.]+ /,"")+"_"+S.name.trim().replace(/\s+/g,"_")))}</b>.</li>
+      <li>Lever het bestand in op <b>Teams</b>.</li>
+    </ol>
+    <div><button class="btn small" data-task="${ci}">${done?"Opnieuw melden":"Ik heb het ingeleverd"}</button></div></div>`;
+}
 function renderMap(){
   const code = done().length? makeCode(S.name, done(), total()) : "";
   app.innerHTML = header() + `<div class="card codebox" style="justify-content:space-between">
@@ -720,7 +741,7 @@ function renderMap(){
     ${code?`<div><div class="muted" style="font-size:.85rem">Jouw code om verder te spelen</div><span class="code">${code}</span></div>`:""}</div>
     ${CHAPTERS.map((c,ci)=>{ const got=c.levels.filter(n=>S.prog.best[n]).length;
       return `<section class="chapter"><div class="chhead"><span class="chnum">Hoofdstuk ${ci+1}</span><h2>${esc(c.name)}</h2>${c.levels.length?`<span class="muted chprog">${got} van ${c.levels.length} levels gedaan</span>`:""}</div>
-      ${c.levels.length?`<div class="levels">${c.levels.map(levelCard).join("")}</div>`:`<div class="soonbox">Binnenkort: hier komen nieuwe levels.</div>`}</section>`; }).join("")}
+      ${c.levels.length?`<div class="levels">${c.levels.map(levelCard).join("")}</div>`:`<div class="soonbox">Binnenkort: hier komen nieuwe levels.</div>`}${c.task? taskCard(c,ci):""}</section>`; }).join("")}
     <form id="f-open" class="card openbox" novalidate><label class="f" for="in-open">Code van je leerkracht om een hoofdstuk te openen<input class="txt" id="in-open" autocomplete="off" placeholder="bv. STIJL3"></label><button class="btn small" type="submit">Openen</button><div class="err" id="err-open"></div></form>
     <div><button class="btn ghost small" data-go="start">Andere speler</button></div>` + footer();
   if(S.flash){ $("#err-open").style.color="var(--good)"; $("#err-open").textContent=S.flash; S.flash=""; }
@@ -728,6 +749,10 @@ function renderMap(){
     if(ci<0){ $("#err-open").style.color=""; $("#err-open").textContent="Die code ken ik niet. Vraag ze opnieuw aan je leerkracht."; return; }
     openChapter(ci); save(); S.flash=`Hoofdstuk ${ci+1} (${CHAPTERS[ci].name}) staat nu open.`; renderMap(); });
   app.querySelectorAll("[data-lvl]").forEach(b=>b.addEventListener("click",()=>startLevel(+b.dataset.lvl)));
+  app.querySelectorAll("[data-task]").forEach(b=>b.addEventListener("click",()=>{ const ci=+b.dataset.task, t=CHAPTERS[ci].task;
+    S.prog.tasks={...(S.prog.tasks||{}), [ci]:true}; save();
+    if(SEND.url) window.open(sendURL(0,{naam:S.name, klas:S.klas, oefening:`Opdracht in Word: ${t.name}`, score:"ingeleverd op Teams", sterren:"", fouten:""}),"_blank","noopener");
+    renderMap(); }));
 }
 
 /* ---------- het spel ---------- */
