@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
-/* Layout: korte kop, daaronder één kaart per programma; nieuwe programma's voeg je toe als extra kaart. */
+/* Layout: korte kop, daaronder per jaar een blok met één kaart per programma; nieuwe programma's voeg je toe als extra kaart. */
 :root{
   --bg:#EEF2F8; --panel:#FFFFFF; --ink:#16233A; --muted:#55627A; --line:#D3DAE6;
   --word:#2B579A; --excel:#1D6F42; --ppt:#C43E1C; --gold:#F2B705; --on-accent:#FFFFFF;
@@ -21,12 +21,16 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
 .wrap{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:22px}
-h1,h2{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
 h1{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-.01em}
 .lead{color:var(--muted);max-width:60ch;margin:8px 0 0}
 .how{display:flex;gap:10px 22px;flex-wrap:wrap;margin:0;padding:0;list-style:none;font-size:.95rem}
 .how li{display:flex;gap:8px;align-items:center}
 .how .n{flex:none;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:800;font-size:.8rem}
+.year{display:flex;flex-direction:column;gap:12px}
+.year-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;border-bottom:2px solid var(--line);padding-bottom:6px}
+.year-head h2{font-size:1.6rem;font-weight:800}
+.year-head span{color:var(--muted);font-size:.95rem}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
 .app{--c:var(--word);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px;text-decoration:none;color:var(--ink);position:relative;overflow:hidden}
 .app::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:var(--c)}
@@ -34,13 +38,14 @@ a.app:hover{border-color:var(--c);box-shadow:0 8px 24px rgba(16,30,60,.12)}
 a.app:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .app.excel{--c:var(--excel)} .app.ppt{--c:var(--ppt)}
 .app .head{display:flex;gap:12px;align-items:center}
-.app h2{font-size:1.5rem;font-weight:800}
+.app h3{font-size:1.5rem;font-weight:800}
 .app .sub{color:var(--muted);font-size:.9rem}
 .app p{margin:0}
 .topics{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
 .topics li{font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted)}
 .go{margin-top:auto;align-self:flex-start;background:var(--c);color:var(--on-accent);font-weight:700;border-radius:10px;padding:10px 18px}
 .soon{margin-top:auto;align-self:flex-start;font-weight:700;color:var(--muted);border:2px dashed var(--line);border-radius:10px;padding:8px 16px}
+.new{position:absolute;top:16px;right:16px;background:var(--gold);color:#16233A;font-weight:700;font-size:.75rem;border-radius:999px;padding:2px 10px}
 .app.off{opacity:.75}
 .foot{color:var(--muted);font-size:.85rem}
 </style>
@@ -53,31 +58,52 @@ a.app:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
   </header>
 
   <ol class="how" aria-label="Zo werkt het">
-    <li><span class="n">1</span>Kies een programma</li>
+    <li><span class="n">1</span>Kies je jaar en een programma</li>
     <li><span class="n">2</span>Typ je voornaam en achternaam</li>
     <li><span class="n">3</span>Lever je code in op Teams na elk level</li>
   </ol>
 
-  <section class="grid" aria-label="Programma's">
-    <a class="app" href="word/">
-      <div class="head">
-        <svg width="44" height="44" viewBox="0 0 38 38" aria-hidden="true"><rect x="2" y="4" width="34" height="30" rx="6" fill="#2B579A"/><path d="M9 13h4l2.5 10 3-10h3l3 10 2.5-10h4l-4.8 14h-3.4L19 17.5 16.3 27h-3.4z" fill="#fff"/></svg>
-        <div><h2>Word stap voor stap</h2><div class="sub">4 hoofdstukken · 9 levels</div></div>
-      </div>
-      <p>Het lint leren kennen en een tekst netjes opmaken.</p>
-      <ul class="topics" aria-label="Hoofdstukken">
-        <li>Teken- en alineaopmaak</li><li>Stijlen</li><li>Opsomming en nummering</li><li>Tabellen</li>
-      </ul>
-      <span class="go">Start met Word</span>
-    </a>
+  <section class="year" aria-labelledby="j3">
+    <div class="year-head"><h2 id="j3">3de jaar</h2></div>
+    <div class="grid">
+      <a class="app" href="word/index.html">
+        <div class="head">
+          <svg width="44" height="44" viewBox="0 0 38 38" aria-hidden="true"><rect x="2" y="4" width="34" height="30" rx="6" fill="#2B579A"/><path d="M9 13h4l2.5 10 3-10h3l3 10 2.5-10h4l-4.8 14h-3.4L19 17.5 16.3 27h-3.4z" fill="#fff"/></svg>
+          <div><h3>Word stap voor stap</h3><div class="sub">4 hoofdstukken · 9 levels</div></div>
+        </div>
+        <p>Het lint leren kennen en een tekst netjes opmaken.</p>
+        <ul class="topics" aria-label="Hoofdstukken">
+          <li>Teken- en alineaopmaak</li><li>Stijlen</li><li>Opsomming en nummering</li><li>Tabellen</li>
+        </ul>
+        <span class="go">Start met Word</span>
+      </a>
 
-    <div class="app excel off" aria-disabled="true">
-      <div class="head">
-        <svg width="44" height="44" viewBox="0 0 38 38" aria-hidden="true"><rect x="2" y="4" width="34" height="30" rx="6" fill="#1D6F42"/><path d="M11 12h4.2l3.8 6 3.8-6H27l-5.8 7.5L27 27h-4.2L19 21l-3.8 6H11l5.8-7.5z" fill="#fff"/></svg>
-        <div><h2>Excel stap voor stap</h2><div class="sub">rekenblad</div></div>
+      <div class="app excel off" aria-disabled="true">
+        <div class="head">
+          <svg width="44" height="44" viewBox="0 0 38 38" aria-hidden="true"><rect x="2" y="4" width="34" height="30" rx="6" fill="#1D6F42"/><path d="M11 12h4.2l3.8 6 3.8-6H27l-5.8 7.5L27 27h-4.2L19 21l-3.8 6H11l5.8-7.5z" fill="#fff"/></svg>
+          <div><h3>Excel stap voor stap</h3><div class="sub">rekenblad</div></div>
+        </div>
+        <p>Cellen, formules en grafieken, in dezelfde kleine stappen.</p>
+        <span class="soon">Binnenkort</span>
       </div>
-      <p>Cellen, formules en grafieken, in dezelfde kleine stappen.</p>
-      <span class="soon">Binnenkort</span>
+    </div>
+  </section>
+
+  <section class="year" aria-labelledby="j4">
+    <div class="year-head"><h2 id="j4">4de jaar</h2><span>Bedrijf en organisatie</span></div>
+    <div class="grid">
+      <a class="app excel" href="excel4/index.html">
+        <span class="new">Nieuw</span>
+        <div class="head">
+          <svg width="44" height="44" viewBox="0 0 38 38" aria-hidden="true"><rect x="2" y="4" width="34" height="30" rx="6" fill="#1D6F42"/><path d="M11 12h4.2l3.8 6 3.8-6H27l-5.8 7.5L27 27h-4.2L19 21l-3.8 6H11l5.8-7.5z" fill="#fff"/></svg>
+          <div><h3>Voorwaardelijke opmaak</h3><div class="sub">Excel · Oef 8.1 Sportwinkel · 7 levels</div></div>
+        </div>
+        <p>Laat Excel zelf cellen kleuren: groen voor bestsellers, rood als de voorraad op is.</p>
+        <ul class="topics" aria-label="Onderwerpen">
+          <li>Markeringsregels</li><li>Gegevensbalken</li><li>Kleurenschalen</li><li>Pictogrammen</li><li>ALS-functie</li>
+        </ul>
+        <span class="go">Start met Excel</span>
+      </a>
     </div>
   </section>
 
