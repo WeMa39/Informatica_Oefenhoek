@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Voorwaardelijke opmaak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#EEF2F8; --panel:#FFFFFF; --ink:#16233A; --muted:#55627A; --line:#D3DAE6; --soft:#F5F7FB;
+  --excel:#1D6F42; --excel-soft:#E3F1E8; --gold:#F2B705; --on-accent:#FFFFFF;
+  --ok:#1D6F42; --bad:#B42318; --bad-soft:#FDECEA;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0F1726; --panel:#18233A; --ink:#E8EEF8; --muted:#A3B0C6; --line:#2C3B57; --soft:#1F2C46;
+  --excel:#6CC08F; --excel-soft:#1C3A2B; --gold:#F5C83A; --on-accent:#0F1726;
+  --ok:#6CC08F; --bad:#F19A8E; --bad-soft:#3A2024; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.15;text-wrap:balance}
+h1{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-.01em}
+h2{font-size:clamp(1.5rem,3.2vw,2rem);font-weight:800}
+h3{font-size:1.2rem;font-weight:800}
+p{margin:0}
+a{color:inherit}
+.back{font-size:.95rem;color:var(--muted);text-decoration:none}
+.back:hover{text-decoration:underline}
+.kicker{display:inline-block;background:var(--excel);color:var(--on-accent);font-weight:700;font-size:.8rem;border-radius:999px;padding:3px 12px;margin-bottom:10px}
+.lead{color:var(--muted);max-width:62ch;margin-top:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.sec{display:flex;flex-direction:column;gap:14px}
+.sec-head{display:flex;gap:12px;align-items:center}
+.badge{flex:none;width:36px;height:36px;border-radius:10px;background:var(--excel);color:var(--on-accent);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:10px 18px;background:var(--excel);color:var(--on-accent);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.colhead:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input[type=text],select{font:inherit;color:var(--ink);background:var(--panel);border:2px solid var(--line);border-radius:8px;padding:6px 10px;max-width:100%}
+label{font-weight:700}
+kbd{font-family:var(--body);font-size:.85em;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--soft)}
+code{font-family:Consolas,"Courier New",monospace;background:var(--soft);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.92em}
+.path{font-weight:700}
+.path span{white-space:nowrap}
+
+/* naam + voortgang */
+.who{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.who div{display:flex;flex-direction:column;gap:4px}
+.progress{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.bar{flex:1 1 220px;height:12px;border-radius:999px;background:var(--soft);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--excel);transition:width .3s}
+.plan{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.plan li{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:.95rem}
+.plan b{display:block;font-family:var(--display);font-size:1.05rem}
+
+/* nagebouwd Excel-blad: blijft licht, zoals het echte programma */
+.sheetbox{overflow-x:auto;border:1px solid #C8C8C8;border-radius:8px;background:#fff;color:#222}
+.sheet{border-collapse:collapse;font-family:Aptos,Calibri,"Segoe UI",Arial,sans-serif;font-size:13px;min-width:860px;width:100%}
+.sheet th,.sheet td{border:1px solid #DADADA;padding:3px 6px;white-space:nowrap;height:24px}
+.sheet thead th{background:#F3F3F3;color:#555;font-weight:400;text-align:center}
+.sheet .rn{background:#F3F3F3;color:#555;text-align:center;width:30px}
+.sheet .hdr td{background:#7F7F7F;color:#FFD966;font-weight:700;text-align:center;white-space:normal;line-height:1.15;font-size:12px}
+.sheet td.l{text-align:left}.sheet td.c{text-align:center}.sheet td.r{text-align:right}
+.sheet td{position:relative}
+.sheet td .in{position:relative;display:flex;align-items:center;gap:6px;justify-content:inherit}
+.sheet td.c .in{justify-content:center}.sheet td.r .in{justify-content:flex-end}
+.sheet td.ico .in{justify-content:space-between}
+.sheet .databar{position:absolute;left:2px;top:3px;bottom:3px;border:1px solid}
+.colhead{cursor:pointer;user-select:none}
+.colhead:hover{background:#E2EFE6 !important}
+.sel{box-shadow:inset 2px 0 0 #217346,inset -2px 0 0 #217346}
+.sel-top{box-shadow:inset 2px 0 0 #217346,inset -2px 0 0 #217346,inset 0 2px 0 #217346}
+.sel-bot{box-shadow:inset 2px 0 0 #217346,inset -2px 0 0 #217346,inset 0 -2px 0 #217346}
+thead th.selh{background:#D2E8DA !important;color:#217346;font-weight:700}
+
+/* lint-nabootsing */
+.ribbon{border:1px solid #C8C8C8;border-radius:8px;background:#fff;color:#222;font-family:Aptos,Calibri,"Segoe UI",Arial,sans-serif;font-size:13px;overflow:hidden}
+.tabs{display:flex;gap:2px;background:#217346;padding:4px 8px 0;flex-wrap:wrap}
+.tabs span{color:#fff;padding:4px 10px;border-radius:4px 4px 0 0}
+.tabs span.on{background:#fff;color:#217346;font-weight:700}
+.groups{display:flex;gap:0;flex-wrap:wrap;padding:8px}
+.grp{border-right:1px solid #DDD;padding:2px 12px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:4px;min-height:70px;color:#666}
+.grp .lab{font-size:11px;color:#777}
+.grp.hit{background:#FFF7D6;outline:3px solid #F2B705;outline-offset:-3px;border-radius:6px;color:#222}
+.cfbtn{display:flex;flex-direction:column;align-items:center;font-size:12px;line-height:1.15;text-align:center}
+.menu{border-top:1px solid #DDD;background:#FAFAFA;padding:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 16px}
+.menu div{padding:4px 8px;border-radius:4px;display:flex;align-items:center;gap:8px}
+.menu div.big{font-weight:700;color:#217346}
+.menu hr{grid-column:1/-1;border:0;border-top:1px solid #DDD;margin:2px 0}
+
+.kinds{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.kind{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--soft)}
+.kind .demo{background:#fff;border:1px solid #DADADA;border-radius:6px;padding:6px;display:flex;flex-direction:column;gap:3px;font-family:Calibri,Arial,sans-serif;font-size:12px;color:#222}
+.kind .demo span{padding:2px 6px;border-radius:2px;display:flex;justify-content:space-between;align-items:center}
+
+/* stappenlijst */
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.step{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+.step.done{border-color:var(--excel);background:var(--excel-soft)}
+.step .top{display:flex;gap:12px;align-items:flex-start}
+.step input[type=checkbox]{width:22px;height:22px;flex:none;margin-top:2px;accent-color:#1D6F42}
+.step .nr{font-weight:800;font-family:var(--display);color:var(--excel);margin-right:4px}
+.step label{font-weight:400}
+details{margin-top:8px;margin-left:34px}
+summary{cursor:pointer;font-weight:700;color:var(--excel);font-size:.95rem}
+details .body{padding:8px 0 2px;display:flex;flex-direction:column;gap:8px;font-size:.95rem}
+.check{border-left:4px solid var(--gold);background:var(--soft);padding:6px 10px;border-radius:0 8px 8px 0;font-size:.93rem}
+
+/* werkplek */
+.levels{display:flex;gap:6px;flex-wrap:wrap}
+.lv{font:inherit;font-weight:700;min-width:44px;height:44px;border-radius:10px;border:2px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.lv.on{border-color:var(--excel);background:var(--excel);color:var(--on-accent)}
+.lv.ok:not(.on){border-color:var(--excel);color:var(--excel)}
+.lv.ok::after{content:" ✓"}
+.task{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.task h3 span{color:var(--excel)}
+.ws{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px;align-items:start}
+.dlg{border:1px solid #C8C8C8;border-radius:10px;background:#fff;color:#222;font-family:"Segoe UI",Calibri,Arial,sans-serif;font-size:14px;overflow:hidden}
+.dlg .tt{background:#217346;color:#fff;padding:8px 12px;font-weight:700}
+.dlg .bd{padding:12px;display:flex;flex-direction:column;gap:12px}
+.dlg .st{display:flex;flex-direction:column;gap:5px}
+.dlg .st b{font-size:13px;color:#217346}
+.dlg select,.dlg input[type=text]{background:#fff;color:#222;border:1px solid #9A9A9A;border-radius:4px;padding:5px 6px;font-size:14px;width:100%}
+.dlg label{font-weight:400;font-size:13px}
+.dlg .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dlg .row select{width:auto;flex:1}
+.dlg .row input[type=text]{width:70px;flex:none}
+.dlg .selinfo{font-family:Consolas,monospace;background:#F3F3F3;border:1px solid #DDD;border-radius:4px;padding:4px 8px}
+.dlg .btns{display:flex;gap:8px;flex-wrap:wrap}
+.dlg .btn{background:#217346;color:#fff;font-size:14px;padding:8px 14px}
+.dlg .btn.ghost{background:#fff;color:#222;border:1px solid #9A9A9A}
+.hidden{display:none !important}
+.fb{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.fb.bad{background:var(--bad-soft);border:1px solid var(--bad)}
+.fb.bad b{color:var(--bad)}
+.fb.good{background:var(--excel-soft);border:1px solid var(--excel)}
+.fb.good b{color:var(--ok)}
+.codebox{font-family:Consolas,monospace;font-size:1.3rem;font-weight:700;letter-spacing:.06em;background:var(--panel);border:2px dashed var(--excel);border-radius:10px;padding:6px 14px;align-self:flex-start}
+.toggle{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.slider{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.slider input{flex:1 1 200px;accent-color:#1D6F42}
+.slider output{font-weight:700;min-width:3ch}
+.teacher{border:2px solid var(--gold)}
+.teacher table{border-collapse:collapse;font-size:.95rem}
+.teacher td{border:1px solid var(--line);padding:4px 10px;font-family:Consolas,monospace}
+.who{grid-template-columns:1fr 1fr 1fr}
+.score{font-family:var(--display);font-weight:800;font-size:1.3rem;color:var(--excel)}
+.fx{margin:10px 0 0 34px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fx .cell{font-family:Consolas,monospace;font-weight:700;background:#F3F3F3;color:#222;border:1px solid #C8C8C8;border-radius:4px;padding:4px 8px}
+.fx input{font-family:Consolas,monospace;flex:1 1 240px}
+.fxfb{margin:6px 0 0 34px;font-size:.93rem}
+.fxfb.ok{color:var(--ok);font-weight:700}.fxfb.bad{color:var(--bad)}
+.pts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;font-size:.93rem}
+.pts .p2::before{content:"✓ 1  ";color:var(--ok);font-weight:700}
+.pts .p1::before{content:"½  ";color:#B7791F;font-weight:700}
+.pts .p0::before{content:"✗ 0  ";color:var(--bad);font-weight:700}
+.pts .pn::before{content:"·  ";color:var(--muted)}
+.result{font-family:Consolas,monospace;font-size:.85rem;word-break:break-all;background:var(--panel);border:2px dashed var(--excel);border-radius:10px;padding:10px}
+.ok-t{color:var(--ok);font-weight:700}.bad-t{color:var(--bad);font-weight:700}
+.teacher table{border-collapse:collapse;font-size:.9rem;width:100%}
+.teacher th{text-align:left;border-bottom:2px solid var(--line);padding:4px 8px}
+.teacher td{font-family:var(--body)}
+@media (max-width:820px){.ws{grid-template-columns:1fr}.who{grid-template-columns:1fr !important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← Terug naar de Oefenhoek</a>
+
+  <header>
+    <span class="kicker">4de jaar · Excel · Oef 8.1 Sportwinkel</span>
+    <h1>Voorwaardelijke opmaak</h1>
+    <p class="lead">Excel kan cellen <b>zelf</b> kleuren, afhankelijk van wat erin staat. Verkoopt een artikel goed? Groen. Bijna uitverkocht? Rood. Op deze pagina leer je hoe, en maak je meteen de oefening Sportwinkel.</p>
+  </header>
+
+  <section class="card teacher hidden" id="teacher" aria-label="Leerkracht">
+    <h3>Leerkracht: resultaatcodes controleren</h3>
+    <p class="small">Plak hieronder de codes van je leerlingen. Eén code of een hele kolom uit de Forms-export, allebei werkt. De pagina zoekt de codes er zelf uit.</p>
+    <textarea id="tIn" rows="5" style="font:inherit;font-size:.9rem;width:100%;border:2px solid var(--line);border-radius:8px;padding:8px;background:var(--panel);color:var(--ink)" placeholder="SW.…"></textarea>
+    <div class="toggle"><button class="btn" id="tGo">Controleren</button><button class="btn ghost" id="tCopy">Kopieer resultaten voor Excel</button><span id="tMsg" class="small muted"></span></div>
+    <div id="tOut" style="overflow-x:auto"></div>
+  </section>
+
+  <section class="card" aria-labelledby="startTitle">
+    <h2 id="startTitle" style="font-size:1.4rem">Eerst: wie ben jij?</h2>
+    <div class="who">
+      <div><label for="vn">Voornaam</label><input type="text" id="vn" autocomplete="given-name"></div>
+      <div><label for="an">Achternaam</label><input type="text" id="an" autocomplete="family-name"></div>
+      <div><label for="kl">Klas en nummer</label><input type="text" id="kl" placeholder="bv. 4BO.12" autocomplete="off"></div>
+    </div>
+    <p class="small muted">Elke juiste handeling in het nagebouwde Excel levert <b>1 punt</b> op. Juist na een fout: <b>½ punt</b>. Je punten worden onthouden op deze computer.</p>
+    <div class="progress">
+      <div class="bar" aria-hidden="true"><i id="pbar"></i></div>
+      <span id="ptext" class="small"></span>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="planTitle">
+    <h2 id="planTitle">Jouw plan voor deze les</h2>
+    <ol class="plan">
+      <li><b>1 · Lezen</b>Wat is voorwaardelijke opmaak? (5 min)</li>
+      <li><b>2 · Deel A</b>Basis van de oefening in Excel: stap 1 tot 8</li>
+      <li><b>3 · Deel B</b>7 levels oefenen hier, telkens daarna in Excel</li>
+      <li><b>4 · Deel C</b>Afwerken: afdrukstand, koptekst, voettekst</li>
+      <li><b>5 · Inleveren</b>Resultaatcode in Forms + je Excel-bestand op Teams</li>
+    </ol>
+    <p class="small muted">Vastgelopen? Open de knop <b>Hoe doe ik dit?</b> onder een stap. Daar staat het stap voor stap.</p>
+  </section>
+
+  <!-- 1 UITLEG -->
+  <section class="sec" aria-labelledby="s1">
+    <div class="sec-head"><span class="badge">1</span><h2 id="s1">Wat is voorwaardelijke opmaak?</h2></div>
+    <div class="card">
+      <p><b>Voorwaardelijk</b> betekent: <i>alleen als</i> iets waar is. Je geeft Excel een regel, bijvoorbeeld:</p>
+      <p class="check"><b>Als</b> de voorraad kleiner is dan 30, <b>dan</b> kleur je de cel rood.</p>
+      <p>Excel controleert die regel voor elke cel. En het slimme: verandert het getal, dan verandert de kleur vanzelf mee. Je hoeft niets opnieuw te kleuren.</p>
+      <div class="toggle">
+        <button class="btn" id="demoToggle" aria-pressed="true">Opmaak uitzetten</button>
+        <span class="small muted">Vergelijk: in welke versie zie je sneller welk artikel bijna op is?</span>
+      </div>
+      <div class="sheetbox" id="demoSheet"></div>
+      <div class="slider">
+        <label for="demoRange">Probeer: verander de voorraad van de <b>Fitnessbank</b> (rij 10)</label>
+        <input type="range" id="demoRange" min="0" max="300" step="5" value="25">
+        <output id="demoOut" for="demoRange">25</output>
+      </div>
+      <p class="small muted">Kijk naar kolom E. Onder 30 wordt de cel rood. Het bolletje verandert ook: rood, geel of groen.</p>
+    </div>
+  </section>
+
+  <!-- 2 WAAR -->
+  <section class="sec" aria-labelledby="s2">
+    <div class="sec-head"><span class="badge">2</span><h2 id="s2">Waar vind je het in Excel?</h2></div>
+    <div class="card">
+      <p>Selecteer eerst de cellen. Ga dan naar <span class="path">tabblad <span>Start</span> → groep <span>Stijlen</span> → <span>Voorwaardelijke opmaak</span></span>.</p>
+      <div class="ribbon" aria-hidden="true">
+        <div class="tabs"><span>Bestand</span><span class="on">Start</span><span>Invoegen</span><span>Pagina-indeling</span><span>Formules</span><span>Gegevens</span><span>Controleren</span><span>Beeld</span></div>
+        <div class="groups">
+          <div class="grp">Plakken<span class="lab">Klembord</span></div>
+          <div class="grp"><b>B</b> <i>I</i> <u>U</u><span class="lab">Lettertype</span></div>
+          <div class="grp">≡ ≡ ≡<span class="lab">Uitlijning</span></div>
+          <div class="grp">€ % 000<span class="lab">Getal</span></div>
+          <div class="grp hit">
+            <div class="cfbtn"><svg width="30" height="26" viewBox="0 0 30 26"><rect x="1" y="1" width="28" height="24" fill="#fff" stroke="#888"/><rect x="3" y="4" width="10" height="5" fill="#F8696B"/><rect x="3" y="11" width="16" height="5" fill="#FFEB84"/><rect x="3" y="18" width="24" height="5" fill="#63BE7B"/></svg>Voorwaardelijke<br>opmaak ▾</div>
+            <span class="lab">Stijlen</span>
+          </div>
+          <div class="grp">Opmaken als tabel<span class="lab">Stijlen</span></div>
+          <div class="grp">Invoegen · Verwijderen<span class="lab">Cellen</span></div>
+        </div>
+        <div class="menu">
+          <div class="big">▤ Markeringsregels voor cellen ›</div>
+          <div>▤ Regels voor bovenste/onderste ›</div>
+          <div class="big">▬ Gegevensbalken ›</div>
+          <div class="big">▦ Kleurenschalen ›</div>
+          <div class="big">● Pictogrammenseries ›</div>
+          <hr>
+          <div>Nieuwe regel…</div>
+          <div>Regels wissen ›</div>
+          <div>Regels beheren…</div>
+        </div>
+      </div>
+      <p class="small muted">Iets fout gedaan? Via <b>Regels wissen</b> haal je de opmaak weg. Via <b>Regels beheren</b> pas je een regel aan.</p>
+    </div>
+
+    <h3>De 4 soorten die je nodig hebt</h3>
+    <div class="kinds">
+      <div class="kind">
+        <b>Markeringsregels</b>
+        <span class="small">De cel krijgt een kleur als de regel klopt: groter dan, kleiner dan, tekst bevat…</span>
+        <div class="demo"><span>80</span><span style="background:#C6EFCE;color:#006100">120</span><span style="background:#C6EFCE;color:#006100">150</span></div>
+      </div>
+      <div class="kind">
+        <b>Gegevensbalken</b>
+        <span class="small">Een balkje in de cel: hoe groter het getal, hoe langer de balk.</span>
+        <div class="demo">
+          <span style="background:linear-gradient(90deg,#638EC6,#fff 20%,transparent 20%)">540</span>
+          <span style="background:linear-gradient(90deg,#638EC6,#fff 45%,transparent 45%)">1 620</span>
+          <span style="background:linear-gradient(90deg,#638EC6,#fff 100%)">6 480</span>
+        </div>
+      </div>
+      <div class="kind">
+        <b>Kleurenschalen</b>
+        <span class="small">Elke cel krijgt een kleur van laag naar hoog, zoals een thermometer.</span>
+        <div class="demo"><span style="background:#63BE7B">0%</span><span style="background:#FCB77A">10%</span><span style="background:#F8696B">15%</span></div>
+      </div>
+      <div class="kind">
+        <b>Pictogrammenseries</b>
+        <span class="small">Een icoontje voor het getal, bijvoorbeeld een verkeerslicht.</span>
+        <div class="demo"><span><svg width="12" height="12"><circle cx="6" cy="6" r="5.5" fill="#00B050"/></svg>180</span><span><svg width="12" height="12"><circle cx="6" cy="6" r="5.5" fill="#FFC000"/></svg>60</span><span><svg width="12" height="12"><circle cx="6" cy="6" r="5.5" fill="#E0281B"/></svg>25</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEEL A -->
+  <section class="sec" aria-labelledby="sA">
+    <div class="sec-head"><span class="badge">A</span><h2 id="sA">Deel A · De basis in Excel (stap 1 tot 8)</h2></div>
+    <p class="muted">Open Excel naast deze pagina. Vink elke stap af zodra je hem gedaan hebt. Bij stap 8 typ je je formule ook hier: die levert punten op.</p>
+    <ol class="steps" id="stepsA"></ol>
+  </section>
+
+  <!-- DEEL B -->
+  <section class="sec" aria-labelledby="sB">
+    <div class="sec-head"><span class="badge">B</span><h2 id="sB">Deel B · Voorwaardelijke opmaak oefenen (stap 9)</h2></div>
+    <p class="muted">Eerst oefen je hier in een nagebouwd Excel en verdien je punten. Lukt een level? Doe daarna <b>exact hetzelfde</b> in je echte Excel-bestand.</p>
+
+    <div class="card">
+      <div class="levels" id="levels" role="tablist" aria-label="Levels"></div>
+      <div class="task" id="task"></div>
+      <div class="ws">
+        <div class="sheetbox" id="wsSheet"></div>
+        <div class="dlg" aria-label="Voorwaardelijke opmaak">
+          <div class="tt">Voorwaardelijke opmaak</div>
+          <div class="bd">
+            <div class="st">
+              <b>Stap 1 · Selecteer de cellen</b>
+              <span style="font-size:13px">Klik in het blad op de <b>kolomletter</b> (A, B, C…). Rij 6 tot 20 wordt geselecteerd.</span>
+              <span class="selinfo" id="selInfo">Nog niets geselecteerd</span>
+            </div>
+            <div class="st">
+              <b>Stap 2 · Kies in het menu</b>
+              <select id="fMenu" aria-label="Menu Voorwaardelijke opmaak">
+                <option value="">Voorwaardelijke opmaak ▾</option>
+                <optgroup label="Markeringsregels voor cellen ›">
+                  <option value="gt">Groter dan…</option>
+                  <option value="lt">Kleiner dan…</option>
+                  <option value="text">Tekst die het volgende bevat…</option>
+                </optgroup>
+                <optgroup label="Regels voor bovenste/onderste ›">
+                  <option value="top10">Bovenste 10 items…</option>
+                </optgroup>
+                <option value="databar">Gegevensbalken ›</option>
+                <option value="scale">Kleurenschalen ›</option>
+                <option value="icons">Pictogrammenseries ›</option>
+              </select>
+            </div>
+
+            <div class="st hidden" id="pRule">
+              <b>Stap 3 · Vul de regel in</b>
+              <label for="fVal" id="fValLab">Cellen opmaken die GROTER ZIJN DAN:</label>
+              <input type="text" id="fVal" autocomplete="off">
+              <label for="fPreset">met</label>
+              <select id="fPreset">
+                <option value="lr">Lichtrode opvulling met donkerrode tekst</option>
+                <option value="gg">Gele opvulling met donkergele tekst</option>
+                <option value="gr">Groene opvulling met donkergroene tekst</option>
+                <option value="lro">Lichtrode opvulling</option>
+                <option value="rt">Rode tekst</option>
+                <option value="custom">Aangepaste opmaak…</option>
+              </select>
+              <div class="st hidden" id="pCustom" style="border:1px solid #DDD;border-radius:6px;padding:8px;background:#FAFAFA">
+                <span style="font-size:12px;color:#666">Celeigenschappen</span>
+                <label for="cFill">Tabblad Opvulling · achtergrondkleur</label>
+                <select id="cFill">
+                  <option value="">Geen kleur</option>
+                  <option value="#C6EFCE">Lichtgroen</option>
+                  <option value="#FF0000">Rood</option>
+                  <option value="#FFFF00">Geel</option>
+                  <option value="#DDEBF7">Lichtblauw</option>
+                </select>
+                <label for="cFont">Tabblad Lettertype · kleur</label>
+                <select id="cFont">
+                  <option value="">Automatisch</option>
+                  <option value="#006100">Donkergroen</option>
+                  <option value="#FFFF00">Geel</option>
+                  <option value="#FF0000">Rood</option>
+                  <option value="#FFFFFF">Wit</option>
+                </select>
+                <label><input type="checkbox" id="cBold"> Tabblad Lettertype · stijl <b>Vet</b></label>
+              </div>
+            </div>
+
+            <div class="st hidden" id="pBar">
+              <b>Stap 3 · Kies een gegevensbalk</b>
+              <label for="fBar">Kleurovergang</label>
+              <select id="fBar">
+                <option value="blauw">Blauwe gegevensbalk</option>
+                <option value="groen">Groene gegevensbalk</option>
+                <option value="rood">Rode gegevensbalk</option>
+                <option value="oranje">Oranje gegevensbalk</option>
+              </select>
+            </div>
+
+            <div class="st hidden" id="pScale">
+              <b>Stap 3 · Kies een kleurenschaal</b>
+              <label for="fScale">Let op: de <u>eerste</u> kleur in de naam is voor de <u>hoogste</u> waarde.</label>
+              <select id="fScale">
+                <option value="gyr">Groen - geel - rood kleurenschaal</option>
+                <option value="rgy">Rood - geel - groen kleurenschaal</option>
+                <option value="gw">Groen - wit kleurenschaal</option>
+                <option value="wr">Wit - rood kleurenschaal</option>
+              </select>
+            </div>
+
+            <div class="st hidden" id="pIcons">
+              <b>Stap 3 · Kies de pictogrammen</b>
+              <select id="fIconSet" aria-label="Pictogramstijl">
+                <option value="pijl">3 pijlen (gekleurd)</option>
+                <option value="licht">3 verkeerslichten (zonder rand)</option>
+                <option value="ster">3 sterren</option>
+              </select>
+              <span style="font-size:12px;color:#666">Daarna: <b>Meer regels…</b> en vul in:</span>
+              <span style="font-size:13px"><b>Groen</b> wanneer waarde</span>
+              <div class="row">
+                <select id="gOp" aria-label="Groen vergelijking"><option>&gt;=</option><option>&gt;</option></select>
+                <input type="text" id="gVal" value="67" aria-label="Groen waarde">
+                <select id="gType" aria-label="Groen type"><option>Percentage</option><option>Getal</option><option>Percentiel</option></select>
+              </div>
+              <span style="font-size:13px"><b>Geel</b> wanneer &lt; groen en</span>
+              <div class="row">
+                <select id="yOp" aria-label="Geel vergelijking"><option>&gt;=</option><option>&gt;</option></select>
+                <input type="text" id="yVal" value="33" aria-label="Geel waarde">
+                <select id="yType" aria-label="Geel type"><option>Percentage</option><option>Getal</option><option>Percentiel</option></select>
+              </div>
+              <span style="font-size:13px"><b>Rood</b> voor de rest (automatisch)</span>
+            </div>
+
+            <div class="btns">
+              <button class="btn" id="fApply">OK · controleren</button>
+              <button class="btn ghost" id="fReset">Wissen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="feedback" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- DEEL C -->
+  <section class="sec" aria-labelledby="sC">
+    <div class="sec-head"><span class="badge">C</span><h2 id="sC">Deel C · Afwerken (stap 10 tot 13)</h2></div>
+    <ol class="steps" id="stepsC"></ol>
+  </section>
+
+  <!-- INLEVEREN -->
+  <section class="sec" aria-labelledby="sD">
+    <div class="sec-head"><span class="badge">✓</span><h2 id="sD">Inleveren</h2></div>
+    <div class="card" id="finish"></div>
+  </section>
+
+  <p class="small muted">Dit is een oefenomgeving: het lijkt op Excel, maar het is het niet. Alles wat je hier oefent, doe je daarna in het echte programma.</p>
+</div>
+
+<script>
+/* ---------- gegevens uit Sportwinkel ---------- */
+const COLS=['A','B','C','D','E','F','G','H','I','J','K'];
+const HEAD={A:'Artikelcode',B:'Artikelnaam',C:'Categorie',D:'Aantal Verkocht (maand)',E:'Voorraad (huidig)',F:'Inkoopprijs per stuk (€)',G:'Verkoopprijs per stuk (€)',H:'Korting (%)',I:'Geschatte Omzet (€)',J:'Leverancier',K:'Status Bestelling'};
+const ALIGN={A:'l',B:'l',C:'l',D:'c',E:'c',F:'r',G:'r',H:'c',I:'r',J:'l',K:'l'};
+const RAW=[
+['SCH001','Voetbalschoenen','Voetbal',120,180,40,0,'SportX','Op Voorraad'],
+['BAL002','Basketbal','Basketbal',80,100,15,.05,'ActiveGear','Besteld'],
+['KLT003','Tennissokken','Tennis',150,250,5,0,'ProFit','Op Voorraad'],
+['SHI004','Hardloopshirt','Fitness',95,120,20,.1,'FastSupply','Op Voorraad'],
+['FIT005','Fitnessbank','Fitness',15,25,80,0,'TopSport','Besteld'],
+['ZWI006','Zwembril','Zwemmen',60,90,10,0,'SportX','Op Voorraad'],
+['HOC007','Hockeystick','Hockey',30,40,35,.15,'ActiveGear','Niet op voorraad'],
+['SOK008','Sportsokken','Diversen',180,300,6,0,'ProFit','Op Voorraad'],
+['YOG009','Yogamat','Fitness',40,60,25,.05,'FastSupply','Besteld'],
+['DUM010','Dumbbellset','Fitness',20,35,70,0,'TopSport','Niet op voorraad'],
+['BAL011','Voetbal','Voetbal',110,150,12,0,'SportX','Op Voorraad'],
+['HOD012','Hardloopbroek','Fitness',75,80,30,.1,'ActiveGear','Op Voorraad'],
+['TEN013','Tennisracket','Tennis',25,30,60,0,'ProFit','Besteld'],
+['ZWI014','Zwembroek','Zwemmen',50,70,8,0,'FastSupply','Op Voorraad'],
+['FIT015','Weerstandsbanden','Fitness',65,90,7,0,'TopSport','Besteld']];
+function makeRows(){return RAW.map(r=>{const g=r[5]*1.35;return{A:r[0],B:r[1],C:r[2],D:r[3],E:r[4],F:r[5],G:g,H:r[6],I:r[3]*g*(1-r[6]),J:r[7],K:r[8]}})}
+const EUR=new Intl.NumberFormat('nl-BE',{style:'currency',currency:'EUR'});
+function show(col,v){if(col==='F'||col==='G'||col==='I')return EUR.format(v);if(col==='H')return Math.round(v*100)+'%';return v}
+
+/* ---------- opmaakregels ---------- */
+const PRESET={lr:{fill:'#FFC7CE',font:'#9C0006'},gg:{fill:'#FFEB9C',font:'#9C5700'},gr:{fill:'#C6EFCE',font:'#006100'},lro:{fill:'#FFC7CE'},rt:{font:'#9C0006'}};
+const BARS={blauw:'#638EC6',groen:'#63C384',rood:'#FF555A',oranje:'#FFB628'};
+const SCALES={gyr:['#63BE7B','#FFEB84','#F8696B'],rgy:['#F8696B','#FFEB84','#63BE7B'],gw:['#63BE7B',null,'#FCFCFF'],wr:['#FCFCFF',null,'#F8696B']}; // [hoogste, midden, laagste]
+const ICONS={
+  pijl:[ '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1l5 5H8v5H4V6H1z" fill="#00B050"/></svg>',
+         '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M11 6L6 1v3H1v4h5v3z" fill="#FFC000"/></svg>',
+         '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 11L1 6h3V1h4v5h3z" fill="#E0281B"/></svg>'],
+  licht:['<svg width="12" height="12"><circle cx="6" cy="6" r="5.5" fill="#00B050"/></svg>',
+         '<svg width="12" height="12"><circle cx="6" cy="6" r="5.5" fill="#FFC000"/></svg>',
+         '<svg width="12" height="12"><circle cx="6" cy="6" r="5.5" fill="#E0281B"/></svg>'],
+  ster:[ '<svg width="13" height="13" viewBox="0 0 12 12"><path d="M6 .5l1.7 3.5 3.8.5-2.8 2.6.7 3.8L6 9.1 2.6 10.9l.7-3.8L.5 4.5l3.8-.5z" fill="#FFC000"/></svg>',
+         '<svg width="13" height="13" viewBox="0 0 12 12"><path d="M6 .5l1.7 3.5 3.8.5-2.8 2.6.7 3.8L6 9.1 2.6 10.9l.7-3.8L.5 4.5l3.8-.5z" fill="#fff" stroke="#FFC000"/><path d="M6 .5v8.6L2.6 10.9l.7-3.8L.5 4.5l3.8-.5z" fill="#FFC000"/></svg>',
+         '<svg width="13" height="13" viewBox="0 0 12 12"><path d="M6 .5l1.7 3.5 3.8.5-2.8 2.6.7 3.8L6 9.1 2.6 10.9l.7-3.8L.5 4.5l3.8-.5z" fill="#fff" stroke="#FFC000"/></svg>']
+};
+function hex(h){h=h.replace('#','');return[0,2,4].map(i=>parseInt(h.substr(i,2),16))}
+function mix(a,b,t){const x=hex(a),y=hex(b);return'rgb('+x.map((v,i)=>Math.round(v+(y[i]-v)*t)).join(',')+')'}
+function pctl(sorted,p){const i=(sorted.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i);return sorted[lo]+(sorted[hi]-sorted[lo])*(i-lo)}
+function num(s){return parseFloat(String(s).replace(',','.'))}
+function applyFmt(s,f){if(!f)return;if(f.fill)s.bg=f.fill;if(f.font)s.color=f.font;if(f.bold)s.bold=true}
+
+function evalRules(rows,rules){
+  const out={};
+  for(const r of rules){
+    if(!r||!r.col||!r.kind)continue;
+    const nums=rows.map(x=>x[r.col]).filter(v=>typeof v==='number');
+    const mn=Math.min(...nums),mx=Math.max(...nums),sorted=[...nums].sort((a,b)=>a-b);
+    rows.forEach((row,i)=>{
+      const v=row[r.col],k=r.col+i,s=out[k]||(out[k]={});
+      if(r.kind==='gt'||r.kind==='lt'){const t=num(r.value);if(typeof v!=='number'||isNaN(t))return;if(r.kind==='gt'?v>t:v<t)applyFmt(s,r.fmt)}
+      else if(r.kind==='text'){const t=String(r.value||'').trim().toLowerCase();if(t&&String(v).toLowerCase().includes(t))applyFmt(s,r.fmt)}
+      else if(typeof v!=='number'||!nums.length)return;
+      else if(r.kind==='databar'){s.bar={c:BARS[r.bar],w:mx===mn?100:8+92*(v-mn)/(mx-mn)}}
+      else if(r.kind==='scale'){
+        const [hi,mid,lo]=SCALES[r.scale];
+        if(mid){const m=pctl(sorted,.5);s.bg=v<=m?mix(lo,mid,m===mn?0:(v-mn)/(m-mn)):mix(mid,hi,mx===m?1:(v-m)/(mx-m))}
+        else s.bg=mix(lo,hi,mx===mn?1:(v-mn)/(mx-mn));
+      }
+      else if(r.kind==='icons'){
+        const thr=(val,type)=>{const n=num(val);if(type==='Getal')return n;if(type==='Percentage')return mn+(mx-mn)*n/100;return pctl(sorted,n/100)};
+        const cmp=(op,a,b)=>op==='>'?a>b:a>=b;
+        const g=thr(r.g.val,r.g.type),y=thr(r.y.val,r.y.type);
+        s.icon=ICONS[r.set][cmp(r.g.op,v,g)?0:cmp(r.y.op,v,y)?1:2];
+      }
+    });
+  }
+  return out;
+}
+
+function renderSheet(box,rows,rules,opt={}){
+  const st=evalRules(rows,rules);
+  let h='<table class="sheet"><thead><tr><th class="rn"></th>';
+  for(const c of COLS){
+    const sel=opt.sel===c?' selh':'';
+    h+=opt.clickable?`<th class="colhead${sel}" tabindex="0" role="button" aria-label="Selecteer kolom ${c}: ${HEAD[c]}" data-col="${c}">${c}</th>`:`<th class="${sel}">${c}</th>`;
+  }
+  h+='</tr></thead><tbody><tr class="hdr"><td class="rn">5</td>';
+  for(const c of COLS)h+=`<td>${HEAD[c]}</td>`;
+  h+='</tr>';
+  rows.forEach((row,i)=>{
+    h+=`<tr><td class="rn">${i+6}</td>`;
+    for(const c of COLS){
+      const s=st[c+i]||{};
+      let cls=ALIGN[c]+(s.icon?' ico':'');
+      if(opt.sel===c)cls+=i===0?' sel-top':i===rows.length-1?' sel-bot':' sel';
+      let css='';if(s.bg)css+=`background:${s.bg};`;if(s.color)css+=`color:${s.color};`;if(s.bold)css+='font-weight:700;';
+      const bar=s.bar?`<span class="databar" style="width:calc(${s.bar.w}% - 4px);border-color:${s.bar.c};background:linear-gradient(90deg,${s.bar.c},#fff)"></span>`:'';
+      h+=`<td class="${cls}" style="${css}">${bar}<span class="in">${s.icon||''}<span>${show(c,row[c])}</span></span></td>`;
+    }
+    h+='</tr>';
+  });
+  box.innerHTML=h+'</tbody></table>';
+  if(opt.clickable)box.querySelectorAll('.colhead').forEach(th=>{
+    th.onclick=()=>opt.onSel(th.dataset.col);
+    th.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();opt.onSel(th.dataset.col)}};
+  });
+}
+
+/* ---------- oplossing (voor de demo en de levels) ---------- */
+const SOL={
+ 1:{col:'D',kind:'gt',value:'100',fmt:PRESET.gr},
+ 2:{col:'E',kind:'lt',value:'30',fmt:{fill:'#FF0000',font:'#FFFF00'}},
+ 3:{col:'K',kind:'text',value:'Niet op voorraad',fmt:{font:'#FF0000',bold:true}},
+ 4:{col:'I',kind:'databar',bar:'blauw'},
+ 5:{col:'H',kind:'scale',scale:'rgy'},
+ 6:{col:'E',kind:'icons',set:'licht',g:{op:'>=',val:'100',type:'Getal'},y:{op:'>=',val:'30',type:'Getal'}},
+ 7:{col:'J',kind:'text',value:'SportX',fmt:{fill:'#DDEBF7'}}
+};
+
+/* ---------- instellingen voor de leerkracht ---------- */
+// Plak hier de deellink van je Microsoft Forms (tussen de aanhalingstekens). Leeg = geen knop.
+const FORMS_URL='https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=wH3qjxKF_Eq-VW1TfMsk0dTXxUbVzpNFlRWpZdO0ecpUN09TTU1PTlk5TDEzWjg2NUxOSEU3RDFOOC4u';
+
+/* ---------- opslag (werkt ook zonder) ---------- */
+const KEY='oefenhoek-excel4-vo-v2';
+let state={vn:'',an:'',kl:'',levels:[],steps:[],marks:{},tries:0};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s)state=Object.assign(state,s)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+const $=id=>document.getElementById(id);
+function norm(s){return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z]/g,'')}
+
+/* ---------- handelingen en punten ----------
+   Elke handeling: 2 = juist bij eerste poging (1 punt), 1 = juist na een fout (½ punt), 0 = fout en nog niet hersteld. */
+const ACTS=[
+ ['f1','8a','Verkoopprijs: berekening klopt'],['f2','8a','Verkoopprijs: B3 vastgezet bij doortrekken'],
+ ['f3','8b','Geschatte omzet'],['f4','8c','Marge per stuk'],['f5','8d','Verkoopstatus (ALS)'],['f6','8e','Bonusbedrag (ALS)'],
+ ['l1k','1','Kolom'],['l1m','1','Menukeuze'],['l1v','1','Waarde 100'],['l1o','1','Groene opmaak'],
+ ['l2k','2','Kolom'],['l2m','2','Menukeuze'],['l2v','2','Waarde 30'],['l2o','2','Rood met gele tekst'],
+ ['l3k','3','Kolom'],['l3m','3','Menukeuze'],['l3v','3','Tekst'],['l3o','3','Rood en vet'],
+ ['l4k','4','Kolom'],['l4m','4','Menukeuze'],
+ ['l5k','5','Kolom'],['l5m','5','Menukeuze'],['l5s','5','Juiste kleurenschaal'],
+ ['l6k','6','Kolom'],['l6m','6','Menukeuze'],['l6s','6','Verkeerslichten'],['l6g','6','Groen >= 100, Getal'],['l6y','6','Geel >= 30, Getal'],
+ ['l7k','7','Kolom'],['l7m','7','Menukeuze'],['l7v','7','Tekst'],['l7o','7','Lichtblauwe opvulling']
+];
+const MAX=ACTS.length;
+function mark(id,ok){
+  const m=state.marks[id];
+  if(m===2||m===1)return m;            // al verdiend: blijft vast
+  state.marks[id]=ok?(m===0?1:2):0;
+  return state.marks[id];
+}
+function score2(){return ACTS.reduce((t,a)=>t+(state.marks[a[0]]||0),0)}
+function fmtPts(x2){return (x2/2).toLocaleString('nl-BE')}
+function ptsList(ids){return '<ul class="pts">'+ids.map(id=>{const a=ACTS.find(x=>x[0]===id),m=state.marks[id];return `<li class="${m===2?'p2':m===1?'p1':m===0?'p0':'pn'}">${a[2]}</li>`}).join('')+'</ul>'}
+
+/* ---------- naam + voortgang ---------- */
+const vn=$('vn'),an=$('an'),kl=$('kl');
+vn.value=state.vn;an.value=state.an;kl.value=state.kl;
+vn.oninput=an.oninput=kl.oninput=()=>{state.vn=vn.value;state.an=an.value;state.kl=kl.value;save();renderFinish()};
+function updateProgress(){
+  const s=score2();
+  $('pbar').style.width=Math.round(s/(MAX*2)*100)+'%';
+  $('ptext').innerHTML=`<span class="score">${fmtPts(s)} / ${MAX}</span> punten · <b>${state.levels.length}</b> van 7 levels klaar`;
+}
+
+/* ---------- demo ---------- */
+const demoRows=makeRows();let demoOn=true;
+const demoSheet=$('demoSheet');
+function renderDemo(){renderSheet(demoSheet,demoRows,demoOn?Object.values(SOL):[])}
+$('demoToggle').onclick=e=>{demoOn=!demoOn;e.target.textContent=demoOn?'Opmaak uitzetten':'Opmaak aanzetten';e.target.setAttribute('aria-pressed',demoOn);renderDemo()};
+$('demoRange').oninput=e=>{demoRows[4].E=+e.target.value;$('demoOut').textContent=e.target.value;renderDemo()};
+renderDemo();
+const STEPS_A=[
+ {id:'a1',t:'<span class="nr">1</span>Download <a href="Sportwinkel_Opgave.xlsx" download>Sportwinkel_Opgave.xlsx</a>. Zet het op je OneDrive in de map <b>Informatica/Excel</b> en geef het de naam <code>klas_Sportwinkel_voornaam_naam</code>.',
+  h:'<p>Voorbeeld van een goede naam: <code>4BO_Sportwinkel_Lotte_Peeters</code>.</p><p>Bestand al open? Kies <span class="path">Bestand → Opslaan als</span>, kies OneDrive → Informatica → Excel, en typ de nieuwe naam.</p>'},
+ {id:'a2',t:'<span class="nr">2</span>Geef het werkblad de naam <b>Sportwinkel</b>.',
+  h:'<p>Onderaan staat het tabblad <b>Blad1</b>. <b>Dubbelklik</b> erop (of rechtsklik → <b>Naam wijzigen</b>), typ <code>Sportwinkel</code> en druk op <kbd>Enter</kbd>.</p>'},
+ {id:'a3',t:'<span class="nr">3</span>Maak de kolommen voldoende breed.',
+  h:'<p>Klik op de kolomletter <b>A</b>, houd <kbd>Shift</kbd> ingedrukt en klik op <b>K</b>. Dubbelklik nu op de lijn tussen twee kolomletters. Excel maakt alles zelf breed genoeg.</p>'},
+ {id:'a4',t:'<span class="nr">4</span>Titel: zet hem in het midden boven de gegevens en verzorg de opmaak.',
+  h:'<p>Selecteer <b>A1 tot K1</b>. Klik op <span class="path">Start → Samenvoegen en centreren</span>.</p><p>Maak de titel groter (bv. 20), kies een opvulkleur (in het voorbeeld goudgeel) en een tekstkleur.</p>'},
+ {id:'a5',t:'<span class="nr">5</span>Tabelkoppen (rij 5): vet, juist uitgelijnd, lichte achtergrondkleur.',
+  h:'<p>Selecteer <b>A5 tot K5</b>. Klik op <b>B</b> (vet), op <b>Centreren</b> en op <b>Tekstterugloop</b> (dan passen lange koppen op twee regels).</p><p>Kies met de verfemmer een <b>lichte</b> achtergrondkleur.</p>'},
+ {id:'a6',t:'<span class="nr">6</span>Bedragen met €-teken en 2 cijfers na de komma. Percentages met %-teken en 0 cijfers na de komma.',
+  h:'<p><b>Bedragen</b> staan in kolom F, G en I. Selecteer ze, klik op <span class="path">Start → groep Getal → €</span>. Controleer: 2 decimalen.</p><p><b>Percentages</b> staan in <b>B3</b> en kolom <b>H</b>. Klik op de knop <b>%</b>. Zie je een komma? Klik op <b>Minder decimalen</b>.</p>'},
+ {id:'a7',t:'<span class="nr">7</span>Lijn de gegevens juist uit (kijk naar het voorbeeld bovenaan deze pagina).',
+  h:'<p>Tekst (A, B, C, J, K) staat <b>links</b>. Bedragen (F, G, I) staan <b>rechts</b>. Aantal, voorraad en korting (D, E, H) staan in het <b>midden</b>.</p>'},
+ {id:'a8a',t:'<span class="nr">8a</span>Bereken de <b>Verkoopprijs per stuk</b> (kolom G): 35% meer dan de inkoopprijs.',
+  h:'<p><b>Idee:</b> inkoopprijs × (1 + winstpercentage). Het winstpercentage staat in <b>B3</b>.</p><details style="margin-left:0"><summary>Toon de formule</summary><div class="body"><p>In <b>G6</b>: <code>=F6*(1+$B$3)</code></p><p>De dollartekens zetten B3 <b>vast</b>. Typ B3 en druk op <kbd>F4</kbd>. Zo blijft Excel naar B3 kijken als je de formule naar beneden sleept tot G20.</p></div></details>',
+  c:'Controle: G6 = € 54,00'},
+ {id:'a8b',t:'<span class="nr">8b</span>Bereken de <b>Geschatte Omzet</b> (kolom I).',
+  h:'<p><b>Idee:</b> aantal verkocht × verkoopprijs, en dan de korting eraf.</p><details style="margin-left:0"><summary>Toon de formule</summary><div class="body"><p>In <b>I6</b>: <code>=D6*G6*(1-H6)</code> en sleep naar beneden tot I20.</p></div></details>',
+  c:'Controle: I6 = € 6.480,00 en I7 = € 1.539,00'},
+ {id:'a8c',t:'<span class="nr">8c</span>Bereken de <b>Marge per stuk</b> in kolom L (typ in L5 de kop <i>Marge per stuk (€)</i>).',
+  h:'<p><b>Idee:</b> wat verdien je aan één stuk? Verkoopprijs min inkoopprijs.</p><details style="margin-left:0"><summary>Toon de formule</summary><div class="body"><p>In <b>L6</b>: <code>=G6-F6</code></p></div></details>',
+  c:'Controle: L6 = € 14,00'},
+ {id:'a8d',t:'<span class="nr">8d</span><b>Verkoopstatus</b> in kolom M met de ALS-functie: meer dan € 3.000 omzet → <i>Gouden Verkoop</i>, anders <i>Standaard Verkoop</i>.',
+  h:'<p>De ALS-functie heeft 3 delen, gescheiden door <b>;</b></p><p><code>=ALS( test ; wat als het waar is ; wat als het niet waar is )</code></p><p>Tekst zet je altijd tussen <b>"aanhalingstekens"</b>.</p><details style="margin-left:0"><summary>Toon de formule</summary><div class="body"><p>In <b>M6</b>: <code>=ALS(I6&gt;3000;"Gouden Verkoop";"Standaard Verkoop")</code></p></div></details>',
+  c:'Controle: alleen de Voetbalschoenen krijgen Gouden Verkoop.'},
+ {id:'a8e',t:'<span class="nr">8e</span><b>Bonusbedrag</b> in kolom N met de ALS-functie: Gouden Verkoop → € 200, anders € 0.',
+  h:'<p><b>Idee:</b> kijk naar de status in kolom M. Staat daar "Gouden Verkoop"?</p><details style="margin-left:0"><summary>Toon de formule</summary><div class="body"><p>In <b>N6</b>: <code>=ALS(M6="Gouden Verkoop";200;0)</code> en geef kolom N de €-notatie.</p></div></details>',
+  c:'Controle: N6 = € 200,00, alle andere rijen € 0,00'}
+];
+const STEPS_C=[
+ {id:'c10',t:'<span class="nr">10</span>Geef je blad een <b>liggende</b> afdrukstand.',
+  h:'<p><span class="path">Pagina-indeling → Afdrukstand → Liggend</span>.</p>'},
+ {id:'c11',t:'<span class="nr">11</span>Koptekst: links <b>je voornaam en naam</b>, rechts <b>de datum</b>.',
+  h:'<p><span class="path">Invoegen → Koptekst en voettekst</span>. Klik in het <b>linkse</b> vak en typ je naam.</p><p>Klik in het <b>rechtse</b> vak en klik op de knop <b>Huidige datum</b>. Dan verschijnt <code>&amp;[Datum]</code>: dat wordt vanzelf de datum van vandaag.</p>'},
+ {id:'c12',t:'<span class="nr">12</span>Voettekst: links <b>klas.nr</b>, rechts <b>pgnr. + paginanummer</b>.',
+  h:'<p>Klik op <b>Naar voettekst</b>. Typ links je klas en nummer, bijvoorbeeld <code>4BO.12</code>.</p><p>Rechts typ je <code>pgnr. </code> en klik je op de knop <b>Paginanummer</b>.</p><p>Klaar? Klik ergens in een cel en ga terug via <span class="path">Beeld → Normaal</span>.</p>'},
+ {id:'c13',t:'<span class="nr">13</span>Bewaar het resultaat.',
+  h:'<p>Druk op <kbd>Ctrl</kbd> + <kbd>S</kbd>. Controleer de naam van je bestand nog eens (stap 1).</p>'}
+];
+/* ---------- formules controleren (stap 8) ---------- */
+const EXP=makeRows().map(r=>{const L=r.G-r.F,M=r.I>3000?'Gouden Verkoop':'Standaard Verkoop';return Object.assign(r,{L,M,N:M==='Gouden Verkoop'?200:0})});
+function cellVal(col,row){
+  if(col==='B'&&row===3)return .35;
+  if(row>=6&&row<=20){const v=EXP[row-6][col];if(v===undefined)return 0;return typeof v==='string'?v.toUpperCase():v}
+  return 0;
+}
+// Rekent een Excel-formule uit voor rij 6+off. Geeft {v} of {err}.
+function evalFormula(f,off){
+  let s=String(f).trim().replace(/[“”„]/g,'"');
+  if(!s.startsWith('='))return{err:'Een formule begint altijd met een <b>=</b>-teken.'};
+  s=s.slice(1);
+  const strs=[];s=s.replace(/"([^"]*)"/g,(m,t)=>{strs.push(t.toUpperCase());return'§'+(strs.length-1)+'§'});
+  if(s.includes('"'))return{err:'Er ontbreekt een aanhalingsteken <b>"</b>.'};
+  s=s.toUpperCase().replace(/\s+/g,'');
+  s=s.replace(/(\d),(\d)/g,'$1.$2').replace(/;/g,',');
+  s=s.replace(/(\$?)([A-Z])(\$?)(\d+)/g,(m,ca,c,ra,r)=>{const row=ra?+r:+r+off;const v=cellVal(c,row);return '('+(typeof v==='string'?JSON.stringify(v):v)+')'});
+  s=s.replace(/(\d+(?:\.\d+)?)%/g,'($1/100)');
+  s=s.replace(/<>/g,'!=').replace(/([^<>!=])=(?!=)/g,'$1==');
+  const test=s.replace(/"[^"]*"/g,'').replace(/§\d+§/g,'').replace(/ALS\(|IF\(/g,'(');
+  if(!/^[0-9.+\-*/()<>=!, ]*$/.test(test))return{err:'Excel herkent iets niet in je formule. Controleer de celnamen en tekens.'};
+  s=s.replace(/§(\d+)§/g,(m,i)=>JSON.stringify(strs[+i])).replace(/ALS\(/g,'IF(');
+  try{const v=new Function('IF','return ('+s+')')((a,b,c)=>a?b:(c===undefined?false:c));return{v}}
+  catch(e){return{err:'Je formule is niet volledig. Tel de haakjes en de <b>;</b>-tekens.'}}
+}
+function same(a,b){if(typeof b==='number')return typeof a==='number'&&Math.abs(a-b)<0.005;return String(a).trim().toUpperCase()===String(b).trim().toUpperCase()}
+const FX={
+ a8a:{cell:'G6',col:'G',acts:['f1','f2']},
+ a8b:{cell:'I6',col:'I',acts:['f3']},
+ a8c:{cell:'L6',col:'L',acts:['f4']},
+ a8d:{cell:'M6',col:'M',acts:['f5']},
+ a8e:{cell:'N6',col:'N',acts:['f6']}
+};
+function checkFormula(id){
+  const fx=FX[id],inp=$('fx-'+id),out=$('fxfb-'+id);
+  if(!inp.value.trim()){out.className='fxfb bad';out.innerHTML='Typ eerst je formule.';return}
+  state.tries++;
+  const r0=evalFormula(inp.value,0);
+  let first=false,all=false,msg='';
+  if(r0.err)msg=r0.err;
+  else if(!same(r0.v,EXP[0][fx.col]))msg='Je formule geeft niet de juiste uitkomst. Open <b>Hoe doe ik dit?</b> voor een tip.';
+  else{
+    first=true;all=true;
+    for(let off=1;off<15;off++){const r=evalFormula(inp.value,off);if(r.err||!same(r.v,EXP[off][fx.col])){all=false;break}}
+    if(!all)msg=fx.col==='G'?'Rij 6 klopt! Maar als je doortrekt, gaat het mis. Zet <b>B3</b> vast: <b>$B$3</b> (druk op F4).':'Rij 6 klopt, maar als je doortrekt niet. Gebruik celnamen, geen getallen.';
+  }
+  if(fx.acts.length===2){mark(fx.acts[0],first);if(first)mark(fx.acts[1],all)}
+  else if(first||r0.err||!first)mark(fx.acts[0],all);
+  save();updateProgress();renderFinish();
+  if(all){out.className='fxfb ok';out.innerHTML='✓ Juist! Typ deze formule nu ook in Excel en trek hem door tot rij 20.'}
+  else{out.className='fxfb bad';out.innerHTML=msg}
+  $('fxp-'+id).innerHTML=fxPts(id);
+}
+function fxPts(id){return FX[id].acts.map(a=>{const m=state.marks[a];return m===2?'1 punt':m===1?'½ punt':''}).filter(Boolean).join(' + ')}
+
+function renderSteps(list,boxId){
+  const box=$(boxId);
+  box.innerHTML=list.map(s=>{
+    const fx=FX[s.id];
+    const fxh=fx?`<div class="fx"><span class="cell">${fx.cell}</span><input type="text" id="fx-${s.id}" aria-label="Formule voor ${fx.cell}" placeholder="=" autocomplete="off" spellcheck="false"><button class="btn" id="fxb-${s.id}">Controleren</button><span class="small muted" id="fxp-${s.id}">${fxPts(s.id)}</span></div><p class="fxfb" id="fxfb-${s.id}" aria-live="polite"></p>`:'';
+    return `<li class="step${state.steps.includes(s.id)?' done':''}" id="st-${s.id}"><div class="top"><input type="checkbox" id="cb-${s.id}" ${state.steps.includes(s.id)?'checked':''}><label for="cb-${s.id}">${s.t}</label></div>${fxh}<details><summary>Hoe doe ik dit?</summary><div class="body">${s.h}${s.c?`<p class="check">${s.c}</p>`:''}</div></details></li>`}).join('');
+  list.forEach(s=>{
+    $('cb-'+s.id).onchange=e=>{state.steps=state.steps.filter(x=>x!==s.id);if(e.target.checked)state.steps.push(s.id);$('st-'+s.id).classList.toggle('done',e.target.checked);save()};
+    if(FX[s.id]){$('fxb-'+s.id).onclick=()=>checkFormula(s.id);$('fx-'+s.id).onkeydown=e=>{if(e.key==='Enter')checkFormula(s.id)}}
+  });
+}
+renderSteps(STEPS_A,'stepsA');renderSteps(STEPS_C,'stepsC');
+
+/* ---------- levels ---------- */
+const LV={
+ 1:{title:'Bestsellers markeren',goal:'Als het <b>Aantal Verkocht (maand)</b> hoger is dan <b>100</b>, krijgt de cel een <b>groene opvulling met donkere tekst</b>.',tip:'Welke kolom gaat over het aantal verkocht? "Hoger dan" is in Excel <b>Groter dan</b>.'},
+ 2:{title:'Te lage voorraad',goal:'Als de <b>voorraad</b> kleiner is dan <b>30</b>, krijgt de cel een <b>rode opvulling met gele tekst</b>.',tip:'Rood met geel staat niet in de lijst. Kies <b>Aangepaste opmaak…</b> en stel twee dingen in: de opvulling én de tekstkleur.'},
+ 3:{title:'Niet op voorraad',goal:'Staat de status op <b>Niet op voorraad</b>? Dan wordt die tekst <b>rood en vet</b>.',tip:'Hier zoek je naar <b>tekst</b>, niet naar een getal. Typ de tekst exact over.'},
+ 4:{title:'Omzet als balk',goal:'Zet een <b>gegevensbalk</b> bij de <b>geschatte omzet</b>. Zo zie je meteen welk artikel het meest opbrengt.',tip:'Een gegevensbalk heeft geen regel nodig. Kies de kolom en de balk.'},
+ 5:{title:'Korting als kleur',goal:'Zet een <b>kleurenschaal</b> op de <b>korting</b>: geen korting groen, de hoogste korting rood.',tip:'Lees de naam goed: de <b>eerste</b> kleur hoort bij de <b>hoogste</b> waarde. De hoogste korting moet rood zijn.'},
+ 6:{title:'Voorraad als verkeerslicht',goal:'Zet <b>groene, gele en rode cirkels</b> bij de <b>voorraad</b>.<br>Groen: waarde <b>&gt;= 100</b>, type <b>Getal</b> · Geel: waarde <b>&gt;= 30</b>, type <b>Getal</b> · Rood: de rest.',tip:'Excel zet het type standaard op <b>Percentage</b>. Verander het bij groen én geel naar <b>Getal</b>.'},
+ 7:{title:'Leverancier SportX',goal:'Alle bestellingen van leverancier <b>SportX</b> krijgen een <b>lichtblauwe opvulling</b>.',tip:'Weer een tekstregel. Lichtblauw vind je bij <b>Aangepaste opmaak…</b> op het tabblad Opvulling.'}
+};
+let cur=1,sel=null,attempt=null;
+const wsRows=makeRows(),wsBox=$('wsSheet');
+function doneRules(){return state.levels.filter(n=>n!==cur).map(n=>SOL[n])}
+function renderWs(){renderSheet(wsBox,wsRows,[...doneRules(),attempt].filter(Boolean),{clickable:true,sel,onSel:c=>{sel=c;$('selInfo').textContent=`${c}6:${c}20 · ${HEAD[c]}`;renderWs()}})}
+function lvIds(n){return ACTS.filter(a=>a[1]===String(n)).map(a=>a[0])}
+function lvPts(n){const ids=lvIds(n);return `${fmtPts(ids.reduce((t,id)=>t+(state.marks[id]||0),0))} / ${ids.length}`}
+function renderLevels(){
+  $('levels').innerHTML=[1,2,3,4,5,6,7].map(n=>`<button class="lv${n===cur?' on':''}${state.levels.includes(n)?' ok':''}" role="tab" aria-selected="${n===cur}" data-n="${n}">${n}</button>`).join('');
+  $('levels').querySelectorAll('.lv').forEach(b=>b.onclick=()=>{cur=+b.dataset.n;resetForm();renderAll()});
+}
+function renderTask(){
+  const L=LV[cur],done=state.levels.includes(cur);
+  $('task').innerHTML=`<h3><span>Level ${cur} ·</span> ${L.title}</h3><p>${L.goal}</p><p class="small muted">Punten in dit level: <b>${lvPts(cur)}</b>${done?' · <b style="color:var(--ok)">✓ klaar</b>':''}</p>`;
+}
+function resetForm(){
+  sel=null;attempt=null;$('selInfo').textContent='Nog niets geselecteerd';
+  $('fMenu').value='';$('fVal').value='';$('fPreset').value='lr';$('cFill').value='';$('cFont').value='';$('cBold').checked=false;
+  $('fBar').value='blauw';$('fScale').value='gyr';$('fIconSet').value='pijl';
+  $('gOp').value='>=';$('gVal').value='67';$('gType').value='Percentage';$('yOp').value='>=';$('yVal').value='33';$('yType').value='Percentage';
+  $('feedback').innerHTML='';showPanels();
+}
+function showPanels(){
+  const m=$('fMenu').value;
+  $('pRule').classList.toggle('hidden',!['gt','lt','text'].includes(m));
+  $('pBar').classList.toggle('hidden',m!=='databar');
+  $('pScale').classList.toggle('hidden',m!=='scale');
+  $('pIcons').classList.toggle('hidden',m!=='icons');
+  $('pCustom').classList.toggle('hidden',$('fPreset').value!=='custom');
+  $('fValLab').textContent=m==='gt'?'Cellen opmaken die GROTER ZIJN DAN:':m==='lt'?'Cellen opmaken die KLEINER ZIJN DAN:':'Cellen opmaken die de volgende tekst BEVATTEN:';
+}
+$('fMenu').onchange=showPanels;$('fPreset').onchange=showPanels;
+function readForm(){
+  const m=$('fMenu').value,r={col:sel,kind:m};
+  if(['gt','lt','text'].includes(m)){r.value=$('fVal').value;const p=$('fPreset').value;r.preset=p;r.fmt=p==='custom'?{fill:$('cFill').value,font:$('cFont').value,bold:$('cBold').checked}:PRESET[p]}
+  if(m==='databar')r.bar=$('fBar').value;
+  if(m==='scale')r.scale=$('fScale').value;
+  if(m==='icons'){r.set=$('fIconSet').value;r.g={op:$('gOp').value,val:$('gVal').value,type:$('gType').value};r.y={op:$('yOp').value,val:$('yVal').value,type:$('yType').value}}
+  return r;
+}
+const MENUNAME={gt:'Groter dan',lt:'Kleiner dan',text:'Tekst die het volgende bevat',databar:'Gegevensbalken',scale:'Kleurenschalen',icons:'Pictogrammenseries',top10:'Bovenste 10 items'};
+/* Geeft een lijst handelingen [id, juist?, foutboodschap]. Na een foute kolom of menukeuze worden de volgende handelingen niet beoordeeld. */
+function judge(r){
+  const s=SOL[cur],n=cur,out=[];
+  if(!r.col)return{blocked:'Je hebt nog geen cellen geselecteerd. Klik in het blad op een kolomletter.',out};
+  if(!r.kind)return{blocked:'Kies bij stap 2 iets in het menu.',out};
+  out.push([`l${n}k`,r.col===s.col,`Je koos kolom <b>${r.col}</b> (${HEAD[r.col]}). Lees de opdracht nog eens: over welke kolom gaat het?`]);
+  if(r.col!==s.col)return{out};
+  out.push([`l${n}m`,r.kind===s.kind,`Je koos <b>${MENUNAME[r.kind]}</b>. Dat past niet bij deze opdracht.`]);
+  if(r.kind!==s.kind)return{out};
+  const f=r.fmt||{};
+  if(n===1){out.push(['l1v',num(r.value)===100,'Het getal in de regel klopt niet.']);out.push(['l1o',r.preset==='gr'||(f.fill==='#C6EFCE'&&f.font==='#006100'),'De opmaak moet een <b>groene</b> opvulling met <b>donkere</b> tekst zijn.'])}
+  if(n===2){out.push(['l2v',num(r.value)===30,'Het getal in de regel klopt niet.']);out.push(['l2o',r.preset==='custom'&&f.fill==='#FF0000'&&f.font==='#FFFF00',r.preset!=='custom'?'Rood met gele tekst zit niet in de lijst. Kies <b>Aangepaste opmaak…</b>':'Opvulling <b>rood</b>, tekst <b>geel</b>.'])}
+  if(n===3){out.push(['l3v',norm(r.value)===norm(s.value),'De tekst klopt niet. Typ hem exact over.']);out.push(['l3o',r.preset==='custom'&&f.font==='#FF0000'&&f.bold&&!f.fill,r.preset!=='custom'?'Rood <b>én vet</b> zit niet in de lijst. Kies <b>Aangepaste opmaak…</b>':'Alleen de tekst verandert: kleur <b>rood</b> en stijl <b>Vet</b>, geen opvulling.'])}
+  if(n===5)out.push(['l5s',r.scale==='rgy','Kijk naar je blad: is de hoogste korting (15%) nu rood? De <b>eerste</b> kleur in de naam is voor de <b>hoogste</b> waarde.']);
+  if(n===6){out.push(['l6s',r.set==='licht','Kies de <b>verkeerslichten</b> (cirkels).']);
+    out.push(['l6g',r.g.op==='>='&&num(r.g.val)===100&&r.g.type==='Getal','Groen: <b>&gt;= 100</b> en type <b>Getal</b>.']);
+    out.push(['l6y',r.y.op==='>='&&num(r.y.val)===30&&r.y.type==='Getal','Geel: <b>&gt;= 30</b> en type <b>Getal</b>.'])}
+  if(n===7){out.push(['l7v',norm(r.value)===norm(s.value),'De tekst klopt niet. Typ hem exact over.']);out.push(['l7o',r.preset==='custom'&&f.fill==='#DDEBF7'&&!f.font&&!f.bold,r.preset!=='custom'?'Lichtblauw zit niet in de lijst. Kies <b>Aangepaste opmaak…</b>':'Alleen een <b>lichtblauwe</b> opvulling, de tekst blijft gewoon.'])}
+  return{out};
+}
+$('fApply').onclick=()=>{
+  const r=readForm();attempt=r.kind&&r.kind!=='top10'?r:null;
+  const {blocked,out}=judge(r);
+  if(blocked){$('feedback').innerHTML=`<div class="fb bad"><b>Nog niet klaar.</b><p>${blocked}</p></div>`;renderWs();return}
+  state.tries++;
+  out.forEach(([id,ok])=>mark(id,ok));
+  const errs=out.filter(x=>!x[1]).map(x=>x[2]);
+  const allDone=lvIds(cur).every(id=>state.marks[id]===2||state.marks[id]===1)&&!errs.length&&out.length===lvIds(cur).length;
+  if(!allDone){
+    $('feedback').innerHTML=`<div class="fb bad"><b>Nog niet juist.</b>${errs.slice(0,2).map(x=>`<p>${x}</p>`).join('')}<p class="small"><b>Tip:</b> ${LV[cur].tip}</p>${ptsList(lvIds(cur))}</div>`;
+  }else{
+    if(!state.levels.includes(cur))state.levels.push(cur);attempt=null;
+    const next=[1,2,3,4,5,6,7].find(n=>!state.levels.includes(n));
+    $('feedback').innerHTML=`<div class="fb good"><b>Goed zo! Level ${cur} is klaar: ${lvPts(cur)} punten.</b>${ptsList(lvIds(cur))}
+      <p><b>Nu in Excel:</b> doe precies hetzelfde in jouw bestand Sportwinkel. Selecteer <b>${SOL[cur].col}6:${SOL[cur].col}20</b> en volg dezelfde stappen.</p>
+      ${next?`<button class="btn" id="nextLv">Naar level ${next}</button>`:'<p><b>Alle 7 levels zijn klaar!</b> Ga verder met Deel C.</p>'}</div>`;
+    if(next)$('nextLv').onclick=()=>{cur=next;resetForm();renderAll();$('levels').scrollIntoView({behavior:'smooth',block:'start'})};
+  }
+  save();updateProgress();renderFinish();renderLevels();renderTask();renderWs();
+};
+$('fReset').onclick=()=>{resetForm();renderWs()};
+function renderAll(){renderLevels();renderTask();renderWs();updateProgress()}
+
+/* ---------- resultaatcode ----------
+   De code bevat naam, klas, punten per handeling en een controlegetal.
+   Wordt er één teken gewijzigd, dan klopt het controlegetal niet meer. */
+const ALPH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function h32(s,seed){let h=seed>>>0;for(const ch of s){h=Math.imul(h^ch.charCodeAt(0),2654435761)>>>0;h=(h<<13|h>>>19)>>>0}h^=h>>>16;h=Math.imul(h,2246822507)>>>0;h^=h>>>13;return h>>>0}
+function enc4(n){let o='';for(let i=0;i<4;i++){o+=ALPH[n%32];n=Math.floor(n/32)}return o}
+function sig(p){return enc4(h32('wefit|'+p,0x5f3759df))+enc4(h32(p+'|sportx',0x9e3779b9))}
+function b64e(t){return btoa(unescape(encodeURIComponent(t))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function b64d(t){t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';return decodeURIComponent(escape(atob(t)))}
+function makeCode(){
+  const marks=ACTS.map(a=>state.marks[a[0]]===undefined?'-':state.marks[a[0]]).join('');
+  const p=['2',state.vn.trim(),state.an.trim(),state.kl.trim(),score2(),MAX,state.levels.length,state.tries,Math.floor(Date.now()/60000).toString(36),marks].join('~');
+  return 'SW.'+b64e(p)+'.'+sig(p);
+}
+function readCode(code){
+  const m=code.split('.');if(m.length!==3)return null;
+  let p;try{p=b64d(m[1])}catch(e){return{ok:false}}
+  const f=p.split('~');
+  return{ok:sig(p)===m[2]&&f.length===10,vn:f[1],an:f[2],kl:f[3],s2:+f[4],max:+f[5],lv:+f[6],tries:+f[7],t:new Date(parseInt(f[8],36)*60000),marks:f[9]};
+}
+function renderFinish(){
+  const L=state.levels.length,s=score2(),nameOk=norm(state.vn)&&norm(state.an)&&state.kl.trim();
+  let h=`<p>Jouw score: <span class="score">${fmtPts(s)} / ${MAX}</span> <span class="muted small">(${L} van 7 levels klaar)</span></p>`;
+  h+='<ol class="steps">';
+  h+=`<li class="step${L===7?' done':''}"><p><b>1.</b> Werk de 7 levels af in Deel B en controleer je formules bij stap 8.</p></li>`;
+  h+=`<li class="step"><p><b>2.</b> Klik op <b>Maak mijn resultaatcode</b>. ${FORMS_URL?'Klik daarna op <b>Kopieer de code en open het formulier</b>. Plak de code in het formulier en klik op <b>Verzenden</b>.':'Kopieer de code en plak hem in de <b>Forms</b> van je leerkracht. De link staat op Teams.'}</p><p class="small muted">Let op: verander niets aan de code. Je leerkracht ziet meteen als er iets aangepast is, en dan telt je score niet.</p></li>`;
+  h+=`<li class="step"><p><b>3.</b> Lever ook je Excel-bestand <code>klas_Sportwinkel_voornaam_naam</code> in op Teams.</p></li></ol>`;
+  if(!nameOk)h+='<p class="bad-t">Vul bovenaan eerst je voornaam, achternaam en klas in.</p>';
+  else h+=`<div class="toggle"><button class="btn" id="mkCode">Maak mijn resultaatcode</button></div><div id="codeOut"></div>`;
+  $('finish').innerHTML=h;
+  if(nameOk)$('mkCode').onclick=()=>{
+    const c=makeCode();
+    $('codeOut').innerHTML=`<p class="small">Jouw code voor <b>${state.vn} ${state.an}</b> (${state.kl}) met <b>${fmtPts(s)} / ${MAX}</b> punten:</p><div class="result" id="codeTxt">${c}</div><div class="toggle" style="margin-top:8px"><button class="btn" id="cpCode">${FORMS_URL?'Kopieer de code en open het formulier':'Kopieer de code'}</button><span id="cpMsg" class="small muted"></span></div>${FORMS_URL?'<p class="small">Het formulier opent in een nieuw tabblad. Klik in het vak, druk op <kbd>Ctrl</kbd> + <kbd>V</kbd> en klik op <b>Verzenden</b>.</p>':''}`;
+    $('cpCode').onclick=async()=>{
+      const win=FORMS_URL?window.open(FORMS_URL,'_blank','noopener'):null;
+      try{await navigator.clipboard.writeText(c);$('cpMsg').textContent=FORMS_URL?'Gekopieerd! Plak de code in het formulier (Ctrl + V) en klik op Verzenden.':'Gekopieerd! Plak hem nu in Forms (Ctrl + V).'}
+      catch(e){const r=document.createRange();r.selectNodeContents($('codeTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('cpMsg').textContent='Code geselecteerd: druk op Ctrl + C en plak hem in het formulier.'}
+    };
+  };
+}
+
+/* ---------- leerkrachtmodus: voeg ?leerkracht toe aan het adres ---------- */
+let tRows=[];
+if(/[?&]leerkracht\b/.test(location.search)){
+  $('teacher').classList.remove('hidden');
+  $('tGo').onclick=()=>{
+    const codes=$('tIn').value.match(/SW\.[A-Za-z0-9_-]+\.[A-Z2-9]{8}/g)||[];
+    tRows=codes.map(readCode).filter(Boolean);
+    if(!codes.length){$('tOut').innerHTML='<p class="bad-t">Geen codes gevonden. Een code begint met SW.</p>';return}
+    const bad=tRows.filter(r=>!r.ok).length;
+    $('tMsg').textContent=`${tRows.length} codes · ${bad} gewijzigd`;
+    $('tOut').innerHTML='<table><tr><th>Controle</th><th>Naam</th><th>Klas</th><th>Punten</th><th>Op 20</th><th>Levels</th><th>Pogingen</th><th>Gemaakt op</th></tr>'+tRows.map(r=>r.ok
+      ?`<tr><td class="ok-t">✓ echt</td><td>${esc(r.vn)} ${esc(r.an)}</td><td>${esc(r.kl)}</td><td>${fmtPts(r.s2)} / ${r.max}</td><td>${(r.s2/2/r.max*20).toLocaleString('nl-BE',{maximumFractionDigits:1})}</td><td>${r.lv}/7</td><td>${r.tries}</td><td>${r.t.toLocaleString('nl-BE',{dateStyle:'short',timeStyle:'short'})}</td></tr>`
+      :`<tr><td class="bad-t">✗ gewijzigd</td><td colspan="7">${r.vn?esc(r.vn+' '+r.an)+' · ':''}deze code is aangepast en is niet geldig</td></tr>`).join('')+'</table>';
+  };
+  $('tCopy').onclick=async()=>{
+    if(!tRows.length){$('tMsg').textContent='Controleer eerst de codes.';return}
+    const t='Controle\tVoornaam\tAchternaam\tKlas\tPunten\tMax\tOp 20\n'+tRows.map(r=>r.ok?['echt',r.vn,r.an,r.kl,String(r.s2/2).replace('.',','),r.max,String(Math.round(r.s2/2/r.max*200)/10).replace('.',',')].join('\t'):'GEWIJZIGD\t'+(r.vn||'')+'\t'+(r.an||'')).join('\n');
+    try{await navigator.clipboard.writeText(t);$('tMsg').textContent='Gekopieerd: plak in Excel.'}catch(e){$('tMsg').textContent='Kopiëren lukte niet in deze browser.'}
+  };
+}
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+renderAll();renderFinish();
+</script>
+</body>
+</html>
