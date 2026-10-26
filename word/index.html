@@ -697,9 +697,13 @@ function renderStart(){
 const CHAPTERS = [
   {name:"Teken- en alineaopmaak", levels:[1,2,3,4,5,6,7,8], code:"OPMAAK7"},
   {name:"Stijlen", levels:[10,11,12], code:"STIJL3",
-   task:{name:"Oef 3.4 Festivals", after:12, d:"Nu in het echte Word: maak zelf de stijlen aan en pas de gouden regel toe op een tekst over festivals.",
-     files:[["Opdrachtfiche (pdf)","festivals-fiche.pdf"],["Starttekst (Word)","festivals-opgave.docx"]]}},
-  {name:"Opsomming en nummering", levels:[9], code:"LIJST5"},
+   tasks:[{id:"1", name:"Oef 3.4 Festivals", after:12, d:"Nu in het echte Word: maak zelf de stijlen aan en pas de gouden regel toe op een tekst over festivals.",
+     files:[["Opdrachtfiche (pdf)","festivals-fiche.pdf"],["Starttekst (Word)","festivals-opgave.docx"]]}]},
+  {name:"Opsomming en nummering", levels:[9], code:"LIJST5",
+   tasks:[{id:"rasgroepen", name:"Oef 5.2 Rasgroepen", after:9, d:"Nu in het echte Word: zet een meervoudige nummering op een lijst met hondenrassen, met nummers en opsommingstekens op verschillende niveaus.",
+     files:[["Opdrachtfiche (pdf)","rasgroepen-fiche.pdf"],["Starttekst (Word)","rasgroepen-opgave.docx"]]},
+    {id:"virtueel", name:"Oef 5.3 Virtuele realiteit", after:9, d:"Nu in het echte Word: koppel een meervoudige nummering aan de stijlen Kop 1 en Kop 2 en maak een inhoudstafel over virtuele realiteit.",
+     files:[["Opdrachtfiche (pdf)","virtuele-realiteit-fiche.pdf"],["Starttekst (Word)","virtuele-realiteit-opgave.docx"]]}]},
   {name:"Tabellen", levels:[], code:"TABEL4"}
 ];
 function chapterByCode(c){ c=String(c).toUpperCase().replace(/[\s-]/g,""); return CHAPTERS.findIndex(ch=>ch.code===c); }
@@ -722,8 +726,8 @@ function levelCard(n){
   return `<button class="lvl" data-lvl="${n}" ${open?"":"disabled"}><span class="num">${lvLabel(n)}${open?"":" · op slot"}</span><h3>${esc(L.name)}</h3><span class="d">${esc(L.d)}</span>
       <span style="display:flex;justify-content:space-between;align-items:center">${starHTML(b?b.stars:0)}<span class="muted" style="font-size:.85rem">${b&&b.fromCode?"Gedaan (via code)":b&&b.score?b.score+" / "+maxPts(L)+" ptn":L.steps.filter(s=>!s.info).length+" stappen"}</span></span></button>`;
 }
-function taskCard(c, ci){
-  const t=c.task, open=!!S.prog.best[t.after] || (S.prog.open||[]).includes(ci), done=(S.prog.tasks||{})[ci];
+function taskCard(t, ci, ti){
+  const open=!!S.prog.best[t.after] || (S.prog.open||[]).includes(ci), done=(S.prog.tasks||{})[t.id];
   if(!open) return `<div class="task locked"><span class="num">Opdracht in Word · op slot</span><h3>${esc(t.name)}</h3><span class="d">Gaat open als je ${lvLabel(t.after)} afgewerkt hebt.</span></div>`;
   return `<div class="task"><span class="num">Opdracht in Word${done?" · ingeleverd ✓":""}</span><h3>${esc(t.name)}</h3><span class="d">${esc(t.d)}</span>
     <ol class="tsteps">
@@ -732,7 +736,7 @@ function taskCard(c, ci){
       <li>Bewaar het bestand als <b>${esc(((S.klas||"klas")+"_"+t.name.replace(/^Oef [\d.]+ /,"")+"_"+S.name.trim().replace(/\s+/g,"_")))}</b>.</li>
       <li>Lever het bestand in op <b>Teams</b>.</li>
     </ol>
-    <div><button class="btn small" data-task="${ci}">${done?"Opnieuw melden":"Ik heb het ingeleverd"}</button></div></div>`;
+    <div><button class="btn small" data-task="${ci}:${ti}">${done?"Opnieuw melden":"Ik heb het ingeleverd"}</button></div></div>`;
 }
 function renderMap(){
   const code = done().length? makeCode(S.name, done(), total()) : "";
@@ -741,7 +745,7 @@ function renderMap(){
     ${code?`<div><div class="muted" style="font-size:.85rem">Jouw code om verder te spelen</div><span class="code">${code}</span></div>`:""}</div>
     ${CHAPTERS.map((c,ci)=>{ const got=c.levels.filter(n=>S.prog.best[n]).length;
       return `<section class="chapter"><div class="chhead"><span class="chnum">Hoofdstuk ${ci+1}</span><h2>${esc(c.name)}</h2>${c.levels.length?`<span class="muted chprog">${got} van ${c.levels.length} levels gedaan</span>`:""}</div>
-      ${c.levels.length?`<div class="levels">${c.levels.map(levelCard).join("")}</div>`:`<div class="soonbox">Binnenkort: hier komen nieuwe levels.</div>`}${c.task? taskCard(c,ci):""}</section>`; }).join("")}
+      ${c.levels.length?`<div class="levels">${c.levels.map(levelCard).join("")}</div>`:`<div class="soonbox">Binnenkort: hier komen nieuwe levels.</div>`}${(c.tasks||[]).map((t,ti)=>taskCard(t,ci,ti)).join("")}</section>`; }).join("")}
     <form id="f-open" class="card openbox" novalidate><label class="f" for="in-open">Code van je leerkracht om een hoofdstuk te openen<input class="txt" id="in-open" autocomplete="off" placeholder="bv. STIJL3"></label><button class="btn small" type="submit">Openen</button><div class="err" id="err-open"></div></form>
     <div><button class="btn ghost small" data-go="start">Andere speler</button></div>` + footer();
   if(S.flash){ $("#err-open").style.color="var(--good)"; $("#err-open").textContent=S.flash; S.flash=""; }
@@ -749,8 +753,8 @@ function renderMap(){
     if(ci<0){ $("#err-open").style.color=""; $("#err-open").textContent="Die code ken ik niet. Vraag ze opnieuw aan je leerkracht."; return; }
     openChapter(ci); save(); S.flash=`Hoofdstuk ${ci+1} (${CHAPTERS[ci].name}) staat nu open.`; renderMap(); });
   app.querySelectorAll("[data-lvl]").forEach(b=>b.addEventListener("click",()=>startLevel(+b.dataset.lvl)));
-  app.querySelectorAll("[data-task]").forEach(b=>b.addEventListener("click",()=>{ const ci=+b.dataset.task, t=CHAPTERS[ci].task;
-    S.prog.tasks={...(S.prog.tasks||{}), [ci]:true}; save();
+  app.querySelectorAll("[data-task]").forEach(b=>b.addEventListener("click",()=>{ const [ci,ti]=b.dataset.task.split(":").map(Number), t=CHAPTERS[ci].tasks[ti];
+    S.prog.tasks={...(S.prog.tasks||{}), [t.id]:true}; save();
     if(SEND.url) window.open(sendURL(0,{naam:S.name, klas:S.klas, oefening:`Opdracht in Word: ${t.name}`, score:"ingeleverd op Teams", sterren:"", fouten:""}),"_blank","noopener");
     renderMap(); }));
 }
