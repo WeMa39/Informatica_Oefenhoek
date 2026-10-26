@@ -196,6 +196,49 @@ label.f{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:.95
 .linkbtn{background:none;border:0;color:var(--word);text-decoration:underline;padding:0}
 .teacher{display:grid;gap:10px;max-width:520px}
 .result{padding:10px 12px;border-radius:10px;font-weight:700}
+
+/* overzicht: hoofdstukken als tabbladen, per hoofdstuk eerst leren, dan toepassen */
+.chtabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.chtab{text-align:left;background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;color:var(--ink)}
+.chtab:hover{border-color:var(--word)}
+.chtab[aria-selected="true"]{border-color:var(--word);box-shadow:inset 0 -5px 0 var(--word)}
+.chtab b{font-family:var(--display);font-size:1.1rem;line-height:1.15}
+.chtab .meta{font-size:.82rem;color:var(--muted)}
+.chtab.off{opacity:.7}
+.minibar{height:6px;background:var(--line);border-radius:99px;overflow:hidden}
+.minibar i{display:block;height:100%;background:var(--gold)}
+.chapter.card{gap:22px}
+.part{display:flex;flex-direction:column;gap:10px}
+.parthead{display:flex;align-items:center;gap:10px;font-size:1.15rem}
+.pn{flex:none;width:28px;height:28px;border-radius:50%;background:var(--word);color:var(--on-word);display:grid;place-items:center;font-size:.9rem}
+.parttxt{margin:-4px 0 0;font-size:.92rem}
+.tasks{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.task h4{font-family:var(--display);font-size:1.15rem;margin:0;line-height:1.15}
+.tfiles{display:flex;gap:8px;flex-wrap:wrap}
+.tsave{font-size:.9rem;overflow-wrap:anywhere}
+.task .btn{align-self:flex-start}
+details.more summary{cursor:pointer;font-weight:700;color:var(--word)}
+details.more[open] summary{margin-bottom:12px}
+
+/* lijst met meerdere niveaus en inhoudsopgave */
+.area{-webkit-user-select:none;user-select:none}
+.mllib{display:grid;grid-template-columns:repeat(3,88px);gap:6px;padding:8px}
+.mlt{width:88px;height:72px;font:400 10px/1.3 var(--ui);text-align:left;padding:5px;display:flex;flex-direction:column;gap:4px;overflow:hidden;color:#262626}
+.mlt span{display:flex;align-items:center;gap:3px;white-space:nowrap}
+.mlt i{flex:1;height:2px;background:#BDBDBD;min-width:8px}
+.mlgrid{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.mllv{display:grid;grid-template-columns:repeat(3,30px);gap:3px}
+.dlg .mllv .db{min-width:0;width:30px}
+.dlg .db.on{background:var(--w-on);border-color:#2B579A;font-weight:700}
+.mlprev{border:1px solid #CFCFCF;padding:8px;display:flex;flex-direction:column;gap:6px;font-size:11px;min-height:80px}
+.mlprev div{display:flex;align-items:center}
+.mlprev i{flex:1;height:4px;background:#D0D0D0}
+.mlprev .cur{font-weight:700;color:#2B579A}.mlprev .cur i{background:#2B579A}
+.dlg .mi{display:flex;width:100%;text-align:left;border:0;background:transparent;padding:6px 8px;gap:8px;align-items:center;font-size:12px;color:var(--w-ink);border-radius:2px}
+.dlg .mi:hover{background:var(--w-hover)}
+.toc{border:1px solid #D9D9D9;padding:4px 8px;margin:0 0 6px;color:#000;font-family:Calibri, Carlito, 'Segoe UI', sans-serif}
+.tocl{display:flex;gap:4px;align-items:baseline}
+.tocl .dots{flex:1;border-bottom:1.5px dotted #000;margin:0 2px}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -236,7 +279,7 @@ function readCode(name, code){
 
 /* ---------- het document ---------- */
 const BASE = {font:"Calibri", size:11, bold:false, italic:false, underline:false, color:"#000000", align:"left",
-  indL:0, indR:0, special:"geen", by:0, before:0, after:8, line:"Meerdere", at:1.08, border:"", effect:0, list:null, bullet:"rond", numfmt:"1.", lpos:0.63, lind:1.27};
+  indL:0, indR:0, special:"geen", by:0, before:0, after:8, line:"Meerdere", at:1.08, border:"", effect:0, list:null, bullet:"rond", numfmt:"1.", lpos:0.63, lind:1.27, lvl:1};
 function defaultStyles(){ return {
   standaard:{}, "geen-afstand":{after:0, line:"Enkel"},
   kop1:{font:"Calibri Light", size:16, color:"#2F5496", before:12, after:0, line:"Enkel"},
@@ -303,6 +346,50 @@ function avatarDoc(){
     ["kop","Personages"],["body","Aang is de laatste luchtnomade. Samen met Katara en Sokka reist hij de wereld rond."],
     ["kop","Setting"],["body","De reeks speelt zich af in een wereld die lijkt op het oude Azië, met tempels, dorpen en grote steden."]]);
 }
+function rasgroepenDoc(){
+  const G="#70AD47", O="#C45911", BL="#5B9BD5";
+  const L=[[G,"Herdershonden en veedrijvers"],[O,"Hollandse Herder"],[O,"Border Collie"],[G,"Terriërs"],[O,"Bull Terriër"],[O,"Staffordshire Bull Terriër"],
+    [G,"Spitsen en oertypen"],[O,"Spitsen"],[BL,"Scandinavische jachthonden"],[BL,"Europese en Aziatische keeshonden"],[O,"Oertypen"],[BL,"Basenji"],[BL,"Podenco Ibenco"],
+    [G,"Retrievers, Spaniëls en Waterhonden"],[O,"Retrievers"],[BL,"Labrador Retriever"],[BL,"Golden Retriever"],[O,"Spaniëls"],[BL,"Cocker Spaniël"]];
+  const doc = mkDoc({boven:2,onder:2,links:2,rechts:2}, [["title","Rasgroepen"],
+    ["intro","Als u overweegt om een hond aan te schaffen, moet u kiezen uit heel veel hondenrassen. Een goede start is om u te verdiepen in de verschillende rasgroepen:"],
+    ...L.map(x=>["item",x[1]])]);
+  Object.assign(doc.paras[0].s, {size:20, bold:true});
+  L.forEach((x,i)=>Object.assign(doc.paras[i+2].s, {color:x[0], after:0}));
+  return doc;
+}
+function vrDoc(){
+  return mkDoc({boven:2,onder:2,links:2,rechts:2}, [
+    ["title","Virtuele werkelijkheid",null,"titel"],["leeg",""],
+    ["body","Virtuele werkelijkheid of Virtuele Realiteit (VR) simuleert een omgeving via een computer. De meeste VR-omgevingen zijn visueel en auditief, via speciale brillen en geluid."],
+    ["kop","Interactie",null,"kop1"],["body","Gebruikers hebben interactie met de VR-omgeving via een head-mounted display, datagloves, bewegingssensoren of een 3D-muis."],
+    ["kop","Creatie",null,"kop1"],["body","Een geloofwaardige VR-omgeving maken is lastig en vraagt veel rekenkracht. Sinds 2015 zijn er veel meer kits om VR-werelden te bouwen, zoals OpenVR."],
+    ["kop","CAVE",null,"kop1"],["body","Een CAVE is een kamer van projectiewanden. Met speciale brillen lijkt alles in 3D uit de muren te komen."],
+    ["kop","Literatuur en film",null,"kop1"],["body","Films zoals Tron, The Matrix en Ready Player One tonen een virtuele wereld die niet van echt te onderscheiden is."],
+    ["body","Toekomst"],["body","De technologie moet nog groeien voordat de ervaring echt overeenkomt met de werkelijkheid."],
+    ["kop","Voor- en nadelen van virtuele werkelijkheid",null,"kop1"],
+    ["kop","Voordelen",null,"kop2"],["body","Goedkoper dan echte ervaringen, en je kan oefenen zonder gevaar."],
+    ["kop","Nadelen",null,"kop2"],["body","De technologie is nog niet op punt en sommige mensen worden er misselijk van."]]);
+}
+/* lijst met meerdere niveaus: per niveau een nummerstijl, posities (cm) en eventueel een gekoppelde kopstijl */
+const MLLIB = {
+  abc:{n:"1) a) i)", lv:[["haak",0,.63],["klein",.63,1.27],["romk",1.27,1.9]], pv:["1)","a)","i)"]},
+  dec:{n:"1. 1.1. 1.1.1.", lv:[["hierp",0,.63],["hierp",.63,1.4],["hierp",1.27,2.29]], pv:["1.","1.1.","1.1.1."]},
+  bul:{n:"Opsommingstekens ➢ ■ ●", lv:[["pijl",0,.63],["vierkant",.63,1.27],["bol",1.27,1.9]], pv:["➢","■","●"]},
+  kop:{n:"1 Kop 1, 1.1 Kop 2, 1.1.1 Kop 3", lv:[["hier",0,.76,"kop1"],["hier",0,1.02,"kop2"],["hier",0,1.27,"kop3"]], pv:["1 Kop 1","1.1 Kop 2","1.1.1 Kop 3"]},
+  kopr:{n:"I. Kop 1, A. Kop 2, 1. Kop 3", lv:[["rom",0,.76,"kop1"],["hoofd",.76,1.52,"kop2"],["num",1.52,2.16,"kop3"]], pv:["I. Kop 1","A. Kop 2","1. Kop 3"]}
+};
+const MLFMTS = [["num","1, 2, 3, …"],["haak","1), 2), 3), …"],["klein","a), b), c), …"],["romk","i., ii., iii., …"],["rom","I, II, III, …"],["hoofd","A, B, C, …"],["hier","1, 1.1, 1.1.1, …"],
+  ["bol","Opsommingsteken ●"],["vierkant","Opsommingsteken ■"],["pijl","Opsommingsteken ➢"],["open","Opsommingsteken ○"]];
+function mlLevels(key){ const d=MLLIB[key]; return Array.from({length:9},(_,i)=>{ const x=d.lv[i]; return x? {fmt:x[0], pos:x[1], ind:x[2], link:x[3]||""} : {fmt:"num", pos:i*.63, ind:(i+1)*.63, link:""}; }); }
+function fmtLabel(f, c, l){ const n=c[l]||1, rom=["I","II","III","IV","V","VI","VII","VIII","IX","X"][n-1]||String(n), GL={bol:"●",vierkant:"■",pijl:"➢",open:"○"};
+  if(GL[f]) return GL[f]; const hier=c.slice(1,l+1).map(x=>x||1).join(".");
+  return {num:n+".", haak:n+")", klein:String.fromCharCode(96+n)+")", romk:rom.toLowerCase()+".", rom:rom+".", hoofd:String.fromCharCode(64+n)+".", hier, hierp:hier+"."}[f] || n+"."; }
+function listOf(p){ const ml=G.doc.ml; if(!ml) return 0; if(p.s.list==="multi") return p.s.lvl||1; const i=ml.levels.findIndex(l=>l.link && l.link===p.st); return i+1; }
+function mlLabels(){ const out=new Map(), c=Array(11).fill(0);
+  for(const p of G.doc.paras){ const l=listOf(p); if(!l) continue; c[l]++; for(let j=l+1;j<c.length;j++) c[j]=0; out.set(p, fmtLabel(G.doc.ml.levels[l-1].fmt, c, l)); }
+  return out; }
+function tocEntries(){ const lab=mlLabels(); return G.doc.paras.filter(p=>/^kop[123]$/.test(p.st)).map(p=>({lvl:+p.st.slice(3), label:lab.get(p)||"", text:p.text})); }
 const SWCOLORS = {"Automatisch":"#000000","Zwart":"#000000","Rood":"#FF0000","Oranje":"#ED7D31","Geel":"#FFFF00","Goud":"#FFC000","Groen":"#00B050","Blauw":"#0070C0","Donkerblauw":"#002060","Paars":"#7030A0","Grijs":"#7F7F7F","Donkergrijs":"#404040"};
 const STYLENAMES = {standaard:"Standaard","geen-afstand":"Geen afstand",kop1:"Kop 1",kop2:"Kop 2",titel:"Titel"};
 const BULLETS = [["geen","Geen"],["rond","Rond opsommingsteken ●"],["open","Open rondje ○"],["vierkant","Vierkant opsommingsteken ■"],["ruit","Ruit ◆"],["vink","Vinkje ✓"],["pijl","Pijl ➢"]];
@@ -623,6 +710,67 @@ const LEVELS = [
    {t:"Kies [[Wijzigen…]].", a:"stijl:wijzigen", h:"Tweede woord in het menu."},
    {t:"Kies bij de tekstkleur {{Groen}}.", a:"sw:color", v:"Groen", h:"Het lijstje met kleuren in het blok Opmaak."},
    {t:"Klik op [[OK]].", a:"sw:ok", h:"Rechtsonder in het venster."}
+ ]},
+ { name:"Lijst met meerdere niveaus", d:"Rasgroepen en rassen op drie niveaus, met nummers en opsommingstekens. Zoals Oef 5.2 Rasgroepen.", doc:"rasgroepen", file:"Rasgroepen", steps:[
+   {info:"Soms heeft een lijst <b>niveaus</b>: hoofdpunten met daaronder kleinere punten. Hier zijn de <b>groene</b> regels rasgroepen (niveau 1), de <b>oranje</b> regels rassen (niveau 2) en de <b>blauwe</b> regels nog kleinere groepen (niveau 3). Daarvoor gebruik je een <b>lijst met meerdere niveaus</b>. Eerst selecteer je de hele lijst."},
+   {t:"Klik op de eerste groene regel 'Herdershonden en veedrijvers'.", a:"sel:p2", h:"De eerste regel onder de inleiding."},
+   {t:"Hou de <b>Shift</b>-toets ingedrukt en klik op de laatste regel 'Cocker Spaniël'. Zo selecteer je alles daartussen.", a:"shift:p20", h:"Shift is de toets met het pijltje omhoog, links op je toetsenbord. Hou hem vast terwijl je klikt op 'Cocker Spaniël', helemaal onderaan."},
+   {t:"Klik in de groep Alinea op [[Lijst met meerdere niveaus]].", a:"menu:multilevel", h:"Groep Alinea, bovenste rij: de knop rechts naast Nummering, met drie regels die steeds verder inspringen."},
+   {t:"Kies in de lijstbibliotheek {{1) a) i)}}.", a:"ml", v:"abc", h:"Hou je muis op de vakjes om hun naam te zien. Je zoekt het vakje met 1), a) en i)."},
+   {info:"Elke regel kreeg een nummer, want alles staat nog op <b>niveau 1</b>. Nu zet je de rassen een niveau lager met <b>Inspringing vergroten</b> (in het echte Word kan dat ook met de <b>Tab</b>-toets). Eerst selecteer je alle oranje regels tegelijk."},
+   {t:"Klik op een oranje ras, bv. 'Hollandse Herder'.", a:"sel:p3", h:"De regel net onder 'Herdershonden en veedrijvers'."},
+   {t:"Klik in de groep Bewerken op [[Selecteren]].", a:"menu:selecteren", h:"De groep Bewerken staat helemaal rechts op het tabblad Start. Schuif het lint eventueel naar rechts."},
+   {t:"Kies [[Alle tekst met vergelijkbare opmaak selecteren]]. Nu zijn alle oranje regels geselecteerd.", a:"selsim", h:"De onderste keuze in het lijstje."},
+   {t:"Klik op [[Inspringing vergroten]]. De oranje regels gaan naar niveau 2.", a:"btn:inspringen-plus", h:"Groep Alinea, bovenste rij: de knop met het blauwe pijltje naar rechts."},
+   {t:"Nu de blauwe regels. Klik op een blauw ras, bv. 'Scandinavische jachthonden'.", a:"sel:p10", h:"Onder 'Spitsen' staat 'Scandinavische jachthonden' in het blauw."},
+   {t:"Klik op [[Selecteren]].", a:"menu:selecteren", h:"Groep Bewerken, helemaal rechts op het lint."},
+   {t:"Kies [[Alle tekst met vergelijkbare opmaak selecteren]].", a:"selsim", h:"De onderste keuze in het lijstje."},
+   {t:"Klik op [[Inspringing vergroten]].", a:"btn:inspringen-plus", h:"Groep Alinea, de knop met het blauwe pijltje naar rechts."},
+   {t:"Blauw hoort op niveau 3. Klik nog een keer op [[Inspringing vergroten]].", a:"btn:inspringen-plus", h:"Dezelfde knop nog eens."},
+   {info:"De niveaus kloppen. Nu de tekens en de inspringing. De opdracht: niveau 1 krijgt een <b>nummer</b> tegen de linkermarge (0 cm) en de tekst op 1 cm. Niveau 2 en 3 krijgen een <b>opsommingsteken</b> dat telkens 1 cm verder inspringt, net als de tekst. Dat stel je per niveau in, in één venster."},
+   {t:"Klik opnieuw op [[Lijst met meerdere niveaus]].", a:"menu:multilevel", h:"Groep Alinea, rechts naast Nummering."},
+   {t:"Klik onderaan op [[Nieuwe lijst met meerdere niveaus definiëren…]].", a:"ml:dlg", h:"Helemaal onderaan in het lijstje, onder de streep."},
+   {t:"Niveau 1 is al gekozen. Kies bij Nummerstijl {{1, 2, 3, …}}.", a:"mld:fmt", v:"num", vl:"1, 2, 3, …", h:"Het lijstje 'Nummerstijl voor dit niveau', in het blok Getalnotatie."},
+   {t:"Typ {{0}} bij Uitlijning op en druk op Enter.", a:"mld:pos", v:"0", h:"In het blok Positie, het eerste vak."},
+   {t:"Typ {{1}} bij Tekstinspringing op.", a:"mld:ind", v:"1", h:"In het blok Positie, het tweede vak."},
+   {t:"Klik links op niveau [[2]].", a:"mld:lvl:2", h:"Linksboven in het venster staan de cijfers 1 tot 9. Klik op 2."},
+   {t:"Kies bij Nummerstijl {{Opsommingsteken ●}}.", a:"mld:fmt", v:"bol", vl:"Opsommingsteken ●", h:"Het lijstje 'Nummerstijl voor dit niveau'. De opsommingstekens staan onderaan."},
+   {t:"Uitlijning op: {{1}}", a:"mld:pos", v:"1", h:"Blok Positie, het eerste vak."},
+   {t:"Tekstinspringing op: {{2}}", a:"mld:ind", v:"2", h:"Blok Positie, het tweede vak."},
+   {t:"Klik op niveau [[3]].", a:"mld:lvl:3", h:"Linksboven in het venster, het cijfer 3."},
+   {t:"Nummerstijl: {{Opsommingsteken ●}}", a:"mld:fmt", v:"bol", vl:"Opsommingsteken ●", h:"Het lijstje 'Nummerstijl voor dit niveau'."},
+   {t:"Uitlijning op: {{2}}", a:"mld:pos", v:"2", h:"Blok Positie, het eerste vak."},
+   {t:"Tekstinspringing op: {{3}}", a:"mld:ind", v:"3", h:"Blok Positie, het tweede vak."},
+   {t:"Klik op [[OK]].", a:"mld:ok", h:"Rechtsonder in het venster."}
+ ]},
+ { name:"Nummering in kopstijlen", d:"Ondertitels automatisch nummeren met Kop 1 en Kop 2, en een inhoudsopgave maken. Zoals Oef 5.3 Virtuele realiteit.", doc:"vr", file:"Virtuele realiteit", steps:[
+   {info:"De ondertitels in deze tekst staan al in de stijlen <b>Kop 1</b> en <b>Kop 2</b>. Koppel je een lijst met meerdere niveaus aan die kopstijlen, dan nummert Word elke titel vanzelf: 1, 2, 3 voor Kop 1 en 1.1, 1.2 voor Kop 2. Voeg je later een titel toe, dan schuiven alle nummers mee."},
+   {t:"Klik op de ondertitel 'Interactie'.", a:"sel:p3", h:"De eerste blauwe ondertitel, onder de inleiding."},
+   {t:"Klik op [[Lijst met meerdere niveaus]].", a:"menu:multilevel", h:"Groep Alinea, rechts naast Nummering."},
+   {t:"Kies {{1 Kop 1, 1.1 Kop 2, 1.1.1 Kop 3}}. Dat is de lijst die aan de kopstijlen gekoppeld is.", a:"ml", v:"kop", vl:"1 Kop 1, 1.1 Kop 2, 1.1.1 Kop 3", h:"In de lijstbibliotheek: het vakje waarin de woorden Kop 1 en Kop 2 staan, met 1 en 1.1 ervoor."},
+   {info:"Kijk naar het blad: <b>alle</b> titels kregen een nummer, ook de titels die je niet selecteerde. De nummering hoort nu bij de stijlen. 'Voordelen' en 'Nadelen' staan in Kop 2, daarom krijgen ze 5.1 en 5.2. Nu de inspringing: het nummer komt tegen de linkermarge en de tekst op een vaste insprong van <b>1,5 cm</b>."},
+   {t:"Klik op [[Lijst met meerdere niveaus]].", a:"menu:multilevel", h:"Groep Alinea, rechts naast Nummering."},
+   {t:"Klik op [[Nieuwe lijst met meerdere niveaus definiëren…]].", a:"ml:dlg", h:"Onderaan in het lijstje."},
+   {t:"Niveau 1 is gekozen. Kijk: het is gekoppeld aan Kop 1. Typ {{0}} bij Uitlijning op.", a:"mld:pos", v:"0", h:"In het blok Positie, het eerste vak."},
+   {t:"Typ {{1,5}} bij Tekstinspringing op.", a:"mld:ind", v:"1.5", h:"In het blok Positie, het tweede vak."},
+   {t:"Klik op niveau [[2]]. Dat is het niveau van Kop 2.", a:"mld:lvl:2", h:"Linksboven in het venster, het cijfer 2."},
+   {t:"Uitlijning op: {{0}}", a:"mld:pos", v:"0", h:"Blok Positie, het eerste vak."},
+   {t:"Tekstinspringing op: {{1,5}}", a:"mld:ind", v:"1.5", h:"Blok Positie, het tweede vak."},
+   {t:"Klik op [[OK]].", a:"mld:ok", h:"Rechtsonder in het venster."},
+   {info:"Omdat de titels in kopstijlen staan, kan Word ook een <b>inhoudsopgave</b> maken. Die komt onder de hoofdtitel, op de lege regel."},
+   {t:"Klik op de lege regel onder de hoofdtitel.", a:"sel:p1", h:"Net onder 'Virtuele werkelijkheid' staat een lege regel met enkel het teken ¶."},
+   {t:"Klik op het tabblad [[Verwijzingen]].", a:"tab:verwijzingen", h:"In de blauwe balk bovenaan, tussen Indeling en Verzendlijsten."},
+   {t:"Klik op [[Inhoudsopgave]].", a:"menu:toc", h:"De eerste grote knop links op het tabblad Verwijzingen."},
+   {t:"Kies {{Automatische inhoudsopgave 1}}.", a:"toc", v:"auto1", vl:"Automatische inhoudsopgave 1", h:"De eerste keuze in het lijstje."},
+   {info:"De inhoudsopgave staat er, met de nummers erbij. Maar 'Toekomst' is nog gewone tekst en ontbreekt. Geef die titel Kop 1 en let goed op de nummers."},
+   {t:"Ga terug naar het tabblad [[Start]].", a:"tab:start", h:"Blauwe balk bovenaan."},
+   {t:"Klik op het woord 'Toekomst'.", a:"sel:p11", h:"Onder de alinea over films staat het woord 'Toekomst' in gewone tekst."},
+   {t:"Klik op de stijl [[Kop 1]].", a:"style:kop1", h:"Groep Stijlen, het vak Kop 1."},
+   {info:"'Toekomst' kreeg nummer 5 en de titels eronder schoven vanzelf op naar 6, 6.1 en 6.2. De inhoudsopgave toont nog de oude nummers: die werk je zelf bij."},
+   {t:"Klik op het tabblad [[Verwijzingen]].", a:"tab:verwijzingen", h:"Blauwe balk bovenaan."},
+   {t:"Klik op [[Tabel bijwerken]].", a:"btn:tocupdate", h:"Naast de grote knop Inhoudsopgave, onder Tekst toevoegen."},
+   {t:"Kies [[Volledige tabel bijwerken]]. Zo komen ook nieuwe titels en nummers mee.", a:"tocu:alles", h:"De tweede keuze in het venster."},
+   {t:"Klik op [[OK]].", a:"tocu:ok", h:"Rechtsonder in het venster."}
  ]}
 ];
 
@@ -699,15 +847,15 @@ const CHAPTERS = [
   {name:"Stijlen", levels:[10,11,12], code:"STIJL3",
    tasks:[{id:"1", name:"Oef 3.4 Festivals", after:12, d:"Nu in het echte Word: maak zelf de stijlen aan en pas de gouden regel toe op een tekst over festivals.",
      files:[["Opdrachtfiche (pdf)","festivals-fiche.pdf"],["Starttekst (Word)","festivals-opgave.docx"]]}]},
-  {name:"Opsomming en nummering", levels:[9], code:"LIJST5",
-   tasks:[{id:"rasgroepen", name:"Oef 5.2 Rasgroepen", after:9, d:"Nu in het echte Word: zet een meervoudige nummering op een lijst met hondenrassen, met nummers en opsommingstekens op verschillende niveaus.",
-     files:[["Opdrachtfiche (pdf)","rasgroepen-fiche.pdf"],["Starttekst (Word)","rasgroepen-opgave.docx"]]},
-    {id:"virtueel", name:"Oef 5.3 Virtuele realiteit", after:9, d:"Nu in het echte Word: koppel een meervoudige nummering aan de stijlen Kop 1 en Kop 2 en maak een inhoudstafel over virtuele realiteit.",
-     files:[["Opdrachtfiche (pdf)","virtuele-realiteit-fiche.pdf"],["Starttekst (Word)","virtuele-realiteit-opgave.docx"]]}]},
+  {name:"Opsomming en nummering", levels:[9,13,14], code:"LIJST5",
+   tasks:[{id:"kiekeboes", name:"Oef 5.4 De Kiekeboes", after:14, d:"Een tekst over de stripreeks: stijlen wijzigen, opsommingstekens, een nummering voor de ondertitels via de kopstijlen en een inhoudsopgave. Daarna nog afbeeldingen en een voettekst.",
+     files:[["Opdrachtfiche (pdf)","kiekeboes-fiche.pdf"],["Starttekst (Word)","kiekeboes-opgave.docx"]]},
+    {id:"ki", name:"Oef 5.5 Kunstmatige intelligentie", after:14, d:"Een tekst over AI: Kop 1 en Kop 2 aanpassen, een meervoudige nummering op de kopstijlen, een inhoudstafel en een liggende pagina.",
+     files:[["Opdrachtfiche (pdf)","kunstmatige-intelligentie-fiche.pdf"],["Starttekst (Word)","kunstmatige-intelligentie-opgave.docx"]]}]},
   {name:"Tabellen", levels:[], code:"TABEL4"}
 ];
 function chapterByCode(c){ c=String(c).toUpperCase().replace(/[\s-]/g,""); return CHAPTERS.findIndex(ch=>ch.code===c); }
-function openChapter(ci){ S.prog.open=[...new Set([...(S.prog.open||[]), ci])]; }
+function openChapter(ci){ S.prog.open=[...new Set([...(S.prog.open||[]), ci])]; S.prog.ch=ci; }
 /* ---------- resultaten naar het Microsoft Formulier van de leerkracht (antwoorden openen in Excel) ----------
    De knop opent het formulier al ingevuld; de leerling klikt daar nog op Verzenden. Laat url leeg om de knop te verbergen. */
 const SEND = { url:"https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=wH3qjxKF_Eq-VW1TfMsk0dTXxUbVzpNFlRWpZdO0ecpUNlU4VllLME5HTjRXOVZORlRBQlZYSUNNVC4u",
@@ -728,30 +876,38 @@ function levelCard(n){
 }
 function taskCard(t, ci, ti){
   const open=!!S.prog.best[t.after] || (S.prog.open||[]).includes(ci), done=(S.prog.tasks||{})[t.id];
-  if(!open) return `<div class="task locked"><span class="num">Opdracht in Word · op slot</span><h3>${esc(t.name)}</h3><span class="d">Gaat open als je ${lvLabel(t.after)} afgewerkt hebt.</span></div>`;
-  return `<div class="task"><span class="num">Opdracht in Word${done?" · ingeleverd ✓":""}</span><h3>${esc(t.name)}</h3><span class="d">${esc(t.d)}</span>
-    <ol class="tsteps">
-      <li>Download de bestanden: ${t.files.map(([l,f])=>`<a class="btn ghost small" href="${f}" download>${esc(l)}</a>`).join(" ")}</li>
-      <li>Open de starttekst in <b>Word</b> en volg de opdrachtfiche stap voor stap.</li>
-      <li>Bewaar het bestand als <b>${esc(((S.klas||"klas")+"_"+t.name.replace(/^Oef [\d.]+ /,"")+"_"+S.name.trim().replace(/\s+/g,"_")))}</b>.</li>
-      <li>Lever het bestand in op <b>Teams</b>.</li>
-    </ol>
-    <div><button class="btn small" data-task="${ci}:${ti}">${done?"Opnieuw melden":"Ik heb het ingeleverd"}</button></div></div>`;
+  if(!open) return `<div class="task locked"><span class="num">Opdracht in Word · op slot</span><h4>${esc(t.name)}</h4><span class="d">Gaat open als je ${lvLabel(t.after)} afgewerkt hebt.</span></div>`;
+  return `<div class="task"><span class="num">Opdracht in Word${done?" · ingeleverd ✓":""}</span><h4>${esc(t.name)}</h4><span class="d">${esc(t.d)}</span>
+    <div class="tfiles">${t.files.map(([l,f])=>`<a class="btn ghost small" href="${f}" download>${esc(l)}</a>`).join("")}</div>
+    <span class="tsave">Bewaar als <b>${esc(((S.klas||"klas")+"_"+t.name.replace(/^Oef [\d.]+ /,"")+"_"+S.name.trim().replace(/\s+/g,"_")))}</b></span>
+    <button class="btn small" data-task="${ci}:${ti}">${done?"Opnieuw melden":"Ik heb het ingeleverd"}</button></div>`;
 }
+function chapterInfo(c, ci){ const got=c.levels.filter(n=>S.prog.best[n]).length, tasks=c.tasks||[], tdone=tasks.filter(t=>(S.prog.tasks||{})[t.id]).length;
+  return {got, tasks, tdone, open:(S.prog.open||[]).includes(ci) || c.levels.some(isOpen), full:c.levels.length>0 && got===c.levels.length}; }
+function curCh(){ const c=S.prog.ch; if(Number.isInteger(c) && CHAPTERS[c]) return c;
+  const i=CHAPTERS.findIndex(ch=>ch.levels.some(n=>isOpen(n) && !S.prog.best[n])); return i>=0? i : 0; }
 function renderMap(){
-  const code = done().length? makeCode(S.name, done(), total()) : "";
+  const code = done().length? makeCode(S.name, done(), total()) : "", ci=curCh(), c=CHAPTERS[ci], inf=chapterInfo(c, ci);
   app.innerHTML = header() + `<div class="card codebox" style="justify-content:space-between">
-    <div><h2 style="font-size:1.5rem">Kies een level</h2><p class="muted" style="margin:4px 0 0">Speel de levels in volgorde. Je mag een level altijd opnieuw spelen om meer sterren te halen.</p></div>
+    <div><h2 style="font-size:1.5rem">Kies een hoofdstuk</h2><p class="muted" style="margin:4px 0 0">In elk hoofdstuk leer je eerst in de oefenomgeving. Daarna pas je het toe in het echte Word.</p></div>
     ${code?`<div><div class="muted" style="font-size:.85rem">Jouw code om verder te spelen</div><span class="code">${code}</span></div>`:""}</div>
-    ${CHAPTERS.map((c,ci)=>{ const got=c.levels.filter(n=>S.prog.best[n]).length;
-      return `<section class="chapter"><div class="chhead"><span class="chnum">Hoofdstuk ${ci+1}</span><h2>${esc(c.name)}</h2>${c.levels.length?`<span class="muted chprog">${got} van ${c.levels.length} levels gedaan</span>`:""}</div>
-      ${c.levels.length?`<div class="levels">${c.levels.map(levelCard).join("")}</div>`:`<div class="soonbox">Binnenkort: hier komen nieuwe levels.</div>`}${(c.tasks||[]).map((t,ti)=>taskCard(t,ci,ti)).join("")}</section>`; }).join("")}
-    <form id="f-open" class="card openbox" novalidate><label class="f" for="in-open">Code van je leerkracht om een hoofdstuk te openen<input class="txt" id="in-open" autocomplete="off" placeholder="bv. STIJL3"></label><button class="btn small" type="submit">Openen</button><div class="err" id="err-open"></div></form>
+    <div class="chtabs" role="tablist" aria-label="Hoofdstukken">${CHAPTERS.map((c2,i)=>{ const f=chapterInfo(c2,i), pct=c2.levels.length? f.got/c2.levels.length*100 : 0;
+      return `<button class="chtab${f.open||!c2.levels.length?"":" off"}" role="tab" aria-selected="${i===ci}" data-ch="${i}"><span class="chnum">Hoofdstuk ${i+1}${f.full?" · klaar ✓":!f.open&&c2.levels.length?" · op slot":""}</span><b>${esc(c2.name)}</b>
+        <span class="minibar" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="meta">${c2.levels.length? `${f.got} van ${c2.levels.length} levels`:"Binnenkort"}${f.tasks.length?` · ${f.tdone} van ${f.tasks.length} opdrachten`:""}</span></button>`; }).join("")}</div>
+    <section class="card chapter" role="tabpanel" aria-label="Hoofdstuk ${ci+1}: ${esc(c.name)}">
+      <div class="chhead"><span class="chnum">Hoofdstuk ${ci+1}</span><h2>${esc(c.name)}</h2>${c.levels.length?`<span class="muted chprog">${inf.got} van ${c.levels.length} levels gedaan</span>`:""}</div>
+      ${c.levels.length? `<div class="part"><h3 class="parthead"><span class="pn">1</span>Leren in de oefenomgeving</h3><p class="muted parttxt">Speel de levels in volgorde. Je mag een level altijd opnieuw spelen om meer sterren te halen.</p><div class="levels">${c.levels.map(levelCard).join("")}</div></div>`
+        : `<div class="soonbox">Binnenkort: hier komen nieuwe levels.</div>`}
+      ${inf.tasks.length? `<div class="part"><h3 class="parthead"><span class="pn">2</span>Toepassen in het echte Word</h3><p class="muted parttxt">Download de opdrachtfiche en de starttekst. Open de starttekst in <b>Word</b>, volg de fiche, bewaar met de naam die erbij staat en lever in op <b>Teams</b>.</p><div class="tasks">${inf.tasks.map((t,ti)=>taskCard(t,ci,ti)).join("")}</div></div>` : ""}
+    </section>
+    <details class="card more"${S.flash?" open":""}><summary>Een hoofdstuk openen met een code van je leerkracht</summary>
+      <form id="f-open" class="openbox" novalidate><label class="f" for="in-open">Code van je leerkracht<input class="txt" id="in-open" autocomplete="off" placeholder="bv. STIJL3"></label><button class="btn small" type="submit">Openen</button><div class="err" id="err-open"></div></form></details>
     <div><button class="btn ghost small" data-go="start">Andere speler</button></div>` + footer();
   if(S.flash){ $("#err-open").style.color="var(--good)"; $("#err-open").textContent=S.flash; S.flash=""; }
   $("#f-open").addEventListener("submit", e=>{ e.preventDefault(); const ci=chapterByCode($("#in-open").value);
     if(ci<0){ $("#err-open").style.color=""; $("#err-open").textContent="Die code ken ik niet. Vraag ze opnieuw aan je leerkracht."; return; }
     openChapter(ci); save(); S.flash=`Hoofdstuk ${ci+1} (${CHAPTERS[ci].name}) staat nu open.`; renderMap(); });
+  app.querySelectorAll("[data-ch]").forEach(b=>b.addEventListener("click",()=>{ S.prog.ch=+b.dataset.ch; save(); renderMap(); }));
   app.querySelectorAll("[data-lvl]").forEach(b=>b.addEventListener("click",()=>startLevel(+b.dataset.lvl)));
   app.querySelectorAll("[data-task]").forEach(b=>b.addEventListener("click",()=>{ const [ci,ti]=b.dataset.task.split(":").map(Number), t=CHAPTERS[ci].tasks[ti];
     S.prog.tasks={...(S.prog.tasks||{}), [t.id]:true}; save();
@@ -762,7 +918,8 @@ function renderMap(){
 /* ---------- het spel ---------- */
 function startLevel(n){
   const L = LEVELS[n-1];
-  const doc = ({tiramisu:tiramisuDoc, films:filmsDoc, netflix:netflixDoc, avatar:avatarDoc}[L.doc] || freshDoc)();
+  const doc = ({tiramisu:tiramisuDoc, films:filmsDoc, netflix:netflixDoc, avatar:avatarDoc, rasgroepen:rasgroepenDoc, vr:vrDoc}[L.doc] || freshDoc)();
+  if(chapterOf(n)>=0){ S.prog.ch=chapterOf(n); save(); }
   if(L.preset==="kwast"){ Object.assign(doc.paras[2].s, SUB_STYLE); Object.assign(doc.paras[3].s, BODY_STYLE); doc.margins={boven:2,onder:2,links:2,rechts:2}; }
   if(n>=6 && !L.preset){ doc.margins={boven:2,onder:2,links:2,rechts:2}; }
   G = { n, L, i:0, miss:0, score:0, errors:0, doc, ui:{tab:"start", menu:null, dialog:null, dlg:{}, sel:null, marks:n>1, kwast:0, ctxPos:null}, msg:null, pop:"" };
@@ -799,6 +956,8 @@ const I = {
  al:(t)=>{const L={links:[[2,12],[2,9],[2,12],[2,8]],centreren:[[2,12],[4,8],[2,12],[5,6]],rechts:[[2,12],[5,9],[2,12],[6,8]],uitvullen:[[2,12],[2,12],[2,12],[2,12]]}[t];
    return `<svg viewBox="0 0 16 16">${L.map((x,i)=>`<rect x="${x[0]}" y="${3+i*3}" width="${x[1]}" height="1.4" fill="#333"/>`).join("")}</svg>`;},
  bullets:'<svg viewBox="0 0 16 16"><circle cx="3" cy="4" r="1.3" fill="#333"/><circle cx="3" cy="8" r="1.3" fill="#333"/><circle cx="3" cy="12" r="1.3" fill="#333"/><path d="M6 4h8M6 8h8M6 12h8" stroke="#333"/></svg>',
+ multi:'<svg viewBox="0 0 16 16"><text x="0" y="5" font-size="5" fill="#333">1</text><path d="M4 3.5h11" stroke="#333"/><text x="3" y="10" font-size="5" fill="#333">a</text><path d="M7 8.5h8" stroke="#333"/><text x="6.5" y="15" font-size="5" fill="#333">i</text><path d="M9 13.5h6" stroke="#333"/></svg>',
+ toc:'<svg viewBox="0 0 32 32"><rect x="6" y="3" width="20" height="26" fill="#fff" stroke="#555"/><path d="M9 8h9M9 13h7M12 17h6M9 21h8" stroke="#2B579A"/><path d="M20 8h3M18 13h5M20 17h3M19 21h4" stroke="#888" stroke-dasharray="1 1"/></svg>',
  numbers:'<svg viewBox="0 0 16 16"><text x="0.5" y="6" font-size="5" fill="#333">1</text><text x="0.5" y="13" font-size="5" fill="#333">2</text><path d="M6 4h8M6 11h8" stroke="#333"/></svg>',
  line:'<svg viewBox="0 0 16 16"><path d="M7 3h8M7 6h8M7 9h8M7 12h8" stroke="#333"/><path d="M3 2v12M1.5 4 3 2l1.5 2M1.5 12 3 14l1.5-2" stroke="#2B579A" fill="none"/></svg>',
  border:'<svg viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" fill="none" stroke="#999" stroke-dasharray="1 1"/><path d="M2 14h12" stroke="#000" stroke-width="2"/></svg>',
@@ -828,14 +987,14 @@ function ribbonStart(){
      <div class="row">${B("menu:effect","Teksteffecten en typografie",'<span class="gl" style="color:#4472C4;text-shadow:0 0 3px #9DC3E6">A</span>')}${B("btn:markeren","Markeerstift",'<span class="gl" style="background:#FFFF00;padding:0 2px">ab</span>')}
        <span class="split">${B("btn:kleur","Tekenkleur",`<span class="gl" style="border-bottom:4px solid #C00000;line-height:1">A</span>`)}${B("menu:kleur","Tekenkleur: pijltje (meer kleuren)","▾","rb arrow")}</span>
        ${B("btn:wissen","Alle opmaak wissen",'<span class="gl">A<span style="color:#C00000">⌫</span></span>')}</div></div>`, "launch:lettertype")
-   + grp("Alinea", `<div class="col"><div class="row"><span class="split">${B("btn:opsomming","Opsommingstekens",I.bullets,"rb"+(s.list==="bullet"?" on":""))}${B("menu:opsomming","Opsommingstekens: pijltje (meer tekens)","▾","rb arrow")}</span><span class="split">${B("btn:nummering","Nummering",I.numbers,"rb"+(s.list==="number"?" on":""))}${B("menu:nummering","Nummering: pijltje (meer nummers)","▾","rb arrow")}</span>${B("btn:inspringen-min","Inspringing verkleinen",I.indentL)}${B("btn:inspringen-plus","Inspringing vergroten",I.indentR)}
+   + grp("Alinea", `<div class="col"><div class="row"><span class="split">${B("btn:opsomming","Opsommingstekens",I.bullets,"rb"+(s.list==="bullet"?" on":""))}${B("menu:opsomming","Opsommingstekens: pijltje (meer tekens)","▾","rb arrow")}</span><span class="split">${B("btn:nummering","Nummering",I.numbers,"rb"+(s.list==="number"?" on":""))}${B("menu:nummering","Nummering: pijltje (meer nummers)","▾","rb arrow")}</span>${B("menu:multilevel","Lijst met meerdere niveaus",I.multi+"▾","rb"+(s.list==="multi"?" on":""))}${B("btn:inspringen-min","Inspringing verkleinen",I.indentL)}${B("btn:inspringen-plus","Inspringing vergroten",I.indentR)}
        ${B("btn:sorteren","Sorteren",'<span class="gl" style="font-size:10px">A↓Z</span>')}${B("btn:pilcrow","Alles weergeven (¶)",'<span class="gl">¶</span>',"rb"+(G.ui.marks?" on":""))}</div>
      <div class="row">${["links","centreren","rechts","uitvullen"].map(a=>B("btn:"+a,{links:"Links uitlijnen",centreren:"Centreren",rechts:"Rechts uitlijnen",uitvullen:"Uitvullen"}[a],I.al(a),"rb"+(s.align===({links:"left",centreren:"center",rechts:"right",uitvullen:"justify"}[a])?" on":""))).join("")}
        ${B("btn:regelafstand","Regel- en alinea-afstand",I.line)}${B("btn:arcering","Arcering",'<svg viewBox="0 0 16 16"><path d="M3 10 9 4l4 4-6 6z" fill="#fff" stroke="#333"/><rect x="1" y="13" width="14" height="2.5" fill="#FFFF00"/></svg>')}
        <span class="split">${B("btn:rand","Rand",I.border)}${B("menu:randen","Randen: pijltje (meer randen)","▾","rb arrow")}</span></div></div>`, "launch:alinea")
    + grp("Stijlen", `<div class="stylegal">${[["standaard","Standaard","AaBbCcDd",""],["geen-afstand","Geen afstand","AaBbCcDd",""],["kop1","Kop 1","AaBbCc","color:#2F5496;font-size:14px"],["kop2","Kop 2","AaBbCcD","color:#2F5496;font-size:12px"],["titel","Titel","AaB","font-size:18px"]]
       .map(([k,n,t,c])=>B("style:"+k,"Stijl "+n,`<span style="${c}">${t}</span><span class="sm">${n}</span>`,"rb"+(selP()&&selP().st===k?" on":""))).join("")}</div>`, "launch:stijlen")
-   + grp("Bewerken", `<div class="col">${B("btn:zoeken","Zoeken","Zoeken")}${B("btn:vervangen","Vervangen","Vervangen")}${B("btn:selecteren","Selecteren","Selecteren ▾")}</div>`)
+   + grp("Bewerken", `<div class="col">${B("btn:zoeken","Zoeken","Zoeken")}${B("btn:vervangen","Vervangen","Vervangen")}${B("menu:selecteren","Selecteren","Selecteren ▾")}</div>`)
    + `<datalist id="dl-fonts">${fontOpts}</datalist><datalist id="dl-sizes">${sizeOpts}</datalist>`;
 }
 function ribbonIndeling(){
@@ -844,6 +1003,12 @@ function ribbonIndeling(){
    + grp("Alinea", `<div class="col"><b style="font-weight:600">Inspringen</b><div class="row">Links: ${B("btn:ind-links","Inspringen links","0 cm")}</div><div class="row">Rechts: ${B("btn:ind-rechts","Inspringen rechts","0 cm")}</div></div>
       <div class="col"><b style="font-weight:600">Afstand</b><div class="row">Voor: ${B("btn:afst-voor","Afstand voor","0 pt")}</div><div class="row">Na: ${B("btn:afst-na","Afstand na","8 pt")}</div></div>`, "launch:alinea2")
    + grp("Schikken", big("btn:positie","Positie",I.gen("#9DC3E6"),"Positie")+big("btn:terugloop","Tekstterugloop",I.gen("#F4B183"),"Tekst-<br>terugloop")+big("btn:draaien","Draaien",I.gen("#C5E0B4"),"Draaien"));
+}
+function ribbonVerwijzingen(){
+  return grp("Inhoudsopgave", big("menu:toc","Inhoudsopgave",I.toc,"Inhouds-<br>opgave ▾")+`<div class="col">${B("btn:toc-tekst","Tekst toevoegen","Tekst toevoegen ▾")}${B("btn:tocupdate","Tabel bijwerken","↻ Tabel bijwerken")}</div>`)
+   + grp("Voetnoten", big("btn:voetnoot","Voetnoot invoegen",I.gen("#555"),"Voetnoot<br>invoegen"))
+   + grp("Bijschriften", big("btn:bijschrift","Bijschrift invoegen",I.gen("#70AD47"),"Bijschrift<br>invoegen"))
+   + grp("Index", big("btn:index","Index",I.gen("#A5A5A5"),"Index"));
 }
 function ribbonOther(t){
   const sets = {
@@ -877,6 +1042,17 @@ function menuHTML(){
   }
   if(m==="nummering"){
     return `<div class="menu" data-for="menu:nummering"><div class="mh">Nummeringsbibliotheek</div><div class="effects" style="grid-template-columns:repeat(3,64px)">${NUMFMTS.map(([k,n])=>`<button class="fx" data-act="num" data-val="${k}" data-name="Nummering ${esc(n)}" title="Nummering ${esc(n)}" aria-label="Nummering ${esc(n)}" style="width:64px;height:64px;font-size:11px;font-weight:400;line-height:1.5;text-align:left;padding:4px 6px">${k==="geen"?"Geen":[0,1,2].map(i=>numLabel(k,i)+" ——").join("<br>")}</button>`).join("")}</div><div class="sep"></div>${B("btn:nieuwe-nummering","Nieuwe getalnotatie definiëren…","Nieuwe getalnotatie definiëren…","mi")}</div>`;
+  }
+  if(m==="multilevel"){
+    return `<div class="menu" data-for="menu:multilevel" style="width:300px"><div class="mh">Lijstbibliotheek</div><div class="mllib">${Object.entries(MLLIB).map(([k,d])=>`<button class="fx mlt" data-act="ml" data-val="${k}" data-name="${esc(d.n)}" title="${esc(d.n)}" aria-label="${esc(d.n)}">${d.pv.map((x,i)=>`<span style="padding-left:${i*7}px">${esc(x)}<i></i></span>`).join("")}</button>`).join("")}</div>
+      <div class="sep"></div>${B("ml:dlg","Nieuwe lijst met meerdere niveaus definiëren…","Nieuwe lijst met meerdere niveaus definiëren…","mi")}${B("btn:nieuwe-lijststijl","Nieuwe lijststijl definiëren…","Nieuwe lijststijl definiëren…","mi")}</div>`;
+  }
+  if(m==="selecteren"){
+    return `<div class="menu" data-for="menu:selecteren" style="width:290px">${B("btn:alles-selecteren","Alles selecteren","Alles selecteren","mi")}${B("btn:objecten-selecteren","Objecten selecteren","Objecten selecteren","mi")}${B("selsim","Alle tekst met vergelijkbare opmaak selecteren","Alle tekst met vergelijkbare opmaak selecteren","mi")}</div>`;
+  }
+  if(m==="toc"){
+    return `<div class="menu" data-for="menu:toc" style="width:270px"><div class="mh">Ingebouwd</div>${[["auto1","Automatische inhoudsopgave 1"],["auto2","Automatische inhoudsopgave 2"],["hand","Handmatige inhoudsopgave"]].map(([k,n])=>`<button class="mi" data-act="toc" data-val="${k}" data-name="${n}" title="${n}"><span><b>${n}</b><small>${k==="hand"?"Je typt zelf alle titels in":"Maakt de lijst uit de titels met Kop 1, Kop 2 en Kop 3"}</small></span></button>`).join("")}
+      <div class="sep"></div>${B("btn:toc-aangepast","Aangepaste inhoudsopgave…","Aangepaste inhoudsopgave…","mi")}${B("btn:toc-weg","Inhoudsopgave verwijderen","Inhoudsopgave verwijderen","mi")}</div>`;
   }
   if(m==="stylectx"){
     const c=G.ui.ctxPos||{x:600,y:150};
@@ -913,6 +1089,21 @@ function dialogHTML(){
       <label for="li-ind">Tekstinspringing:</label><input id="li-ind" data-act="li:ind" data-name="Tekstinspringing" value="${f(v.lind)} cm">
       <label>Gevolgd door:</label><select disabled><option>Tabteken</option></select></fieldset></div>
     <div class="df">${B("li:ok","OK","OK","db primary")}${B("li:x","Annuleren","Annuleren","db")}</div></div></div>`;
+  if(d==="mld"){ const L=v.levels[v.lvl-1];
+    return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Nieuwe lijst met meerdere niveaus definiëren" style="width:min(500px,96%)"><div class="dt"><span>Nieuwe lijst met meerdere niveaus definiëren</span>${B("mld:x","Sluiten (kruisje)","✕","db")}</div>
+    <div class="dc"><div class="mlgrid"><div><div style="margin-bottom:4px">Klik op het niveau dat u wilt wijzigen:</div><div class="mllv">${[1,2,3,4,5,6,7,8,9].map(n=>B("mld:lvl:"+n,"Niveau "+n,String(n),"db"+(n===v.lvl?" on":""))).join("")}</div></div>
+      <div class="mlprev" aria-hidden="true">${[1,2,3].map(l=>{ const x=v.levels[l-1]; return `<div class="${l===v.lvl?"cur":""}" style="padding-left:${x.pos*18}px"><span style="display:inline-block;min-width:${Math.max(.5,x.ind-x.pos)*18}px">${esc(fmtLabel(x.fmt,[0,1,1,1],l))}</span><i></i></div>`; }).join("")}</div></div>
+    <fieldset style="grid-template-columns:auto 1fr"><legend>Getalnotatie voor niveau ${v.lvl}</legend>
+      <label for="mld-fmt">Nummerstijl voor dit niveau:</label><select id="mld-fmt" data-act="mld:fmt" data-name="Nummerstijl voor dit niveau">${MLFMTS.map(([k,n])=>`<option value="${k}"${k===L.fmt?" selected":""}>${esc(n)}</option>`).join("")}</select>
+      <label for="mld-link">Niveau koppelen aan stijl:</label><select id="mld-link" data-act="mld:link" data-name="Niveau koppelen aan stijl">${[["","(geen stijl)"],["kop1","Kop 1"],["kop2","Kop 2"],["kop3","Kop 3"]].map(([k,n])=>`<option value="${k}"${k===(L.link||"")?" selected":""}>${n}</option>`).join("")}</select></fieldset>
+    <fieldset style="grid-template-columns:auto 100px"><legend>Positie</legend>
+      <label for="mld-pos">Uitlijning op:</label><input id="mld-pos" data-act="mld:pos" data-name="Uitlijning op" value="${f(L.pos)} cm">
+      <label for="mld-ind">Tekstinspringing op:</label><input id="mld-ind" data-act="mld:ind" data-name="Tekstinspringing op" value="${f(L.ind)} cm"></fieldset></div>
+    <div class="df">${B("mld:ok","OK","OK","db primary")}${B("mld:x","Annuleren","Annuleren","db")}</div></div></div>`; }
+  if(d==="tocu"){ const r=(k,n)=>B("tocu:"+k,n,`<span style="font-size:14px">${v.mode===k?"◉":"○"}</span><span>${n}</span>`,"mi");
+    return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Inhoudsopgave bijwerken" style="width:min(340px,94%)"><div class="dt"><span>Inhoudsopgave bijwerken</span>${B("tocu:x","Sluiten (kruisje)","✕","db")}</div>
+    <div class="dc"><span>Word werkt de inhoudsopgave bij. Kies een van de volgende opties:</span>${r("pag","Alleen paginanummers bijwerken")}${r("alles","Volledige tabel bijwerken")}</div>
+    <div class="df">${B("tocu:ok","OK","OK","db primary")}${B("tocu:x","Annuleren","Annuleren","db")}</div></div></div>`; }
   if(d==="alinea") return alineaDlg(v);
   if(d==="stijl") return stijlDlg(v) + (G.ui.sub==="alinea"? alineaDlg(G.ui.dlg2) : "");
   return "";
@@ -959,29 +1150,33 @@ function alineaDlg(v){
   }
   return "";
 }
-function paraCSS(s){
+function paraCSS(s, li){
   const fam = FONTS[s.font] || `'${s.font}', sans-serif`;
   let lh = s.line==="Exact"? (s.at*PT)+"px" : s.line==="Enkel"? "1.2" : s.line==="1,5 regel"? "1.75" : s.line==="Dubbel"? "2.3" : String(1.15*s.at);
   const ef = s.effect? EFFECTS[s.effect-1] : null;
   return `font-family:${fam};font-size:${(s.size*PT).toFixed(2)}px;font-weight:${s.bold?700:400};font-style:${s.italic?"italic":"normal"};text-decoration:${s.underline?"underline":"none"};
-    color:${ef?ef.c:s.color};${ef?ef.css+";":""}text-align:${s.align};padding-left:${(s.indL+(s.list?s.lind:0))*CM}px;padding-right:${s.indR*CM}px;text-indent:${s.list? -(s.lind-s.lpos)*CM : s.special==="Eerste regel"?s.by*CM:s.special==="Verkeerd om"?-s.by*CM:0}px;
+    color:${ef?ef.c:s.color};${ef?ef.css+";":""}text-align:${s.align};padding-left:${(li? li.ind : s.indL+(s.list?s.lind:0))*CM}px;padding-right:${s.indR*CM}px;text-indent:${li? -(li.ind-li.pos)*CM : s.list? -(s.lind-s.lpos)*CM : s.special==="Eerste regel"?s.by*CM:s.special==="Verkeerd om"?-s.by*CM:0}px;
     margin:${s.before*PT}px 0 ${s.after*PT}px;line-height:${lh};${s.border==="onder"?"border-bottom:1.5px solid #A6A6A6;padding-bottom:2px;":""}`;
 }
+function tocHTML(toc){
+  return `<div class="toc"><div style="font-family:${FONTS["Calibri Light"]};font-size:${(16*PT).toFixed(2)}px;color:#2F5496;margin-bottom:4px">Inhoud</div>${toc.entries.map(e=>`<div class="tocl" style="padding-left:${(e.lvl-1)*.4*CM}px;font-size:${(11*PT).toFixed(2)}px"><span style="display:inline-block;min-width:${1.5*CM}px">${esc(e.label)}</span><span>${esc(e.text)}</span><span class="dots"></span><span>1</span></div>`).join("")}</div>`;
+}
 function docHTML(){
-  const m=G.doc.margins, marks=G.ui.marks;
+  const m=G.doc.margins, marks=G.ui.marks, sel=new Set(selList()), lab=mlLabels(), toc=G.doc.toc;
   return `<div class="page${G.ui.kwast?" kwast":""}" style="padding:${m.boven*CM}px ${m.rechts*CM}px ${m.onder*CM}px ${m.links*CM}px"><div class="area">
     ${G.doc.paras.map(p=>{ let t=esc(p.text); if(marks) t=t.replace(/ /g,'<span class="mark">·</span>\u200B');
-      const key=p.grp||p.id, s=p.s;
-      if(s.list){ const nr=G.doc.paras.filter(x=>x.grp&&x.grp===p.grp&&x.s.list==="number").indexOf(p);
+      const key=p.grp||p.id, s=p.s, lv=listOf(p), li=lv? G.doc.ml.levels[lv-1] : null;
+      if(li){ t=`<span style="display:inline-block;text-indent:0;min-width:${Math.max(.3,li.ind-li.pos)*CM}px">${esc(lab.get(p)||"")}${marks?'<span class="mark">→</span>':""}</span>`+t; }
+      else if(s.list){ const nr=G.doc.paras.filter(x=>x.grp&&x.grp===p.grp&&x.s.list==="number").indexOf(p);
         const mk = s.list==="bullet"? (BGLYPH[s.bullet]||"●") : numLabel(s.numfmt, Math.max(0,nr));
         t=`<span style="display:inline-block;text-indent:0;min-width:${Math.max(.3,(s.lind-s.lpos))*CM}px;font-weight:400">${mk}${marks?'<span class="mark">→</span>':""}</span>`+t; }
-      return `<div class="p${G.ui.sel===key?" sel":""}" data-act="sel:${key}" data-name="tekst '${esc(p.text.slice(0,28))}${p.text.length>28?"…":""}'" style="${paraCSS(p.s)}">${t}${marks?'<span class="mark">¶</span>':""}</div>`;}).join("")}
+      return (toc && toc.at===p.id? tocHTML(toc) : "") + `<div class="p${sel.has(p)?" sel":""}" data-act="sel:${key}" data-pid="${p.id}" data-name="${p.text? `tekst '${esc(p.text.slice(0,28))}${p.text.length>28?"…":""}'` : "de lege regel"}" style="${paraCSS(p.s, li)}${p.text?"":"min-height:1.3em;"}">${t}${marks?'<span class="mark">¶</span>':""}</div>`;}).join("")}
     ${marks?'<div class="p" style="font-size:12px"><span class="mark">¶</span></div>':""}</div></div>`;
 }
 function wordHTML(){
   const tabs=["bestand","start","invoegen","ontwerpen","indeling","verwijzingen","verzendlijsten","controleren","beeld"];
   const tn = t=> t==="bestand"?"Bestand": t[0].toUpperCase()+t.slice(1);
-  const rib = G.ui.tab==="start"? ribbonStart() : G.ui.tab==="indeling"? ribbonIndeling() : ribbonOther(G.ui.tab);
+  const rib = G.ui.tab==="start"? ribbonStart() : G.ui.tab==="indeling"? ribbonIndeling() : G.ui.tab==="verwijzingen"? ribbonVerwijzingen() : ribbonOther(G.ui.tab);
   const words = G.doc.paras.reduce((a,p)=>a+p.text.split(/\s+/).length,0);
   return `<div class="word" id="word"><div class="wtitle"><span>↶ ↷</span><span class="doc">klas_${G.L.file||"Iphone"}_${esc((S.name.split(/\s+/)[0]||"voornaam"))} - Word</span><span>— ☐ ✕</span></div>
     <div class="wtabs">${tabs.map(t=>`<button class="wtab${t==="bestand"?" file":""}${G.ui.tab===t?" on":""}" data-act="tab:${t}" data-name="tabblad ${tn(t)}">${tn(t)}</button>`).join("")}</div>
@@ -999,6 +1194,7 @@ function bindWord(){
   placeMenu();
   w.addEventListener("input", e=>{ const el=e.target; if(el.list && e.inputType==="insertReplacementText") act2(el.dataset.act, el.value, el); });
   w.addEventListener("click", e=>{
+    if(e.shiftKey){ const pe=e.target.closest(".p[data-pid]"); if(pe && w.contains(pe)){ act2("shift:"+pe.dataset.pid, undefined, pe); return; } }
     const el=e.target.closest("[data-act]"); if(!el || !w.contains(el)) return;
     if(el.tagName==="INPUT"||el.tagName==="SELECT") return;
     const act=el.dataset.act;
@@ -1043,7 +1239,9 @@ function nameOf(act, val, el){
   if(act==="esc") return "de toets Esc";
   if(act==="kwast1") return "Opmaak kopiëren (één klik)";
   if(act==="kwast2") return "Opmaak kopiëren (dubbelklik)";
-  if(el && el.dataset.name) return el.dataset.name + (el.tagName==="INPUT"||el.tagName==="SELECT"? ` (je koos '${val}')` : "");
+  if(act.startsWith("shift:")) return "Shift + klik op " + (el && el.dataset.name || "tekst");
+  if(el && el.tagName==="SELECT") return el.dataset.name + ` (je koos '${el.options[el.selectedIndex]? el.options[el.selectedIndex].text : val}')`;
+  if(el && el.dataset.name) return el.dataset.name + (el.tagName==="INPUT"? ` (je koos '${val}')` : "");
   return act;
 }
 
@@ -1060,12 +1258,15 @@ function act2(act, val, el, right){
   } else {
     G.miss++; G.errors++;
     const wrongName = nameOf(act,val,el);
-    const what = st.quiz? `Dat klopt niet.` : ((st.a.startsWith("ctx:") && act.startsWith("sel:")) || (st.a.startsWith("stylectx:") && act.startsWith("style:")))? `Dat was een gewone klik met de <b>linkermuisknop</b>. Gebruik de <b>rechtermuisknop</b>.` : (right && !/^(ctx|stylectx):/.test(st.a))? `Dat was een klik met de <b>rechtermuisknop</b>. Hier heb je de gewone (linker)muisknop nodig.` : (st.a===act && st.v!==undefined)? `Dat is niet de juiste waarde. Typ of kies <b>${esc(String(st.v).replace(".",","))}</b>.` : `Dat was <b>${esc(wrongName)}</b>. Je zoekt iets anders.`;
+    const what = st.quiz? `Dat klopt niet.` : (st.a.startsWith("shift:") && act.startsWith("sel:"))? `Je klikte zonder Shift. Hou de <b>Shift</b>-toets ingedrukt terwijl je klikt.` : ((st.a.startsWith("ctx:") && act.startsWith("sel:")) || (st.a.startsWith("stylectx:") && act.startsWith("style:")))? `Dat was een gewone klik met de <b>linkermuisknop</b>. Gebruik de <b>rechtermuisknop</b>.` : (right && !/^(ctx|stylectx):/.test(st.a))? `Dat was een klik met de <b>rechtermuisknop</b>. Hier heb je de gewone (linker)muisknop nodig.` : (st.a===act && st.v!==undefined)? `Dat is niet de juiste waarde. Typ of kies <b>${esc(st.vl || String(st.v).replace(".",","))}</b>.` : `Dat was <b>${esc(wrongName)}</b>. Je zoekt iets anders.`;
     G.msg = {k: G.miss>=1? "hint":"bad", h: `${what}<br><b>Tip:</b> ${esc(st.h)}${G.miss>=2?" <b>Kijk: de juiste plaats knippert.</b>":""}`};
     renderPlay();
   }
 }
-function selList(key){ const k=key||G.ui.sel; return G.doc.paras.filter(p=>p.id===k||(p.grp&&p.grp===k)); }
+function selList(key){ const k=key||G.ui.sel, P=G.doc.paras; if(!k) return [];
+  if(k.startsWith("range:")){ let [i,j]=k.slice(6).split("~").map(id=>P.findIndex(p=>p.id===id)); if(i>j) [i,j]=[j,i]; return P.slice(i,j+1); }
+  if(k.startsWith("sim:")){ const r=P.find(p=>p.id===k.slice(4)); return P.filter(p=>p.kind===r.kind && p.st===r.st && p.s.color===r.s.color); }
+  return P.filter(p=>p.id===k||(p.grp&&p.grp===k)); }
 function selP(){ return selList()[0]; }
 function apply(act, val){
   const all=selList(), before = all[0]? {...all[0].s} : null;
@@ -1110,12 +1311,26 @@ function apply1(act, val){
     ui.sel=sub; return; }
   if(act==="kwast1"||act==="kwast2"){ if(ui.kwast){ ui.kwast=0; ui.copy=null; return; } ui.kwast=act==="kwast1"?1:2; ui.copy= s? {...s}:null; return; }
   if(act==="esc"){ ui.kwast=0; ui.copy=null; ui.menu=null; return; }
+  if(k==="shift"){ ui.sel="range:"+(p? p.id : sub)+"~"+sub; return; }
+  if(act==="selsim"){ ui.menu=null; if(p) ui.sel="sim:"+p.id; return; }
+  if(act==="ml"){ ui.menu=null; G.doc.ml={levels:mlLevels(val)}; if(!G.doc.ml.levels[0].link && s) s.list="multi"; return; }
+  if(act==="ml:dlg"){ ui.menu=null; ui.dialog="mld"; ui.dlg={lvl:1, levels:(G.doc.ml? G.doc.ml.levels : mlLevels("abc")).map(x=>({...x}))}; return; }
+  if(k==="mld"){ const d=ui.dlg, L=d.levels[d.lvl-1];
+    if(sub==="ok"){ G.doc.ml={levels:d.levels}; ui.dialog=null; return; }
+    if(sub==="x"){ ui.dialog=null; return; }
+    if(sub==="lvl"){ d.lvl=+act.split(":")[2]; return; }
+    if(sub==="fmt"){ L.fmt=val; return; } if(sub==="link"){ L.link=val; return; }
+    if(sub==="pos"||sub==="ind"){ L[sub]=numOf(val); return; } return; }
+  if(act==="toc"){ ui.menu=null; if(val!=="hand") G.doc.toc={at:p? p.id : G.doc.paras[0].id, entries:tocEntries()}; return; }
+  if(k==="tocu"){ if(sub==="ok"){ if(ui.dlg.mode==="alles") G.doc.toc.entries=tocEntries(); ui.dialog=null; return; } if(sub==="x"){ ui.dialog=null; return; } ui.dlg.mode=sub; return; }
   if(k==="menu"){ ui.menu=sub; return; }
   if(k==="btn"){
     if(sub==="pilcrow"){ ui.marks=!ui.marks; return; }
     if(sub==="opsomming" && s){ s.list = s.list==="bullet"? null : "bullet"; if(s.list && !BGLYPH[s.bullet]) s.bullet="rond"; return; }
     if(sub==="nummering" && s){ s.list = s.list==="number"? null : "number"; if(s.list && s.numfmt==="geen") s.numfmt="1."; return; }
     if(sub==="marges"){ ui.menu="marges"; return; }
+    if(sub==="tocupdate"){ if(G.doc.toc){ ui.dialog="tocu"; ui.dlg={mode:"pag"}; } return; }
+    if((sub==="inspringen-plus"||sub==="inspringen-min") && s && s.list==="multi"){ s.lvl=Math.max(1, Math.min(9, (s.lvl||1)+(sub==="inspringen-plus"?1:-1))); return; }
     if(!s) return;
     if(sub==="vet") s.bold=!s.bold; if(sub==="cursief") s.italic=!s.italic; if(sub==="onderstreept") s.underline=!s.underline;
     if({links:1,centreren:1,rechts:1,uitvullen:1}[sub]) s.align={links:"left",centreren:"center",rechts:"right",uitvullen:"justify"}[sub];
@@ -1158,6 +1373,8 @@ function markTarget(){
   if(st.a==="kwast1"||st.a==="kwast2"||st.a==="esc") el=document.querySelector('#word [data-act="kwast"]');
   if(st.a.startsWith("ctx:") && st.a!=="ctx:lijst") el=document.querySelector(`#word [data-act="sel:${st.a.slice(4)}"]`);
   if(st.a==="bullet"||st.a==="num") el=document.querySelector(`#word [data-act="${st.a}"][data-val="${CSS.escape(String(st.v))}"]`);
+  if(st.a==="ml"||st.a==="toc") el=document.querySelector(`#word [data-act="${st.a}"][data-val="${CSS.escape(String(st.v))}"]`);
+  if(st.a.startsWith("shift:")) el=document.querySelector(`#word [data-pid="${st.a.slice(6)}"]`);
   if(st.a==="color"||st.a==="effect") el=document.querySelector(`#word [data-act="${st.a}"][data-val="${CSS.escape(String(st.v))}"]`);
   if(el){ el.classList.add("target"); el.scrollIntoView({block:"nearest",inline:"nearest"}); }
 }
