@@ -847,11 +847,7 @@ const CHAPTERS = [
   {name:"Stijlen", levels:[10,11,12], code:"STIJL3",
    tasks:[{id:"1", name:"Oef 3.4 Festivals", after:12, d:"Nu in het echte Word: maak zelf de stijlen aan en pas de gouden regel toe op een tekst over festivals.",
      files:[["Opdrachtfiche (pdf)","festivals-fiche.pdf"],["Starttekst (Word)","festivals-opgave.docx"]]}]},
-  {name:"Opsomming en nummering", levels:[9,13,14], code:"LIJST5",
-   tasks:[{id:"kiekeboes", name:"Oef 5.4 De Kiekeboes", after:14, d:"Een tekst over de stripreeks: stijlen wijzigen, opsommingstekens, een nummering voor de ondertitels via de kopstijlen en een inhoudsopgave. Daarna nog afbeeldingen en een voettekst.",
-     files:[["Opdrachtfiche (pdf)","kiekeboes-fiche.pdf"],["Starttekst (Word)","kiekeboes-opgave.docx"]]},
-    {id:"ki", name:"Oef 5.5 Kunstmatige intelligentie", after:14, d:"Een tekst over AI: Kop 1 en Kop 2 aanpassen, een meervoudige nummering op de kopstijlen, een inhoudstafel en een liggende pagina.",
-     files:[["Opdrachtfiche (pdf)","kunstmatige-intelligentie-fiche.pdf"],["Starttekst (Word)","kunstmatige-intelligentie-opgave.docx"]]}]},
+  {name:"Opsomming en nummering", levels:[9,13,14], code:"LIJST5"},
   {name:"Tabellen", levels:[], code:"TABEL4"}
 ];
 function chapterByCode(c){ c=String(c).toUpperCase().replace(/[\s-]/g,""); return CHAPTERS.findIndex(ch=>ch.code===c); }
