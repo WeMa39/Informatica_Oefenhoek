@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Schermonderdelen van Excel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#EEF2F8; --panel:#FFFFFF; --ink:#16233A; --muted:#55627A; --line:#D3DAE6; --soft:#F5F7FB;
+  --excel:#1D6F42; --excel-soft:#E3F1E8; --gold:#F2B705; --on-accent:#FFFFFF;
+  --ok:#1D6F42; --bad:#B42318; --bad-soft:#FDECEA; --pin:#C2255C;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0F1726; --panel:#18233A; --ink:#E8EEF8; --muted:#A3B0C6; --line:#2C3B57; --soft:#1F2C46;
+  --excel:#6CC08F; --excel-soft:#1C3A2B; --gold:#F5C83A; --on-accent:#0F1726;
+  --ok:#6CC08F; --bad:#F19A8E; --bad-soft:#3A2024; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:20px 64px;display:flex;flex-direction:column;gap:24px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.15;text-wrap:balance}
+h1{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-.01em}
+h2{font-size:clamp(1.4rem,3vw,1.8rem);font-weight:800}
+h3{font-size:1.2rem;font-weight:800}
+p{margin:0}
+.back{font-size:.95rem;color:var(--muted);text-decoration:none}
+.back:hover{text-decoration:underline}
+.kicker{display:inline-block;background:var(--excel);color:var(--on-accent);font-weight:700;font-size:.8rem;border-radius:999px;padding:3px 12px;margin-bottom:10px}
+.lead{color:var(--muted);max-width:66ch;margin-top:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.muted{color:var(--muted)} .small{font-size:.9rem}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:10px 18px;background:var(--excel);color:var(--on-accent);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible,input:focus-visible,.pin:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input[type=text]{font:inherit;color:var(--ink);background:var(--panel);border:2px solid var(--line);border-radius:8px;padding:6px 10px;width:100%}
+label{font-weight:700}
+.hidden{display:none !important}
+.who{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.who div{display:flex;flex-direction:column;gap:4px}
+.toggle{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ok-t{color:var(--ok);font-weight:700}.bad-t{color:var(--bad);font-weight:700}
+
+/* timer */
+.timer{position:sticky;top:0;z-index:5;align-self:flex-end;font-family:var(--display);font-weight:800;font-size:1.6rem;font-variant-numeric:tabular-nums;background:var(--excel);color:var(--on-accent);border-radius:12px;padding:4px 16px;box-shadow:0 4px 14px rgba(16,30,60,.15)}
+.timer.urgent{background:var(--bad);color:#fff}
+
+/* oefening */
+.quiz{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
+.pic{padding:10px}
+.pic svg{width:100%;height:auto;display:block;user-select:none;border-radius:8px;background:#fff}
+.pin{cursor:pointer}
+.pin circle{fill:var(--pin);stroke:#fff;stroke-width:3}
+.pin text{fill:#fff;font-weight:700;font-size:17px;text-anchor:middle;dominant-baseline:central;pointer-events:none;font-family:"Atkinson Hyperlegible",Arial,sans-serif}
+.pin.active circle{fill:#F2B705} .pin.active text{fill:#000}
+.pin.done circle{fill:#6b7a8c}
+.pin.ok circle{fill:#1D6F42} .pin.bad circle{fill:#B42318}
+.mark{fill:none;stroke:#C2255C;stroke-width:3;stroke-dasharray:7 4}
+.lead{stroke:#C2255C;stroke-width:2.5}
+.mark.ok,.lead.ok{stroke:#1D6F42} .mark.bad,.lead.bad{stroke:#B42318}
+.mark.active,.lead.active{stroke:#C99700;stroke-width:4}
+.row{display:grid;grid-template-columns:34px 1fr;align-items:center;gap:8px}
+.num{width:30px;height:30px;border-radius:50%;background:var(--pin);color:#fff;font-weight:700;display:grid;place-items:center}
+.row.active .num{background:var(--gold);color:#000}
+.row.ok .num{background:#1D6F42} .row.bad .num{background:#B42318}
+.corr{grid-column:2;font-size:.9rem;color:var(--bad);font-weight:700}
+.rows{display:flex;flex-direction:column;gap:8px}
+.score{font-family:var(--display);font-weight:800;font-size:2.4rem}
+.result{font-family:Consolas,monospace;font-size:.85rem;word-break:break-all;background:var(--panel);border:2px dashed var(--excel);border-radius:10px;padding:10px}
+.teacher table{border-collapse:collapse;font-size:.9rem;width:100%}
+.teacher th,.teacher td{text-align:left;border-bottom:1px solid var(--line);padding:4px 8px}
+@media (max-width:900px){.quiz{grid-template-columns:1fr}.who{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../index.html">← Terug naar de Oefenhoek</a>
+
+  <header>
+    <span class="kicker">3de jaar · Excel · Schermonderdelen</span>
+    <h1>Schermonderdelen van Excel</h1>
+    <p class="lead">Ken jij de namen van alle onderdelen van het Excel-venster? Je krijgt een tekening met <b>11 genummerde onderdelen</b>. Typ bij elk nummer de juiste naam. Je hebt <b id="minText">3 minuten</b>.</p>
+  </header>
+
+  <section class="card teacher hidden" id="teacher" aria-label="Leerkracht">
+    <h3>Leerkracht: resultaatcodes controleren</h3>
+    <p class="small">Plak hieronder de codes van je leerlingen. Eén code of een hele kolom uit de Forms-export, allebei werkt. De pagina zoekt de codes er zelf uit.</p>
+    <textarea id="tIn" rows="5" style="font:inherit;font-size:.9rem;width:100%;border:2px solid var(--line);border-radius:8px;padding:8px;background:var(--panel);color:var(--ink)" placeholder="ES.…"></textarea>
+    <div class="toggle"><button class="btn" id="tGo">Controleren</button><button class="btn ghost" id="tCopy">Kopieer resultaten voor Excel</button><span id="tMsg" class="small muted"></span></div>
+    <div id="tOut" style="overflow-x:auto"></div>
+  </section>
+
+  <!-- START -->
+  <section class="card" id="start" aria-labelledby="startTitle">
+    <h2 id="startTitle">Eerst: wie ben jij?</h2>
+    <div class="who">
+      <div><label for="vn">Voornaam</label><input type="text" id="vn" autocomplete="given-name"></div>
+      <div><label for="an">Achternaam</label><input type="text" id="an" autocomplete="family-name"></div>
+      <div><label for="kl">Klas en nummer</label><input type="text" id="kl" placeholder="bv. 3A.12" autocomplete="off"></div>
+    </div>
+    <p class="small muted">Zodra je op <b>Start</b> klikt, loopt de tijd. Als de tijd om is, wordt je oefening automatisch ingediend en verbeterd. Daarna krijg je een <b>resultaatcode</b> die je in de Forms van je leerkracht plakt.</p>
+    <p class="bad-t" id="startErr"></p>
+    <div class="toggle"><button class="btn" id="startBtn">Start de oefening</button></div>
+  </section>
+
+  <!-- OEFENING -->
+  <div class="timer hidden" id="timer" role="timer" aria-live="off">3:00</div>
+  <section class="quiz hidden" id="quiz">
+    <div class="card pic" id="pic"></div>
+    <div class="card">
+      <h3>Jouw antwoorden</h3>
+      <p class="small muted">Klik op een nummer in de tekening en typ de naam van het onderdeel. Let op je spelling!</p>
+      <div class="rows" id="rows"></div>
+      <button class="btn" id="submitBtn">Indienen</button>
+    </div>
+  </section>
+
+  <!-- RESULTAAT -->
+  <section class="card hidden" id="result" aria-labelledby="resTitle">
+    <h2 id="resTitle">Jouw resultaat</h2>
+    <div class="score" id="scoreText"></div>
+    <p class="muted" id="timeText"></p>
+    <p class="small muted">In de tekening en bij je antwoorden zie je wat juist (groen) en fout (rood) is. Onder een fout antwoord staat de juiste naam.</p>
+    <h3>Inleveren</h3>
+    <p id="handIn"></p>
+    <p class="small muted">Let op: verander niets aan de code. Je leerkracht ziet meteen als er iets aangepast is, en dan telt je score niet.</p>
+    <div class="result" id="codeTxt"></div>
+    <div class="toggle"><button class="btn" id="cpCode"></button><span id="cpMsg" class="small muted"></span></div>
+  </section>
+
+  <p class="small muted">Dit is een oefenomgeving: de tekening lijkt op Excel, maar is het niet. Kijk daarna ook eens in het echte programma.</p>
+</div>
+
+<script>
+/* ===== INSTELLING VOOR DE LEERKRACHT =====
+   Plak tussen de aanhalingstekens de link van je Microsoft Forms (leerlingen plakken daar hun code).
+   Leeg laten = leerlingen kopiëren de code en plakken hem zelf in de Forms waarvan de link op Teams staat. */
+const FORMS_URL='';
+const TIJD_SECONDEN=180;
+
+const PARTS=["lint","tabbladen","groepen","knoppen","schuifbalk","formulebalk","naamvak","kolom","rij","cel","werkblad"];
+const $=id=>document.getElementById(id);
+const NS="http://www.w3.org/2000/svg";
+
+/* ---------- tekening van het Excel-venster (zelf getekend, geen schermafbeelding) ---------- */
+function el(tag, attrs, parent, text){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(p, x, y, s, size=12, extra={}){ return el("text", Object.assign({x, y, "font-size":size, fill:"#222", "font-family":"Segoe UI, Arial, sans-serif"}, extra), p, s); }
+
+function drawExcel(){
+  const svg = el("svg", {viewBox:"0 0 1160 720", role:"img", "aria-label":"Tekening van een Excel-venster"});
+  const g = el("g", {}, svg);
+  // venster
+  el("rect",{x:80,y:60,width:1000,height:590,fill:"#fff",stroke:"#888","stroke-width":1.5},g);
+  // titelbalk
+  el("rect",{x:80,y:60,width:1000,height:32,fill:"#217346"},g);
+  txt(g,580,81,"Map1 - Excel",13,{fill:"#fff","text-anchor":"middle"});
+  txt(g,92,81,"💾  ↶  ↷",13,{fill:"#fff"});
+  txt(g,1000,81,"–     ☐     ✕",13,{fill:"#fff"});
+  // tabbladen
+  el("rect",{x:80,y:92,width:1000,height:28,fill:"#217346"},g);
+  const tabs = ["Bestand","Start","Invoegen","Pagina-indeling","Formules","Gegevens","Controleren","Beeld","Help"];
+  let tx = 90; const tabPos = [];
+  tabs.forEach((t,i)=>{
+    const w = 16 + t.length*7.2;
+    if (i===1){ el("rect",{x:tx,y:94,width:w,height:26,fill:"#f3f3f3"},g); }
+    txt(g, tx+w/2, 111, t, 12.5, {"text-anchor":"middle", fill: i===1 ? "#217346" : "#fff", "font-weight": i===1?600:400});
+    tabPos.push([tx,w]); tx += w + 4;
+  });
+  const tabsEnd = tx;
+  // lint
+  el("rect",{x:80,y:120,width:1000,height:102,fill:"#f3f3f3"},g);
+  el("line",{x1:80,y1:222,x2:1080,y2:222,stroke:"#ccc"},g);
+  const groups = [["Klembord",84,170],["Lettertype",172,398],["Uitlijning",400,560],["Getal",562,680],["Stijlen",682,820],["Cellen",822,930],["Bewerken",932,1076]];
+  groups.forEach(([n,a,b])=>{
+    txt(g,(a+b)/2,215,n,11,{"text-anchor":"middle",fill:"#555"});
+    el("line",{x1:b+1,y1:126,x2:b+1,y2:218,stroke:"#ccc"},g);
+  });
+  const btn = (x,y,w,h,label,size=12,extra={}) => { el("rect",{x,y,width:w,height:h,fill:"#fff",stroke:"#bbb",rx:2},g); txt(g,x+w/2,y+h/2+size*0.36,label,size,Object.assign({"text-anchor":"middle"},extra)); };
+  // Klembord
+  btn(92,128,44,60,"📋",22); txt(g,114,200,"Plakken",10,{"text-anchor":"middle"});
+  btn(140,128,24,18,"✂",11); btn(140,150,24,18,"⎘",11); btn(140,172,24,18,"🖌",10);
+  // Lettertype
+  el("rect",{x:180,y:130,width:120,height:22,fill:"#fff",stroke:"#bbb"},g); txt(g,186,145,"Calibri",12); txt(g,288,145,"▾",10);
+  el("rect",{x:306,y:130,width:40,height:22,fill:"#fff",stroke:"#bbb"},g); txt(g,312,145,"11",12); txt(g,336,145,"▾",10);
+  btn(352,130,20,22,"A↑",9); btn(374,130,20,22,"A↓",9);
+  btn(180,160,24,24,"B",14,{"font-weight":700}); btn(208,160,24,24,"I",14,{"font-style":"italic"}); btn(236,160,24,24,"U",14,{"text-decoration":"underline"});
+  btn(268,160,30,24,"▦",13); btn(302,160,30,24,"🪣",12); btn(336,160,30,24,"A",14,{fill:"#c00","font-weight":700});
+  // Uitlijning
+  [0,1,2].forEach(i=>btn(408+i*28,130,24,22,["⬆","↕","⬇"][i],11));
+  [0,1,2].forEach(i=>btn(408+i*28,160,24,24,["☰","≡","☰"][i],12));
+  btn(496,130,58,22,"Terugloop",9); btn(496,160,58,24,"Samenv.",9);
+  // Getal
+  el("rect",{x:568,y:130,width:106,height:22,fill:"#fff",stroke:"#bbb"},g); txt(g,574,145,"Standaard",12); txt(g,662,145,"▾",10);
+  btn(568,160,30,24,"€",13); btn(602,160,30,24,"%",13); btn(636,160,38,24,"000",10);
+  // Stijlen
+  btn(688,128,126,18,"Voorwaardelijke opmaak",9); btn(688,150,126,18,"Opmaken als tabel",9); btn(688,172,126,18,"Celstijlen",9);
+  // Cellen
+  btn(830,128,94,18,"Invoegen",9.5); btn(830,150,94,18,"Verwijderen",9.5); btn(830,172,94,18,"Opmaak",9.5);
+  // Bewerken
+  btn(940,128,64,30,"Σ AutoSom",10); btn(1008,128,64,30,"Sorteren",9.5);
+  btn(940,162,64,26,"Doorvoeren",9); btn(1008,162,64,26,"Zoeken",9.5);
+  // formulebalk
+  el("rect",{x:80,y:224,width:1000,height:36,fill:"#fff"},g);
+  el("rect",{x:86,y:230,width:92,height:24,fill:"#fff",stroke:"#aaa"},g); txt(g,92,247,"C4",13); txt(g,166,247,"▾",10);
+  txt(g,186,247,"⋮",13,{fill:"#888"}); txt(g,200,247,"✕",12,{fill:"#888"}); txt(g,218,247,"✓",12,{fill:"#888"}); txt(g,236,247,"fx",13,{"font-style":"italic"});
+  el("rect",{x:256,y:230,width:818,height:24,fill:"#fff",stroke:"#aaa"},g); txt(g,262,247,"=B4*1,5",13);
+  // rasters
+  const COLW=92, X0=116, Y0=282, RH=22, NROWS=14, COLS="ABCDEFGHIJ";
+  el("rect",{x:80,y:262,width:976,height:20,fill:"#e9e9e9"},g);
+  el("rect",{x:80,y:262,width:36,height:334,fill:"#e9e9e9"},g);
+  for (let c=0;c<COLS.length;c++){
+    const x=X0+c*COLW; el("line",{x1:x,y1:262,x2:x,y2:596,stroke:c===0?"#bbb":"#e1e1e1"},g);
+    txt(g,x+COLW/2,277,COLS[c],12,{"text-anchor":"middle",fill:"#444"});
+  }
+  el("line",{x1:X0+10*COLW,y1:262,x2:X0+10*COLW,y2:596,stroke:"#e1e1e1"},g);
+  for (let r=0;r<=NROWS;r++){
+    const y=Y0+r*RH; if (y>596) break;
+    el("line",{x1:80,y1:y,x2:1056,y2:y,stroke:r===0?"#bbb":"#e1e1e1"},g);
+    if (r<NROWS) txt(g,98,y+15,String(r+1),11.5,{"text-anchor":"middle",fill:"#444"});
+  }
+  // een beetje inhoud
+  const data = {"A1":"Product","B1":"Aantal","C1":"Prijs","A2":"Wafels","B2":"24","C2":"36","A3":"Koeken","B3":"18","C3":"27","A4":"Taart","B4":"6","C4":"9"};
+  for (const k in data){
+    const c = COLS.indexOf(k[0]), r = +k.slice(1)-1, num = /^\d/.test(data[k]);
+    txt(g, num ? X0+c*COLW+COLW-6 : X0+c*COLW+5, Y0+r*RH+15, data[k], 12, num?{"text-anchor":"end"}:{});
+  }
+  // actieve cel C4
+  el("rect",{x:X0+2*COLW,y:Y0+3*RH,width:COLW,height:RH,fill:"none",stroke:"#217346","stroke-width":2.5},g);
+  // verticale schuifbalk
+  el("rect",{x:1056,y:262,width:24,height:334,fill:"#f1f1f1",stroke:"#ddd"},g);
+  el("rect",{x:1060,y:282,width:16,height:70,fill:"#c4c4c4",rx:6},g);
+  txt(g,1068,274,"▲",9,{"text-anchor":"middle",fill:"#777"}); txt(g,1068,592,"▼",9,{"text-anchor":"middle",fill:"#777"});
+  // werkbladtabs + horizontale schuifbalk
+  el("rect",{x:80,y:596,width:1000,height:26,fill:"#f3f3f3",stroke:"#ddd"},g);
+  txt(g,88,614,"◀ ▶",11,{fill:"#777"});
+  el("rect",{x:120,y:596,width:62,height:24,fill:"#fff",stroke:"#bbb"},g);
+  el("line",{x1:124,y1:619,x2:178,y2:619,stroke:"#217346","stroke-width":3},g);
+  txt(g,151,613,"Blad1",12,{"text-anchor":"middle",fill:"#217346","font-weight":600});
+  txt(g,213,613,"Blad2",12,{"text-anchor":"middle",fill:"#555"});
+  el("circle",{cx:256,cy:609,r:9,fill:"none",stroke:"#888"},g); txt(g,256,613,"+",13,{"text-anchor":"middle",fill:"#555"});
+  el("rect",{x:640,y:601,width:410,height:16,fill:"#fff",stroke:"#ddd"},g);
+  el("rect",{x:652,y:603,width:120,height:12,fill:"#c4c4c4",rx:6},g);
+  // statusbalk
+  el("rect",{x:80,y:622,width:1000,height:28,fill:"#f3f3f3"},g);
+  txt(g,90,641,"Gereed",11.5,{fill:"#555"}); txt(g,1068,641,"– ——●—— +  100%",11,{fill:"#555","text-anchor":"end"});
+
+  /* ---- markeringen: [onderdeel, markeervorm, badge x, y, aanloopijn naar x,y] ---- */
+  const tabRowEnd = tabsEnd - 2;
+  const marks = {
+    lint:       {shape:["path",{d:"M1088 124 h8 v94 h-8"}],                  bx:1126, by:171, lx:1096, ly:171},
+    tabbladen:  {shape:["rect",{x:88,y:94,width:tabRowEnd-88,height:26}],    bx:44,   by:107, lx:88,   ly:107},
+    groepen:    {shape:["rect",{x:174,y:125,width:224,height:96}],           bx:286,  by:30,  lx:286,  ly:125},
+    knoppen:    {shape:["rect",{x:937,y:125,width:70,height:36}],            bx:972,  by:30,  lx:972,  ly:125},
+    formulebalk:{shape:["rect",{x:253,y:227,width:824,height:30}],           bx:1126, by:242, lx:1077, ly:242},
+    naamvak:    {shape:["rect",{x:83,y:227,width:98,height:30}],             bx:44,   by:242, lx:83,   ly:242},
+    schuifbalk: {shape:["rect",{x:1054,y:262,width:28,height:334}],          bx:1126, by:430, lx:1082, ly:430},
+    kolom:      {shape:["rect",{x:X0+4*COLW,y:262,width:COLW,height:334}],   bx:X0+4*COLW+COLW/2, by:540, lx:null},
+    rij:        {shape:["rect",{x:80,y:Y0+8*RH,width:976,height:RH}],        bx:44,   by:Y0+8*RH+RH/2, lx:80, ly:Y0+8*RH+RH/2},
+    cel:        {shape:["rect",{x:X0+2*COLW-3,y:Y0+3*RH-3,width:COLW+6,height:RH+6}], bx:X0+2*COLW+COLW/2, by:Y0+6*RH+4, lx:X0+2*COLW+COLW/2, ly:Y0+4*RH+3},
+    werkblad:   {shape:["rect",{x:117,y:594,width:68,height:29}],            bx:151,  by:692, lx:151,  ly:623}
+  };
+  const mg = el("g",{},svg);
+  const nodes = {};
+  for (const p of PARTS){
+    const m = marks[p];
+    const shape = el(m.shape[0], Object.assign({class:"mark"}, m.shape[1]), mg);
+    let lead = null;
+    if (m.lx!==null) lead = el("line",{class:"lead",x1:m.bx,y1:m.by,x2:m.lx,y2:m.ly},mg);
+    nodes[p] = {shape, lead, m};
+  }
+  // badges bovenaan tekenen
+  for (const p of PARTS){
+    const m = nodes[p].m;
+    const b = el("g",{class:"pin","data-part":p,tabindex:0},svg);
+    el("circle",{cx:m.bx,cy:m.by,r:16},b);
+    nodes[p].label = el("text",{x:m.bx,y:m.by+1},b,"?");
+    nodes[p].badge = b;
+  }
+  return {svg, nodes};
+}
+
+/* ---------- verbetering: hoofdletters, spaties, lidwoord en enkelvoud/meervoud tellen niet; spelling wel ---------- */
+const ALIASES = {
+  lint:["lint","linten","menulint"],
+  tabbladen:["tabbladen","tabblad","tab","tabs"],
+  groepen:["groepen","groep"],
+  knoppen:["knoppen","knop"],
+  schuifbalk:["schuifbalk","schuifbalken","verticaleschuifbalk"],
+  formulebalk:["formulebalk","formulebalken"],
+  naamvak:["naamvak","naamvakken"],
+  kolom:["kolom","kolommen"],
+  rij:["rij","rijen"],
+  cel:["cel","cellen","actievecel"],
+  werkblad:["werkblad","werkbladen","werkbladtab","blad"]
+};
+function norm(s){ return (s||"").toLowerCase().trim().replace(/^(de|het|een)\s+/,"").replace(/[\s\-_.]/g,""); }
+function isCorrect(p, ans){ return ALIASES[p].includes(norm(ans)); }
+
+/* ---------- oefening ---------- */
+const state={vn:'',an:'',kl:'',numberOf:{},partAt:{},answers:{},started:0,timerId:null,done:false};
+let drawing;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function fmt(s){s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+$('minText').textContent=TIJD_SECONDEN%60===0?TIJD_SECONDEN/60+' minuten':fmt(TIJD_SECONDEN)+' minuten';
+$('timer').textContent=fmt(TIJD_SECONDEN);
+
+$('startBtn').onclick=()=>{
+  state.vn=$('vn').value.trim();state.an=$('an').value.trim();state.kl=$('kl').value.trim();
+  if(!state.vn||!state.an||!state.kl){$('startErr').textContent='Vul eerst je voornaam, achternaam en klas in.';return}
+  startQuiz();
+};
+
+function startQuiz(){
+  drawing=drawExcel();
+  $('pic').appendChild(drawing.svg);
+  const nums=shuffle(PARTS.map((_,i)=>i+1)); // nummers per leerling door elkaar: afkijken helpt niet
+  PARTS.forEach((p,i)=>{state.numberOf[p]=nums[i];state.partAt[nums[i]]=p;drawing.nodes[p].label.textContent=nums[i]});
+  for(let n=1;n<=PARTS.length;n++){
+    const p=state.partAt[n],row=document.createElement('div');
+    row.className='row';row.dataset.part=p;
+    row.innerHTML=`<div class="num">${n}</div><input type="text" aria-label="Onderdeel ${n}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="typ hier…">`;
+    const inp=row.querySelector('input');
+    inp.addEventListener('focus',()=>setActive(p));
+    inp.addEventListener('input',()=>{state.answers[p]=inp.value.trim();drawing.nodes[p].badge.classList.toggle('done',!!state.answers[p])});
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){const nx=row.nextElementSibling;if(nx)nx.querySelector('input').focus()}});
+    $('rows').appendChild(row);
+    Object.assign(drawing.nodes[p],{row,input:inp});
+    const go=()=>{inp.focus();setActive(p)};
+    drawing.nodes[p].badge.addEventListener('click',go);
+    drawing.nodes[p].badge.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}});
+  }
+  $('start').classList.add('hidden');
+  $('quiz').classList.remove('hidden');$('timer').classList.remove('hidden');
+  state.started=Date.now();state.timerId=setInterval(tick,250);
+  window.addEventListener('beforeunload',warnLeave);
+  drawing.nodes[state.partAt[1]].input.focus();
+}
+function warnLeave(e){if(!state.done){e.preventDefault();e.returnValue=''}}
+function setActive(p){
+  for(const q of PARTS){const n=drawing.nodes[q],on=q===p;
+    n.badge.classList.toggle('active',on);n.shape.classList.toggle('active',on);if(n.lead)n.lead.classList.toggle('active',on);n.row.classList.toggle('active',on)}
+}
+function tick(){
+  const left=TIJD_SECONDEN-(Date.now()-state.started)/1000;
+  $('timer').textContent=fmt(left);$('timer').classList.toggle('urgent',left<=30);
+  if(left<=0)finish(true);
+}
+$('submitBtn').onclick=()=>{
+  const open=PARTS.filter(p=>!state.answers[p]).length;
+  if(open&&!confirm(`Je hebt nog ${open} ${open===1?'onderdeel':'onderdelen'} niet ingevuld. Toch indienen?`))return;
+  finish(false);
+};
+
+function finish(timeUp){
+  if(state.done)return;state.done=true;
+  clearInterval(state.timerId);window.removeEventListener('beforeunload',warnLeave);
+  const used=Math.min(TIJD_SECONDEN,Math.round((Date.now()-state.started)/1000));
+  let score=0;const marks=[];
+  for(const p of PARTS){
+    const n=drawing.nodes[p],ok=isCorrect(p,state.answers[p]),c=ok?'ok':'bad';
+    if(ok)score++;marks.push(ok?1:0);
+    n.input.disabled=true;
+    n.badge.classList.remove('active','done');n.shape.classList.remove('active');n.row.classList.remove('active');
+    n.badge.classList.add(c);n.shape.classList.add(c);n.row.classList.add(c);
+    if(n.lead){n.lead.classList.remove('active');n.lead.classList.add(c)}
+    if(!ok){const d=document.createElement('div');d.className='corr';d.textContent='Juist: '+p;n.row.appendChild(d)}
+  }
+  $('submitBtn').classList.add('hidden');
+  $('timer').textContent=timeUp?'Tijd om!':'Ingediend';$('timer').classList.remove('urgent');
+  $('scoreText').textContent=`${score} / ${PARTS.length}`;
+  $('timeText').textContent=(timeUp?'De tijd was om. ':'')+`Gebruikte tijd: ${fmt(used)}.`;
+  const code=makeCode(score,used,timeUp,attemptNr(),marks.join(''));
+  $('codeTxt').textContent=code;
+  $('handIn').innerHTML=FORMS_URL?'Klik op <b>Kopieer de code en open het formulier</b>. Plak de code in het formulier (<kbd>Ctrl</kbd> + <kbd>V</kbd>) en klik op <b>Verzenden</b>.':'Kopieer de code en plak hem in de <b>Forms</b> van je leerkracht. De link staat op Teams.';
+  $('cpCode').textContent=FORMS_URL?'Kopieer de code en open het formulier':'Kopieer de code';
+  $('cpCode').onclick=async()=>{
+    if(FORMS_URL)window.open(FORMS_URL,'_blank','noopener');
+    try{await navigator.clipboard.writeText(code);$('cpMsg').textContent=FORMS_URL?'Gekopieerd! Plak de code in het formulier (Ctrl + V) en klik op Verzenden.':'Gekopieerd! Plak hem nu in Forms (Ctrl + V).'}
+    catch(e){const r=document.createRange();r.selectNodeContents($('codeTxt'));const s=getSelection();s.removeAllRanges();s.addRange(r);$('cpMsg').textContent='Code geselecteerd: druk op Ctrl + C en plak hem in het formulier.'}
+  };
+  $('result').classList.remove('hidden');
+  $('quiz').before($('result'));
+  $('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function attemptNr(){
+  try{const k='es3-pogingen:'+(state.vn+'|'+state.an+'|'+state.kl).toLowerCase();const n=(+localStorage.getItem(k)||0)+1;localStorage.setItem(k,n);return n}
+  catch(e){return 0}
+}
+
+/* ---------- resultaatcode (zelfde systeem als de andere oefeningen) ----------
+   De code bevat naam, klas, score, tijd, poging en juist/fout per onderdeel, plus een controlegetal.
+   Wordt er één teken gewijzigd, dan klopt het controlegetal niet meer. */
+const ALPH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function h32(s,seed){let h=seed>>>0;for(const ch of s){h=Math.imul(h^ch.charCodeAt(0),2654435761)>>>0;h=(h<<13|h>>>19)>>>0}h^=h>>>16;h=Math.imul(h,2246822507)>>>0;h^=h>>>13;return h>>>0}
+function enc4(n){let o='';for(let i=0;i<4;i++){o+=ALPH[n%32];n=Math.floor(n/32)}return o}
+function sig(p){return enc4(h32('scherm3|'+p,0x5f3759df))+enc4(h32(p+'|excel3x',0x9e3779b9))}
+function b64e(t){return btoa(unescape(encodeURIComponent(t))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function b64d(t){t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';return decodeURIComponent(escape(atob(t)))}
+const clean=t=>t.replace(/~/g,'-');
+function makeCode(score,used,timeUp,attempt,marks){
+  const p=['1',clean(state.vn),clean(state.an),clean(state.kl),score,PARTS.length,used,timeUp?1:0,attempt,Math.floor(Date.now()/60000).toString(36),marks].join('~');
+  return 'ES.'+b64e(p)+'.'+sig(p);
+}
+function readCode(code){
+  const m=code.split('.');if(m.length!==3)return null;
+  let p;try{p=b64d(m[1])}catch(e){return{ok:false}}
+  const f=p.split('~');
+  return{ok:sig(p)===m[2]&&f.length===11,vn:f[1],an:f[2],kl:f[3],score:+f[4],max:+f[5],used:+f[6],timeUp:f[7]==='1',attempt:+f[8],t:new Date(parseInt(f[9],36)*60000),marks:f[10]||''};
+}
+
+/* ---------- leerkrachtmodus: voeg ?leerkracht toe aan het adres ---------- */
+let tRows=[];
+if(/[?&]leerkracht\b/.test(location.search)){
+  $('teacher').classList.remove('hidden');
+  $('tGo').onclick=()=>{
+    const codes=$('tIn').value.match(/ES\.[A-Za-z0-9_-]+\.[A-Z2-9]{8}/g)||[];
+    if(!codes.length){$('tOut').innerHTML='<p class="bad-t">Geen codes gevonden. Een code begint met ES.</p>';tRows=[];return}
+    tRows=codes.map(readCode).filter(Boolean);
+    const bad=tRows.filter(r=>!r.ok).length;
+    $('tMsg').textContent=`${tRows.length} codes · ${bad} gewijzigd`;
+    const fouten=r=>PARTS.filter((p,i)=>r.marks[i]==='0').join(', ')||'–';
+    $('tOut').innerHTML='<table><tr><th>Controle</th><th>Naam</th><th>Klas</th><th>Score</th><th>Op 20</th><th>Tijd</th><th>Poging</th><th>Fout</th><th>Gemaakt op</th></tr>'+tRows.map(r=>r.ok
+      ?`<tr><td class="ok-t">✓ echt</td><td>${esc(r.vn)} ${esc(r.an)}</td><td>${esc(r.kl)}</td><td>${r.score} / ${r.max}</td><td>${(r.score/r.max*20).toLocaleString('nl-BE',{maximumFractionDigits:1})}</td><td>${fmt(r.used)}${r.timeUp?' (tijd om)':''}</td><td>${r.attempt||'?'}</td><td>${fouten(r)}</td><td>${r.t.toLocaleString('nl-BE',{dateStyle:'short',timeStyle:'short'})}</td></tr>`
+      :`<tr><td class="bad-t">✗ gewijzigd</td><td colspan="8">${r.vn?esc(r.vn+' '+r.an)+' · ':''}deze code is aangepast en is niet geldig</td></tr>`).join('')+'</table>';
+  };
+  $('tCopy').onclick=async()=>{
+    if(!tRows.length){$('tMsg').textContent='Controleer eerst de codes.';return}
+    const t='Controle\tVoornaam\tAchternaam\tKlas\tScore\tMax\tOp 20\tTijd\tPoging\n'+tRows.map(r=>r.ok?['echt',r.vn,r.an,r.kl,r.score,r.max,String(Math.round(r.score/r.max*200)/10).replace('.',','),fmt(r.used),r.attempt].join('\t'):'GEWIJZIGD\t'+(r.vn||'')+'\t'+(r.an||'')).join('\n');
+    try{await navigator.clipboard.writeText(t);$('tMsg').textContent='Gekopieerd: plak in Excel.'}catch(e){$('tMsg').textContent='Kopiëren lukte niet in deze browser.'}
+  };
+}
+function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+</script>
+</body>
+</html>
