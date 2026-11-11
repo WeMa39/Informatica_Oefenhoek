@@ -96,6 +96,25 @@ select{font:inherit;font-weight:800;background:var(--bg);color:var(--text);borde
 .slogan{font-family:Fredoka;font-size:28px;color:var(--accent2)}
 .pill{display:inline-block;padding:3px 10px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);font-size:14px;font-weight:800;color:var(--muted)}
 .footer{margin-top:30px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.scene{border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#9fd3ff}
+.scene svg{display:block;width:100%;height:auto}
+.hs{cursor:pointer}.hs .hit{fill:transparent}.hs:hover .hit{fill:rgba(255,255,255,.18);stroke:#fff;stroke-width:2;stroke-dasharray:6 4}
+.scfb{margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.scfb.good{border-color:var(--good);background:rgba(61,220,132,.1)}.scfb.bad{border-color:var(--warn);background:rgba(255,198,92,.08)}
+.av2{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff}
+.roles{display:grid;gap:6px}.role{padding:8px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.role>b:first-child{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--accent);margin-right:4px}
+.ig .post{position:relative;aspect-ratio:4/3;background:linear-gradient(135deg,#ff6fb1,#8b7bff 55%,#2fd3b5);display:grid;place-items:center}
+.ig .dancer{font-size:110px;animation:dans 1.2s ease-in-out infinite alternate}
+@keyframes dans{from{transform:rotate(-12deg) translateY(4px)}to{transform:rotate(12deg) translateY(-6px)}}
+.ig .play{position:absolute;left:12px;bottom:12px;background:rgba(0,0,0,.5);padding:3px 10px;border-radius:99px;font-size:14px;font-weight:800}
+.ig .cap{position:absolute;left:12px;top:12px;background:rgba(0,0,0,.45);padding:4px 10px;border-radius:10px;font-size:15px;font-weight:700}
+.comments{padding:4px 14px 14px}
+.cm{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.cm .ct{flex:1;font-size:16px}.cm .ct b{color:var(--accent2)}
+.flag{font:inherit;font-weight:800;width:42px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;flex:none}
+.flag.on{background:var(--good);color:#0f0d18;border-color:var(--good)}.flag.wrong{border-color:var(--warn)}
+.cmfb{display:none;font-size:14px;color:var(--warn);padding:0 0 6px}.cmfb.show{display:block}
 .hidden{display:none!important}
 .shake{animation:sh .35s}
 @keyframes sh{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
@@ -122,7 +141,7 @@ const cyrb53=(str,seed=7)=>{let h1=0xdeadbeef^seed,h2=0x41c6ce57^seed;for(let i=
 
 // QR-code van de vragenbus (hoort bij FORMS_URL; nieuwe link = nieuwe QR nodig)
 const QR_SVG = `<svg width="220" height="220" shape-rendering="crispEdges" version="1.1" viewBox="0 0 33 33" xmlns="http://www.w3.org/2000/svg"><path d="M2,2H3V3H2zM3,2H4V3H3zM4,2H5V3H4zM5,2H6V3H5zM6,2H7V3H6zM7,2H8V3H7zM8,2H9V3H8zM10,2H11V3H10zM13,2H14V3H13zM14,2H15V3H14zM16,2H17V3H16zM20,2H21V3H20zM21,2H22V3H21zM22,2H23V3H22zM24,2H25V3H24zM25,2H26V3H25zM26,2H27V3H26zM27,2H28V3H27zM28,2H29V3H28zM29,2H30V3H29zM30,2H31V3H30zM2,3H3V4H2zM8,3H9V4H8zM10,3H11V4H10zM13,3H14V4H13zM16,3H17V4H16zM24,3H25V4H24zM30,3H31V4H30zM2,4H3V5H2zM4,4H5V5H4zM5,4H6V5H5zM6,4H7V5H6zM8,4H9V5H8zM11,4H12V5H11zM14,4H15V5H14zM15,4H16V5H15zM17,4H18V5H17zM20,4H21V5H20zM21,4H22V5H21zM24,4H25V5H24zM26,4H27V5H26zM27,4H28V5H27zM28,4H29V5H28zM30,4H31V5H30zM2,5H3V6H2zM4,5H5V6H4zM5,5H6V6H5zM6,5H7V6H6zM8,5H9V6H8zM10,5H11V6H10zM12,5H13V6H12zM16,5H17V6H16zM19,5H20V6H19zM21,5H22V6H21zM24,5H25V6H24zM26,5H27V6H26zM27,5H28V6H27zM28,5H29V6H28zM30,5H31V6H30zM2,6H3V7H2zM4,6H5V7H4zM5,6H6V7H5zM6,6H7V7H6zM8,6H9V7H8zM11,6H12V7H11zM13,6H14V7H13zM14,6H15V7H14zM15,6H16V7H15zM17,6H18V7H17zM18,6H19V7H18zM19,6H20V7H19zM20,6H21V7H20zM21,6H22V7H21zM24,6H25V7H24zM26,6H27V7H26zM27,6H28V7H27zM28,6H29V7H28zM30,6H31V7H30zM2,7H3V8H2zM8,7H9V8H8zM11,7H12V8H11zM15,7H16V8H15zM18,7H19V8H18zM19,7H20V8H19zM21,7H22V8H21zM22,7H23V8H22zM24,7H25V8H24zM30,7H31V8H30zM2,8H3V9H2zM3,8H4V9H3zM4,8H5V9H4zM5,8H6V9H5zM6,8H7V9H6zM7,8H8V9H7zM8,8H9V9H8zM10,8H11V9H10zM12,8H13V9H12zM14,8H15V9H14zM16,8H17V9H16zM18,8H19V9H18zM20,8H21V9H20zM22,8H23V9H22zM24,8H25V9H24zM25,8H26V9H25zM26,8H27V9H26zM27,8H28V9H27zM28,8H29V9H28zM29,8H30V9H29zM30,8H31V9H30zM10,9H11V10H10zM11,9H12V10H11zM12,9H13V10H12zM13,9H14V10H13zM17,9H18V10H17zM19,9H20V10H19zM2,10H3V11H2zM4,10H5V11H4zM5,10H6V11H5zM7,10H8V11H7zM8,10H9V11H8zM9,10H10V11H9zM16,10H17V11H16zM17,10H18V11H17zM19,10H20V11H19zM20,10H21V11H20zM24,10H25V11H24zM27,10H28V11H27zM29,10H30V11H29zM30,10H31V11H30zM2,11H3V12H2zM6,11H7V12H6zM7,11H8V12H7zM10,11H11V12H10zM11,11H12V12H11zM12,11H13V12H12zM14,11H15V12H14zM17,11H18V12H17zM18,11H19V12H18zM19,11H20V12H19zM20,11H21V12H20zM21,11H22V12H21zM22,11H23V12H22zM24,11H25V12H24zM25,11H26V12H25zM26,11H27V12H26zM30,11H31V12H30zM2,12H3V13H2zM4,12H5V13H4zM8,12H9V13H8zM15,12H16V13H15zM20,12H21V13H20zM22,12H23V13H22zM28,12H29V13H28zM29,12H30V13H29zM2,13H3V14H2zM3,13H4V14H3zM7,13H8V14H7zM9,13H10V14H9zM11,13H12V14H11zM14,13H15V14H14zM15,13H16V14H15zM18,13H19V14H18zM20,13H21V14H20zM22,13H23V14H22zM23,13H24V14H23zM25,13H26V14H25zM26,13H27V14H26zM30,13H31V14H30zM3,14H4V15H3zM4,14H5V15H4zM7,14H8V15H7zM8,14H9V15H8zM9,14H10V15H9zM12,14H13V15H12zM13,14H14V15H13zM16,14H17V15H16zM17,14H18V15H17zM18,14H19V15H18zM19,14H20V15H19zM21,14H22V15H21zM23,14H24V15H23zM27,14H28V15H27zM28,14H29V15H28zM2,15H3V16H2zM3,15H4V16H3zM4,15H5V16H4zM5,15H6V16H5zM6,15H7V16H6zM7,15H8V16H7zM14,15H15V16H14zM15,15H16V16H15zM16,15H17V16H16zM17,15H18V16H17zM19,15H20V16H19zM20,15H21V16H20zM21,15H22V16H21zM22,15H23V16H22zM24,15H25V16H24zM28,15H29V16H28zM29,15H30V16H29zM30,15H31V16H30zM3,16H4V17H3zM4,16H5V17H4zM5,16H6V17H5zM7,16H8V17H7zM8,16H9V17H8zM10,16H11V17H10zM11,16H12V17H11zM13,16H14V17H13zM14,16H15V17H14zM18,16H19V17H18zM19,16H20V17H19zM21,16H22V17H21zM23,16H24V17H23zM26,16H27V17H26zM28,16H29V17H28zM29,16H30V17H29zM30,16H31V17H30zM5,17H6V18H5zM7,17H8V18H7zM9,17H10V18H9zM12,17H13V18H12zM18,17H19V18H18zM22,17H23V18H22zM23,17H24V18H23zM24,17H25V18H24zM26,17H27V18H26zM29,17H30V18H29zM4,18H5V19H4zM8,18H9V19H8zM11,18H12V19H11zM12,18H13V19H12zM14,18H15V19H14zM15,18H16V19H15zM20,18H21V19H20zM22,18H23V19H22zM23,18H24V19H23zM26,18H27V19H26zM27,18H28V19H27zM29,18H30V19H29zM3,19H4V20H3zM6,19H7V20H6zM9,19H10V20H9zM10,19H11V20H10zM11,19H12V20H11zM12,19H13V20H12zM15,19H16V20H15zM16,19H17V20H16zM17,19H18V20H17zM19,19H20V20H19zM22,19H23V20H22zM25,19H26V20H25zM27,19H28V20H27zM28,19H29V20H28zM29,19H30V20H29zM2,20H3V21H2zM6,20H7V21H6zM7,20H8V21H7zM8,20H9V21H8zM10,20H11V21H10zM12,20H13V21H12zM13,20H14V21H13zM14,20H15V21H14zM15,20H16V21H15zM16,20H17V21H16zM17,20H18V21H17zM18,20H19V21H18zM19,20H20V21H19zM22,20H23V21H22zM23,20H24V21H23zM25,20H26V21H25zM28,20H29V21H28zM4,21H5V22H4zM6,21H7V22H6zM7,21H8V22H7zM11,21H12V22H11zM17,21H18V22H17zM18,21H19V22H18zM19,21H20V22H19zM20,21H21V22H20zM23,21H24V22H23zM24,21H25V22H24zM26,21H27V22H26zM28,21H29V22H28zM3,22H4V23H3zM5,22H6V23H5zM6,22H7V23H6zM8,22H9V23H8zM9,22H10V23H9zM11,22H12V23H11zM12,22H13V23H12zM13,22H14V23H13zM14,22H15V23H14zM15,22H16V23H15zM16,22H17V23H16zM17,22H18V23H17zM18,22H19V23H18zM19,22H20V23H19zM20,22H21V23H20zM21,22H22V23H21zM22,22H23V23H22zM23,22H24V23H23zM24,22H25V23H24zM25,22H26V23H25zM26,22H27V23H26zM27,22H28V23H27zM28,22H29V23H28zM10,23H11V24H10zM12,23H13V24H12zM15,23H16V24H15zM20,23H21V24H20zM21,23H22V24H21zM22,23H23V24H22zM26,23H27V24H26zM27,23H28V24H27zM28,23H29V24H28zM29,23H30V24H29zM30,23H31V24H30zM2,24H3V25H2zM3,24H4V25H3zM4,24H5V25H4zM5,24H6V25H5zM6,24H7V25H6zM7,24H8V25H7zM8,24H9V25H8zM10,24H11V25H10zM13,24H14V25H13zM14,24H15V25H14zM18,24H19V25H18zM20,24H21V25H20zM21,24H22V25H21zM22,24H23V25H22zM24,24H25V25H24zM26,24H27V25H26zM27,24H28V25H27zM29,24H30V25H29zM2,25H3V26H2zM8,25H9V26H8zM10,25H11V26H10zM11,25H12V26H11zM12,25H13V26H12zM13,25H14V26H13zM14,25H15V26H14zM15,25H16V26H15zM22,25H23V26H22zM26,25H27V26H26zM27,25H28V26H27zM2,26H3V27H2zM4,26H5V27H4zM5,26H6V27H5zM6,26H7V27H6zM8,26H9V27H8zM11,26H12V27H11zM12,26H13V27H12zM13,26H14V27H13zM17,26H18V27H17zM19,26H20V27H19zM22,26H23V27H22zM23,26H24V27H23zM24,26H25V27H24zM25,26H26V27H25zM26,26H27V27H26zM28,26H29V27H28zM29,26H30V27H29zM30,26H31V27H30zM2,27H3V28H2zM4,27H5V28H4zM5,27H6V28H5zM6,27H7V28H6zM8,27H9V28H8zM10,27H11V28H10zM11,27H12V28H11zM12,27H13V28H12zM15,27H16V28H15zM16,27H17V28H16zM17,27H18V28H17zM18,27H19V28H18zM19,27H20V28H19zM20,27H21V28H20zM21,27H22V28H21zM23,27H24V28H23zM25,27H26V28H25zM26,27H27V28H26zM27,27H28V28H27zM30,27H31V28H30zM2,28H3V29H2zM4,28H5V29H4zM5,28H6V29H5zM6,28H7V29H6zM8,28H9V29H8zM10,28H11V29H10zM11,28H12V29H11zM14,28H15V29H14zM16,28H17V29H16zM20,28H21V29H20zM22,28H23V29H22zM25,28H26V29H25zM28,28H29V29H28zM30,28H31V29H30zM2,29H3V30H2zM8,29H9V30H8zM11,29H12V30H11zM14,29H15V30H14zM15,29H16V30H15zM18,29H19V30H18zM20,29H21V30H20zM22,29H23V30H22zM24,29H25V30H24zM27,29H28V30H27zM29,29H30V30H29zM2,30H3V31H2zM3,30H4V31H3zM4,30H5V31H4zM5,30H6V31H5zM6,30H7V31H6zM7,30H8V31H7zM8,30H9V31H8zM10,30H11V31H10zM11,30H12V31H11zM14,30H15V31H14zM17,30H18V31H17zM21,30H22V31H21zM22,30H23V31H22zM29,30H30V31H29z" id="qr-path" fill="#000000" fill-opacity="1" fill-rule="nonzero" stroke="none"/></svg>`;
-const STORE = "escaperoom-pesten-v1";
+const STORE = "escaperoom-pesten-v2";
 let S = {stage:0, group:"", start:null, end:null, penalty:0, hints:{}, p3:0, p4:{}, p1:{}};
 try{ const s = JSON.parse(localStorage.getItem(STORE)); if(s) S = Object.assign(S,s);}catch(e){}
 function save(){ try{localStorage.setItem(STORE, JSON.stringify(S));}catch(e){} }
@@ -162,8 +181,79 @@ const P = [
     }));
   }
 },
+{ // SCENE
+  title:"Slot 2 · Zie jij de signalen?",
+  hash:"1ssmjuac59",
+  hint:"Er zijn <b>5</b> pestsignalen. Kijk ook naar de achtergrond, naar de bank en naar de vuilnisbak. Spelende of lachende kinderen die het samen leuk hebben, zijn géén signaal.",
+  render(el){
+    S.sc = S.sc || {};
+    const SIG = {
+      bank:{l:"A",t:"Altijd alleen: Lien zit elke speeltijd alleen. Uitsluiten is ook pesten."},
+      muur:{l:"L",t:"Ingesloten tegen de muur: een groep tegen één, dat is een duidelijk machtsverschil."},
+      film:{l:"A",t:"Iemand filmt alles: zo komt het online, en dan stopt het niet aan de schoolpoort."},
+      wijs:{l:"R",t:"Uitlachen en wijzen, en niet samen lachen: dat is uitlachen."},
+      bak:{l:"M",t:"Een boekentas in de vuilnisbak: spullen afpakken of kapotmaken is ook pesten."}
+    };
+    const DECOY = {
+      bal:"Samen voetballen en plezier maken: hier is niets aan de hand.",
+      high:"Twee vrienden geven elkaar een high five. Gewoon plezier, geen pesten."
+    };
+    const order=["bank","muur","film","wijs","bak"];
+    const P=(x,y,shirt,face,extra="",s=1)=>`<g transform="translate(${x},${y}) scale(${s})">
+      <rect x="-9" y="-20" width="7" height="22" rx="3" fill="#334"/><rect x="2" y="-20" width="7" height="22" rx="3" fill="#334"/>
+      <rect x="-15" y="-58" width="30" height="42" rx="12" fill="${shirt}"/>${extra}
+      <text x="0" y="-62" font-size="32" text-anchor="middle">${face}</text></g>`;
+    const arm=(x1,y1,x2,y2,c)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="7" stroke-linecap="round"/>`;
+    const bubble=(x,y,t,w)=>`<g><rect x="${x}" y="${y}" width="${w}" height="30" rx="12" fill="#fff"/><text x="${x+w/2}" y="${y+20}" font-size="14" font-weight="800" text-anchor="middle" fill="#222" font-family="Nunito,sans-serif">${t}</text></g>`;
+    el.innerHTML = `
+      <p>Speeltijd. Op het eerste gezicht lijkt alles normaal… maar wie goed kijkt, ziet meer.</p>
+      <p class="muted">Klik op elke plek in de tekening waar je een <b>pestsignaal</b> ziet. Elk signaal levert een letter op. Pas op: niet alles is pesten!</p>
+      <div class="scene">
+      <svg viewBox="0 0 900 470" role="img" aria-label="Tekening van een speelplaats">
+        <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd3ff"/><stop offset="1" stop-color="#d9f0ff"/></linearGradient></defs>
+        <rect width="900" height="470" fill="url(#sky)"/>
+        <rect x="0" y="40" width="250" height="300" fill="#c96f4a"/>
+        ${[0,1,2].map(i=>`<rect x="${25+i*75}" y="70" width="50" height="45" fill="#e9f6ff" stroke="#fff" stroke-width="4"/>`).join("")}
+        <text x="125" y="160" font-size="18" text-anchor="middle" fill="#fff" font-weight="800" font-family="Fredoka,sans-serif">SCHOOL</text>
+        <rect x="0" y="300" width="900" height="170" fill="#b8c2cc"/>
+        <rect x="0" y="300" width="900" height="6" fill="#9aa5b0"/>
+        <circle cx="400" cy="150" r="70" fill="#5aa86a"/><rect x="392" y="200" width="16" height="100" fill="#7a5233"/>
+        <circle cx="300" cy="380" r="0"/>
+        <!-- achtergrond: high five (decoy) -->
+        <g class="hs" data-k="high">${P(470,300,"#ffb347","😄",arm(0,-48,20,-75,"#ffb347"),.75)}${P(510,300,"#7fd1ae","😄",arm(0,-48,-20,-75,"#7fd1ae"),.75)}<rect class="hit" x="440" y="210" width="100" height="95"/></g>
+        <!-- achtergrond: wijzen en uitlachen -->
+        <g class="hs" data-k="wijs">${P(600,305,"#e57373","😂",arm(12,-45,40,-55,"#e57373"),.75)}${P(640,305,"#ba68c8","😂",arm(12,-45,40,-55,"#ba68c8"),.75)}${bubble(585,205,"haha kijk 👉",95)}<rect class="hit" x="575" y="200" width="115" height="110"/></g>
+        <!-- bank met Lien -->
+        <rect x="690" y="395" width="150" height="12" rx="4" fill="#8d6e63"/><rect x="700" y="405" width="8" height="30" fill="#6d4c41"/><rect x="822" y="405" width="8" height="30" fill="#6d4c41"/>
+        <rect x="690" y="365" width="150" height="10" rx="4" fill="#8d6e63"/>
+        <g class="hs" data-k="bank">${P(765,405,"#90caf9","😔","",.9)}<rect class="hit" x="725" y="320" width="85" height="95"/></g>
+        <!-- vuilnisbak met boekentas -->
+        <g class="hs" data-k="bak"><rect x="855" y="380" width="40" height="60" rx="6" fill="#4caf50"/><rect x="850" y="374" width="50" height="10" rx="4" fill="#388e3c"/><text x="875" y="378" font-size="30" text-anchor="middle">🎒</text><rect class="hit" x="845" y="340" width="55" height="105"/></g>
+        <!-- tegen de muur ingesloten -->
+        <g class="hs" data-k="muur">${P(130,330,"#fff176","😰")}${P(70,445,"#455a64","😠",arm(10,-45,40,-75,"#455a64"))}${P(140,455,"#5c6bc0","😏")}${P(205,440,"#455a64","😠",arm(-10,-45,-40,-75,"#455a64"))}${bubble(150,215,"Geef je gsm!",110)}<rect class="hit" x="35" y="210" width="230" height="250"/></g>
+        <!-- filmer -->
+        <g class="hs" data-k="film">${P(300,440,"#26a69a","😏",arm(0,-48,-25,-85,"#26a69a"))}<text x="268" y="352" font-size="28" text-anchor="middle">📱</text><rect class="hit" x="250" y="320" width="85" height="125"/></g>
+        <!-- voetbal (decoy) -->
+        <g class="hs" data-k="bal">${P(420,455,"#ff8a65","😄")}${P(560,455,"#4fc3f7","😄")}<text x="490" y="445" font-size="26" text-anchor="middle">⚽</text><rect class="hit" x="395" y="355" width="190" height="105"/></g>
+        <g id="marks"></g>
+      </svg></div>
+      <div class="scfb" id="scfb">Klik op iets in de tekening.</div>
+      <div class="letters" id="sclet">${order.map(k=>`<span class="${S.sc[k]?'got':''}">${S.sc[k]?SIG[k].l:''}</span>`).join("")}</div>`;
+    const fb=$("#scfb",el), marks=$("#marks",el);
+    const pos={bank:[715,335],muur:[50,235],film:[245,320],wijs:[700,250],bak:[872,318]};
+    const drawMarks=()=>{marks.innerHTML=order.filter(k=>S.sc[k]).map(k=>`<g><circle cx="${pos[k][0]}" cy="${pos[k][1]}" r="20" fill="#3ddc84" stroke="#fff" stroke-width="3"/><text x="${pos[k][0]}" y="${pos[k][1]+7}" font-size="20" font-weight="800" text-anchor="middle" fill="#0f0d18" font-family="Fredoka,sans-serif">${SIG[k].l}</text></g>`).join("");};
+    drawMarks();
+    el.querySelectorAll(".hs").forEach(g=>g.addEventListener("click",()=>{
+      const k=g.dataset.k;
+      if(SIG[k]){ S.sc[k]=1; save(); fb.className="scfb good"; fb.innerHTML=`✅ <b>Signaal gevonden!</b> ${SIG[k].t}`;
+        drawMarks(); $("#sclet",el).innerHTML=order.map(x=>`<span class="${S.sc[x]?'got':''}">${S.sc[x]?SIG[x].l:''}</span>`).join("");
+        if(order.every(x=>S.sc[x])) fb.innerHTML+=`<br><b>Alle 5 gevonden! Lees de letters af en open het slot.</b>`;
+      } else { fb.className="scfb bad"; fb.innerHTML=`🙂 ${DECOY[k]}`; }
+    }));
+  }
+},
 { // 2
-  title:"Slot 2 · Vormen van online pesten",
+  title:"Slot 3 · Vormen van online pesten",
   hash:"zqxaj8k0sw",
   hint:"Haatspraak gaat over <b>wie iemand is</b> (afkomst, geloof, geaardheid, …). Imitatie = <b>je voordoen als</b> iemand anders. Vernederen = iets <b>gênants verspreiden</b>.",
   render(el){
@@ -188,8 +278,38 @@ const P = [
     el.querySelectorAll("select").forEach(s=>s.addEventListener("change",()=>{S.p2[s.dataset.i]=s.value;save();}));
   }
 },
+{ // ROLLEN
+  title:"Slot 4 · Wie speelt welke rol?",
+  hash:"1l6d1m5l2pn",
+  hint:"Een <b>meeloper</b> begint niet zelf, maar doet wel mee. Een <b>toeschouwer</b> leest alles, maar zegt niets.",
+  render(el){
+    S.ro = S.ro || {};
+    const roles=[["1","🛡️","Verdediger","komt op voor wie gepest wordt"],["2","😈","Pester","begint en neemt het initiatief"],["3","💔","Slachtoffer","wordt gepest"],["4","👀","Toeschouwer","ziet het, maar zegt niets"],["5","😂","Meeloper","begint niet zelf, maar doet wel mee"]];
+    const ppl=[["Kenzo","#e57373"],["Jade","#ba68c8"],["Lien","#64b5f6"],["Arne","#9e9e9e"],["Sofie","#4db6ac"]];
+    const av=(n,c)=>`<span class="av2" style="background:${c}">${n[0]}</span>`;
+    const chat=[["Kenzo","Lien heeft vandaag wéér die kindertrui aan 🤢"],["Jade","😂😂 echt hé"],["Lien","kunnen jullie aub gewoon stoppen"],["Kenzo","aww Lien gaat huilen 😭"],["Jade","Kenzo stuur die foto van haar eens 😂"],["Sofie","Hé, laat haar met rust. Dit is niet oké."]];
+    const col=Object.fromEntries(ppl);
+    el.innerHTML=`
+      <p>Bij pesten is er nooit maar één persoon betrokken. Iedereen in de klasgroep speelt een rol, ook wie niets zegt.</p>
+      <p class="muted">Lees de chat. Geef elke persoon de juiste rol. Lees daarna de nummers van de rollen af, van <b>Kenzo</b> tot <b>Sofie</b>: dat is de code.</p>
+      <div class="match">
+        <div class="phone">
+          <div class="head"><div class="av">👥</div><div>Klas 3B 🔥</div></div>
+          <div class="chat">${chat.map(c=>`<div class="bub" style="display:flex;gap:8px;align-items:flex-start">${av(c[0],col[c[0]])}<div><div class="who">${c[0]}</div>${c[1]}</div></div>`).join("")}
+            <div class="bub sys">👀 Gezien door Arne en 14 anderen</div></div>
+        </div>
+        <div>
+          <div class="roles">${roles.map(r=>`<div class="role"><b>${r[0]}</b> ${r[1]} <b>${r[2]}</b><div class="muted" style="font-size:14px">${r[3]}</div></div>`).join("")}</div>
+          <div style="margin-top:12px">${ppl.map((p,i)=>`<div class="form-row"><span style="display:flex;gap:8px;align-items:center">${av(p[0],p[1])}<b style="color:var(--text)">${p[0]}</b></span>
+            <select data-i="${i}"><option value="">rol…</option>${roles.map(r=>`<option value="${r[0]}" ${S.ro[i]==r[0]?'selected':''}>${r[0]} · ${r[2]}</option>`).join("")}</select></div>`).join("")}</div>
+        </div>
+      </div>
+      <p class="muted center" style="margin-top:14px;font-size:16px">🤔 Denk even na: welke rol speel jij het vaakst? Je hoeft het niet te zeggen.</p>`;
+    el.querySelectorAll("select").forEach(s=>s.addEventListener("change",()=>{S.ro[s.dataset.i]=s.value;save();}));
+  }
+},
 { // 3
-  title:"Slot 3 · Jij ziet het gebeuren",
+  title:"Slot 5 · Jij ziet het gebeuren",
   hash:"ofzpg1wztj",
   hint:"Kies telkens de reactie die Lien <b>helpt</b>, zonder dat het pesten groter wordt of dat jij zelf gaat pesten. Lachen, doorsturen of terugslaan maakt het altijd erger.",
   render(el){
@@ -243,7 +363,7 @@ const P = [
         fb.innerHTML = `<div class="fb good">✅ ${o[2]}<br><b>Letter: ${m.letter}</b></div>`;
         el.querySelectorAll(".opt").forEach(x=>x.disabled=true);
         $(".chat",el).insertAdjacentHTML("beforeend",`<div class="bub me">${o[0]}</div>`);
-        setTimeout(()=>{S.p3++;save();P[2].render(el);}, 2600);
+        setTimeout(()=>{S.p3++;save();P.find(x=>x.hash==="ofzpg1wztj").render(el);}, 2600);
       } else {
         b.classList.add("wrong");
         fb.innerHTML = `<div class="fb bad">❌ ${o[2]} Probeer opnieuw.</div>`;
@@ -251,8 +371,46 @@ const P = [
     }));
   }
 },
+{ // INSTA
+  title:"Slot 6 · Rapporteer de reacties",
+  hash:"1qu3rucaii5",
+  hint:"Er zijn <b>6</b> kwetsende reacties. Een reactie die oproept om iets door te sturen, telt ook mee: zo verspreid je pesten.",
+  render(el){
+    S.ig = S.ig || {};
+    const C=[
+      ["sara.vh","Wauw, goed bezig! 🔥",""],
+      ["kenzo_x","😂😂 wat is dit, een walrus die danst?","M"],
+      ["jadee","Je bent echt zo cringe, niemand wil dit zien","E"],
+      ["noor.d","Mooie muziekkeuze! 🎶",""],
+      ["ilias_07","Ga je ook optreden op het schoolfeest? 😄",""],
+      ["kenzo_x","Stop gewoon met posten. Echt.","L"],
+      ["arne.b","@jadee kijk dit 💀💀 stuur door naar iedereen","D"],
+      ["sofie.m","Die laatste draai is goed gelukt 👏",""],
+      ["anoniem_3b","Iedereen lacht met je, weet je dat?","E"],
+      ["jadee","Delete je account 🤡","N"]
+    ];
+    const letters=C.filter(c=>c[2]);
+    el.innerHTML=`
+      <p>Lien heeft haar eerste dansfilmpje gepost. De reacties stromen binnen…</p>
+      <p class="muted">Op elk sociaal netwerk kan je kwetsende reacties <b>melden</b>. Klik op 🚩 bij elke reactie die kwetsend is. Elke terechte melding levert een letter op.</p>
+      <div class="phone ig">
+        <div class="head"><div class="av">L</div><div>lien.danst<div class="muted" style="font-size:13px;font-weight:600">Origineel geluid</div></div></div>
+        <div class="post"><div class="dancer">💃</div><div class="play">▶ 0:24</div><div class="cap">Mijn eerste dansvideo 🙈 wees lief</div></div>
+        <div style="padding:8px 14px;font-weight:800">♡ 47 &nbsp; 💬 ${C.length}</div>
+        <div class="comments">${C.map((c,i)=>`<div class="cm" data-i="${i}"><div class="ct"><b>${c[0]}</b> ${c[1]}</div><button class="flag ${S.ig[i]?'on':''}" title="Melden">${S.ig[i]?(c[2]?c[2]:'✓'):'🚩'}</button></div><div class="cmfb" id="cmfb${i}"></div>`).join("")}</div>
+      </div>
+      <div class="letters">${letters.map(c=>{const i=C.indexOf(c);return `<span class="${S.ig[i]?'got':''}">${S.ig[i]?c[2]:''}</span>`}).join("")}</div>`;
+    el.querySelectorAll(".cm").forEach(r=>{
+      const i=+r.dataset.i, c=C[i], b=r.querySelector(".flag"), f=$("#cmfb"+i,el);
+      b.onclick=()=>{
+        if(c[2]){ S.ig[i]=1; save(); P.find(x=>x.hash==="1qu3rucaii5").render(el); }
+        else { f.className="cmfb show"; f.textContent="Deze reactie is vriendelijk. Die hoef je niet te melden."; b.classList.add("wrong"); }
+      };
+    });
+  }
+},
 { // 4
-  title:"Slot 4 · Melden of verklikken?",
+  title:"Slot 7 · Melden of verklikken?",
   hash:"6szhd6uj6o",
   hint:"Er zijn precies <b>vier</b> uitspraken waar. Denk eraan: <b>melden = iemand helpen</b>, klikken = iemand in de problemen willen brengen.",
   render(el){
@@ -279,14 +437,14 @@ const P = [
   }
 },
 { // 5
-  title:"Slot 5 · Het laatste slot",
+  title:"Slot 8 · Het laatste slot",
   hash:"2zaf0cadxg",
-  hint:"Alle antwoorden kwamen al voor in de vorige sloten. Kijk naar slot 1 (ruzie, eenmalig) en slot 3 (screenshot bewaren).",
+  hint:"Alle antwoorden kwamen al voor in de vorige sloten. Kijk naar slot 1 (ruzie, eenmalig), slot 4 (rollen in de groep) en slot 5 (screenshot bewaren).",
   render(el){
     const W=[
       ["RUZIE","Een conflict tussen twee gelijken die het even oneens zijn. Geen pesten, wel …"],
       ["EENMALIG","Plagen gebeurt meestal …, pesten gebeurt keer op keer."],
-      ["ARCHIVEREN","Screenshots bewaren als bewijs, zonder ze door te sturen."],
+      ["ARCHIVEREN","Een van de A’s uit de groepschat: screenshots bewaren als bewijs, zonder ze door te sturen."],
       ["GROEP","Een pester staat bijna nooit alleen: er hoort een … van meelopers en toeschouwers bij."],
       ["EENZAAM","Zo voelt iemand die gepest wordt zich vaak: alleen en …"],
       ["ERGER","Online pesten kan nog … zijn: het stopt niet aan de schoolpoort."],
@@ -307,7 +465,7 @@ const P = [
       check();
     });
   }
-}
+},
 ];
 
 /* ---------- TIMER ---------- */
@@ -373,7 +531,7 @@ function intro(){
     <div class="card center">
       <div class="intro-ill">📱🔒</div>
       <h1>Ontsnap uit de groepschat</h1>
-      <p class="big" style="max-width:640px;margin:0 auto 10px">In de klasgroep van 3B loopt het helemaal uit de hand. <b>Lien</b> wordt al weken gepest, en de beheerder heeft de chat op slot gezet met <b>5 codes</b>.</p>
+      <p class="big" style="max-width:640px;margin:0 auto 10px">In de klasgroep van 3B loopt het helemaal uit de hand. <b>Lien</b> wordt al weken gepest, en de beheerder heeft de chat op slot gezet met <b>8 codes</b>.</p>
       <p class="muted" style="max-width:640px;margin:0 auto">Kraak alle sloten om uit de chat te ontsnappen en Lien te helpen. Jullie hebben <b>${DUUR_MIN} minuten</b>. Een hint kan, maar die kost ${STRAF_HINT_MIN} strafminuut.</p>
     </div>
     <div class="card">
