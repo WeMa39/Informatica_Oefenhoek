@@ -1080,11 +1080,13 @@ function renderStart(){
 const CHAPTERS = [
   {name:"Teken- en alineaopmaak", levels:[1,2,3,4,5,6,7,8], code:"OPMAAK7"},
   {name:"Stijlen", levels:[10,11,12], code:"STIJL3",
-   tasks:[{id:"1", name:"Oef 3.4 Festivals", after:12, d:"Nu in het echte Word: maak zelf de stijlen aan en pas de gouden regel toe op een tekst over festivals.",
+   tasks:[{id:"1", name:"Oef 2.4 Festivals", after:12, d:"Nu in het echte Word: maak zelf de stijlen aan en pas de gouden regel toe op een tekst over festivals.",
      files:[["Opdrachtfiche (pdf)","festivals-fiche.pdf"],["Starttekst (Word)","festivals-opgave.docx"]]}]},
-  {name:"Opsomming en nummering", levels:[9,13,14], code:"LIJST5"},
+  {name:"Opsomming en nummering", levels:[9,13,14], code:"LIJST5",
+   tasks:[{id:"3", name:"Oef 3.4 Gezond leven", after:14, d:"Nu in het echte Word: maak opsommingen, een nummering en een lijst met meerdere niveaus. Je nummert de ondertitels via de kopstijlen en maakt een inhoudsopgave.",
+     files:[["Opdrachtfiche (pdf)","gezondleven-fiche.pdf"],["Starttekst (Word)","gezondleven-opgave.docx"]]}]},
   {name:"Tabellen", levels:[15,16,17,18,19], code:"TABEL4",
-   tasks:[{id:"2", name:"Weekplanning sportkamp", after:19, d:"Nu in het echte Word: maak zelf een weekplanning met een tabel. Je stelt de kolommen en rijen in, voegt cellen samen, splitst een cel, draait tekst en werkt met arcering en randen.",
+   tasks:[{id:"2", name:"Oef 4.6 Weekplanning sportkamp", after:19, d:"Nu in het echte Word: maak zelf een weekplanning met een tabel. Je stelt de kolommen en rijen in, voegt cellen samen, splitst een cel, draait tekst en werkt met arcering en randen.",
      files:[["Opdrachtfiche (pdf)","sportkamp-fiche.pdf"],["Starttekst (Word)","sportkamp-opgave.docx"]]}]}
 ];
 function chapterByCode(c){ c=String(c).toUpperCase().replace(/[\s-]/g,""); return CHAPTERS.findIndex(ch=>ch.code===c); }
