@@ -239,6 +239,27 @@ details.more[open] summary{margin-bottom:12px}
 .toc{border:1px solid #D9D9D9;padding:4px 8px;margin:0 0 6px;color:#000;font-family:Calibri, Carlito, 'Segoe UI', sans-serif}
 .tocl{display:flex;gap:4px;align-items:baseline}
 .tocl .dots{flex:1;border-bottom:1.5px dotted #000;margin:0 2px}
+
+/* tabellen */
+.tblwrap{position:relative;margin:0 0 0 -22px}
+table.wt{border-collapse:collapse;table-layout:fixed;color:#000}
+table.wt td.c{padding:1px 6px;overflow:hidden;cursor:cell;position:relative;line-height:1.2;overflow-wrap:anywhere}
+table.wt td.c:hover{background-image:linear-gradient(rgba(43,87,154,.07),rgba(43,87,154,.07))}
+table.wt td.c.ts{box-shadow:inset 0 0 0 999px rgba(43,87,154,.28)}
+table.wt td.rh, table.wt tr.ch td{border:0 !important;padding:0}
+table.wt tr.ch td{height:16px}
+.hd{border:0;background:transparent;color:#2B579A;padding:0;font-size:10px;line-height:1;width:100%;height:100%;min-height:14px;opacity:.6;border-radius:2px}
+.hd:hover{opacity:1;background:var(--w-hover)}
+.hd.mv{font-size:13px;border:1px solid #9DB3D6;background:#fff;width:16px;height:16px;opacity:.9}
+.cv{display:inline-block;text-align:center}
+.tin{width:100%;min-width:60px;font:inherit;color:#000;border:2px solid #2B579A;padding:0 3px;background:#FFFDE7;border-radius:2px}
+.tgrid{display:grid;grid-template-columns:repeat(10,16px);gap:2px;padding:6px 8px}
+.tg{width:16px;height:16px;border:1px solid #BDBDBD;background:#fff;padding:0}
+.tg.on{border-color:#F29436;background:#FDE9D9}
+.wtab.ctx{color:#FFE699;border-bottom:3px solid #FFC000}
+.wtab.ctx.on{color:#2B579A}
+.cal{display:grid;grid-template-columns:repeat(3,26px);gap:1px;align-content:start}
+.rb.wide{justify-content:flex-start;gap:5px}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -371,6 +392,88 @@ function vrDoc(){
     ["kop","Voordelen",null,"kop2"],["body","Goedkoper dan echte ervaringen, en je kan oefenen zonder gevaar."],
     ["kop","Nadelen",null,"kop2"],["body","De technologie is nog niet op punt en sommige mensen worden er misselijk van."]]);
 }
+/* ---------- tabellen ----------
+   Een tabel is een rooster: rows[r].cells[c]. Een samengevoegde cel heeft cs/rs (colspan/rowspan);
+   de cellen die ze bedekt zijn 'verborgen' en wijzen met own naar die cel. Randen staan per cel (b.t/r/b/l),
+   null = geen rand (dan zie je enkel de rasterlijn). */
+const E0 = Object.freeze({st:"solid", w:.5, c:"#000000"});
+function mkCell(t){ return {t:t||"", s:{font:"Calibri",size:11,bold:false,italic:false,underline:false,color:"#000000",align:"left"}, va:"top", dir:0, bg:null, cs:1, rs:1, own:null, b:{t:E0,r:E0,b:E0,l:E0}}; }
+function hidCell(o){ const c=mkCell(); c.own=o; return c; }
+function likeCell(src){ const c=mkCell(); c.s={...src.s}; c.va=src.va; c.dir=src.dir; c.bg=src.bg; c.b={...src.b}; return c; }
+function textW(doc){ const m=doc.margins; return (doc.land?29.7:21)-m.links-m.rechts; }
+function mkTable(doc, at, cols, rows){ const w=+(textW(doc)/cols).toFixed(2);
+  return {at, colW:Array(cols).fill(w), rows:Array.from({length:rows},()=>({h:null, cells:Array.from({length:cols},()=>mkCell())}))}; }
+function tableFrom(at, colW, data, h){ return {at, colW:colW.slice(), rows:data.map((r,i)=>({h:h? h[i]||null : null, cells:r.map(t=>mkCell(t))}))}; }
+function tFill(T, data){ data.forEach((row,r)=>row.forEach((t,c)=>{ const x=T.rows[r] && T.rows[r].cells[c]; if(t!==null && x && !x.own) x.t=t; })); }
+const nR=T=>T.rows.length, nC=T=>T.colW.length;
+function ownerAt(T,r,c){ const x=T.rows[r].cells[c]; return x.own||x; }
+function posOf(T,o){ for(let r=0;r<nR(T);r++){ const c=T.rows[r].cells.indexOf(o); if(c>=0) return [r,c]; } return [0,0]; }
+function rectOfCell(T,r,c){ const o=ownerAt(T,r,c), [r0,c0]=posOf(T,o); return {r0,c0,r1:r0+o.rs-1,c1:c0+o.cs-1}; }
+function expand(T,R){ R={...R}; let ch=true; while(ch){ ch=false; for(let r=R.r0;r<=R.r1;r++) for(let c=R.c0;c<=R.c1;c++){ const q=rectOfCell(T,r,c);
+  if(q.r0<R.r0){R.r0=q.r0;ch=true;} if(q.c0<R.c0){R.c0=q.c0;ch=true;} if(q.r1>R.r1){R.r1=q.r1;ch=true;} if(q.c1>R.c1){R.c1=q.c1;ch=true;} } } return R; }
+function owners(T,R){ const out=[]; if(!T||!R) return out; for(let r=R.r0;r<=R.r1;r++) for(let c=R.c0;c<=R.c1;c++){ const o=ownerAt(T,r,c); if(!out.includes(o)) out.push(o); } return out; }
+function tMerge(T,R){ R=expand(T,R); const o=ownerAt(T,R.r0,R.c0), txt=owners(T,R).map(x=>x.t).filter(Boolean);
+  const br=ownerAt(T,R.r0,R.c1).b.r, bb=ownerAt(T,R.r1,R.c0).b.b;
+  for(let r=R.r0;r<=R.r1;r++) for(let c=R.c0;c<=R.c1;c++) if(r!==R.r0||c!==R.c0) T.rows[r].cells[c]=hidCell(o);
+  Object.assign(o,{cs:R.c1-R.c0+1, rs:R.r1-R.r0+1, t:txt.join("\n")}); o.b={...o.b, r:br, b:bb}; return R; }
+function tInsRow(T,k,ref){ const row={h:T.rows[ref].h, cells:[]}, bumped=new Set();
+  for(let c=0;c<nC(T);c++){ const up=k>0? ownerAt(T,k-1,c):null, dn=k<nR(T)? ownerAt(T,k,c):null;
+    if(up && up===dn){ if(!bumped.has(up)){ up.rs++; bumped.add(up); } row.cells.push(hidCell(up)); }
+    else row.cells.push(likeCell(ownerAt(T,ref,c))); }
+  T.rows.splice(k,0,row); }
+function tInsCol(T,k,ref){ const bumped=new Set(), w=T.colW[ref];
+  T.rows.forEach((row,r)=>{ const C=row.cells.length, lf=k>0? ownerAt(T,r,k-1):null, rt=k<C? ownerAt(T,r,k):null; let cell;
+    if(lf && lf===rt){ if(!bumped.has(lf)){ lf.cs++; bumped.add(lf); } cell=hidCell(lf); } else cell=likeCell(ownerAt(T,r,ref));
+    row.cells.splice(k,0,cell); });
+  const before=T.colW.reduce((a,b)=>a+b,0); T.colW.splice(k,0,w);
+  // een tabel die de hele breedte vult, blijft binnen de marges (zoals AutoAanpassen aan venster)
+  if(G && before>=textW(G.doc)-0.05){ const f=before/(before+w); T.colW=T.colW.map(x=>+(x*f).toFixed(2)); } }
+function tSplitRows(T,o,n){ const [r0,c0]=posOf(T,o), h=T.rows[r0].h;
+  for(let k=1;k<n;k++){ const row={h:h? +(h/n).toFixed(2):null, cells:[]}, bumped=new Set(); let nc=null;
+    for(let j=0;j<nC(T);j++){ if(j>=c0 && j<c0+o.cs){ if(j===c0){ nc=likeCell(o); nc.cs=o.cs; row.cells.push(nc); } else row.cells.push(hidCell(nc)); }
+      else { const x=ownerAt(T,r0,j); if(!bumped.has(x)){ x.rs++; bumped.add(x); } row.cells.push(hidCell(x)); } }
+    T.rows.splice(r0+k,0,row); }
+  if(h) T.rows[r0].h=+(h/n).toFixed(2); }
+function tSplitCols(T,o,n){ const [r0,c0]=posOf(T,o), w=+(T.colW[c0]/n).toFixed(2);
+  for(let k=1;k<n;k++){ const bumped=new Set(); let nc=null;
+    T.rows.forEach((row,i)=>{ let cell; if(i>=r0 && i<r0+o.rs){ if(i===r0){ nc=likeCell(o); nc.rs=o.rs; cell=nc; } else cell=hidCell(nc); }
+      else { const x=ownerAt(T,i,c0); if(!bumped.has(x)){ x.cs++; bumped.add(x); } cell=hidCell(x); } row.cells.splice(c0+k,0,cell); }); }
+  T.colW.splice(c0,1,...Array(n).fill(w)); }
+const OPP={t:"b",b:"t",l:"r",r:"l"}, DIRS={t:[-1,0],b:[1,0],l:[0,-1],r:[0,1]};
+function setE(T,r,c,side,val){ const o=ownerAt(T,r,c), r2=r+DIRS[side][0], c2=c+DIRS[side][1];
+  const o2 = (r2>=0 && c2>=0 && r2<nR(T) && c2<nC(T))? ownerAt(T,r2,c2) : null;
+  if(o2===o) return; o.b={...o.b, [side]:val}; if(o2) o2.b={...o2.b, [OPP[side]]:val}; }
+function tBorders(T,R,kind,pen){ const P={...pen}, outer=v=>{ for(let c=R.c0;c<=R.c1;c++){ setE(T,R.r0,c,"t",v); setE(T,R.r1,c,"b",v); } for(let r=R.r0;r<=R.r1;r++){ setE(T,r,R.c0,"l",v); setE(T,r,R.c1,"r",v); } };
+  const inner=(v,h=true,vv=true)=>{ for(let r=R.r0;r<=R.r1;r++) for(let c=R.c0;c<=R.c1;c++){ if(vv && c<R.c1) setE(T,r,c,"r",v); if(h && r<R.r1) setE(T,r,c,"b",v); } };
+  if(kind==="geen"){ outer(null); inner(null); } if(kind==="alle"){ outer(P); inner(P); } if(kind==="buiten") outer(P); if(kind==="binnen") inner(P);
+  if(kind==="binnenh") inner(P,true,false); if(kind==="binnenv") inner(P,false,true);
+  if(kind==="onder") for(let c=R.c0;c<=R.c1;c++) setE(T,R.r1,c,"b",P); if(kind==="boven") for(let c=R.c0;c<=R.c1;c++) setE(T,R.r0,c,"t",P);
+  if(kind==="links") for(let r=R.r0;r<=R.r1;r++) setE(T,r,R.c0,"l",P); if(kind==="rechts") for(let r=R.r0;r<=R.r1;r++) setE(T,r,R.c1,"r",P); }
+function insertTable(cols, rows){ const p=selP(), D=G.doc; D.table=mkTable(D, p? p.id : D.paras[D.paras.length-1].id, cols, rows); G.ui.sel=null; G.ui.tsel={r0:0,c0:0,r1:0,c1:0}; }
+
+function sportdagDoc(){ const d=mkDoc({boven:2,onder:2,links:2,rechts:2}, [["title","Sportdag 3de jaar"],
+    ["intro","Op vrijdag 15 mei is het sportdag. Je kiest zelf uit verschillende activiteiten. Hieronder staat het programma."],["leeg",""],
+    ["body","Vergeet je sportkledij en een drinkbus niet!"]]);
+  Object.assign(d.paras[0].s, {size:20, bold:true}); return d; }
+function weekmenuDoc(){ const d=mkDoc({boven:2,onder:2,links:2,rechts:2}, [["title","Weekmenu schoolrestaurant"],
+    ["intro","Dit eten we volgende week in het schoolrestaurant. Smakelijk!"],["leeg",""]]);
+  Object.assign(d.paras[0].s, {size:20, bold:true}); return d; }
+function klasfeestDoc(){ const d=mkDoc({boven:2,onder:2,links:2,rechts:2}, [["title","Ons klasfeest"],
+    ["intro","Wie doet wat op het klasfeest? In deze tabel staat de taakverdeling."],["leeg",""]]);
+  Object.assign(d.paras[0].s, {size:20, bold:true});
+  d.table=tableFrom("p2", [6,5.5,5.5], [["Taakverdeling klasfeest","",""],["Taak","Wie","Wanneer"],["Hapjes","Lotte en Amir","Vrijdag"],["Drankjes","Noah",""],["Muziek","Sara","Zaterdag"],["Opruimen","Iedereen","Zondag"]]);
+  d.table.rows[1].cells.forEach(c=>c.s.bold=true); return d; }
+function trainingDoc(){ const d=mkDoc({boven:2,onder:2,links:2,rechts:2}, [["title","Zwemclub De Dolfijnen"],
+    ["intro","Zo trainen de jongeren van de zwemclub in mei."],["leeg",""]]);
+  Object.assign(d.paras[0].s, {size:20, bold:true});
+  const T=d.table=tableFrom("p2", [3,4,4,4], [["Trainingsschema mei","","",""],["Week","Maandag","Woensdag","Zaterdag"],["Week 1","Techniek","Conditie","Wedstrijd"],["Week 2","Conditie","Techniek","Vrije training"],["Week 3","Techniek","Conditie","Wedstrijd"]], [1.2,1,1.5,1.5,1.5]);
+  tMerge(T,{r0:0,c0:0,r1:0,c1:3}); T.rows[0].cells[0].s.size=16; T.rows[1].cells.forEach(c=>c.s.bold=true); return d; }
+function bestelDoc(){ const d=mkDoc({boven:2,onder:2,links:2,rechts:2}, [["title","Bestelling klas-T-shirts"],
+    ["intro","Iedereen kiest een maat en een kleur. Het totaal staat onderaan."],["leeg",""]]);
+  Object.assign(d.paras[0].s, {size:20, bold:true});
+  const T=d.table=tableFrom("p2", [5,3,5,4], [["Naam","Maat","Kleur","Aantal"],["Emma","M","Blauw","1"],["Youssef","L","Zwart","2"],["Lina","S","Blauw","1"],["Ruben","XL","Grijs","1"],["Totaal","","","5"]]);
+  T.rows[0].cells.forEach(c=>c.s.bold=true); T.rows.forEach(r=>{ r.cells[3].s.align="right"; }); return d; }
+
 /* lijst met meerdere niveaus: per niveau een nummerstijl, posities (cm) en eventueel een gekoppelde kopstijl */
 const MLLIB = {
   abc:{n:"1) a) i)", lv:[["haak",0,.63],["klein",.63,1.27],["romk",1.27,1.9]], pv:["1)","a)","i)"]},
@@ -771,6 +874,138 @@ const LEVELS = [
    {t:"Klik op [[Tabel bijwerken]].", a:"btn:tocupdate", h:"Naast de grote knop Inhoudsopgave, onder Tekst toevoegen."},
    {t:"Kies [[Volledige tabel bijwerken]]. Zo komen ook nieuwe titels en nummers mee.", a:"tocu:alles", h:"De tweede keuze in het venster."},
    {t:"Klik op [[OK]].", a:"tocu:ok", h:"Rechtsonder in het venster."}
+ ]},
+ { name:"Een tabel invoegen", d:"Rijen, kolommen en cellen. Een tabel invoegen met het raster en een rij en een kolom toevoegen.", doc:"sportdag", file:"Sportdag", steps:[
+   {info:"Met een <b>tabel</b> zet je gegevens overzichtelijk naast en onder elkaar, bv. een uurrooster of een prijslijst. Een tabel bestaat uit <b>rijen</b> (horizontaal, van links naar rechts) en <b>kolommen</b> (verticaal, van boven naar onder). Elk vakje heet een <b>cel</b>."},
+   {quiz:"Hoe heet één vakje van een tabel?", opts:[["rij","Een rij"],["kolom","Een kolom"],["cel","Een cel"]], a:"quiz:cel", h:"Een rij loopt horizontaal, een kolom verticaal. Eén vakje is een cel."},
+   {quiz:"Je wil een tabel met 3 vakjes naast elkaar en 4 vakjes onder elkaar. Hoeveel kolommen heeft die tabel?", opts:[["3","3 kolommen"],["4","4 kolommen"]], a:"quiz:3", h:"Kolommen staan naast elkaar. Er staan 3 vakjes naast elkaar, dus 3 kolommen (en 4 rijen)."},
+   {t:"Klik op de lege regel onder de inleiding. Daar komt de tabel.", a:"sel:p2", h:"Onder de tekst 'Op vrijdag 15 mei…' staat een lege regel met enkel het teken ¶."},
+   {t:"Klik op het tabblad [[Invoegen]].", a:"tab:invoegen", h:"In de blauwe balk bovenaan, naast Start."},
+   {t:"Klik op [[Tabel]].", a:"menu:tabel", h:"De grote knop in de groep Tabellen, met een raster als prentje."},
+   {t:"Beweeg je muis over het raster tot er {{3x4 tabel}} boven staat en klik. Eerst tel je de kolommen, dan de rijen.", a:"tgrid", v:"3x4", vl:"3x4 tabel", h:"Tel 3 vakjes naar rechts en 4 vakjes naar beneden. Bovenaan het lijstje zie je hoeveel je gekozen hebt."},
+   {info:"De tabel staat er en je cursor staat in de eerste cel. Kijk naar het lint: rechts verschijnen twee nieuwe tabbladen in het geel, <b>Tabelontwerp</b> en <b>Indeling</b>. Die zie je enkel als je cursor in een tabel staat."},
+   {t:"Klik in de eerste cel, linksboven in de tabel.", a:"cel:0,0", h:"De eerste cel van de bovenste rij, links."},
+   {t:"Typ {{Activiteit}} en druk op Enter.", a:"ttype", v:"Activiteit", h:"Typ het woord Activiteit in het gele vakje in de cel."},
+   {t:"Klik in de tweede cel van de bovenste rij.", a:"cel:0,1", h:"Rechts naast 'Activiteit'."},
+   {t:"Typ {{Plaats}}.", a:"ttype", v:"Plaats", h:"Typ Plaats in het gele vakje."},
+   {t:"Klik in de derde cel van de bovenste rij.", a:"cel:0,2", h:"Rechts naast 'Plaats'."},
+   {t:"Typ {{Uur}}.", a:"ttype", v:"Uur", h:"Typ Uur in het gele vakje."},
+   {info:"Tip voor het echte Word: met de <b>Tab</b>-toets spring je naar de volgende cel. De rest van de tabel vulden we al voor je in. Maar er moet nog een activiteit bij: daarvoor heb je een extra <b>rij</b> nodig.", run:d=>tFill(d.table,[[null,null,null],["Voetbal","Sporthal","9.00 uur"],["Zwemmen","Zwembad","10.30 uur"],["Mountainbike","Bos","13.00 uur"]])},
+   {t:"Klik in de onderste rij, op 'Mountainbike'.", a:"cel:3,0", h:"De laatste rij van de tabel, eerste cel."},
+   {t:"Klik op het tabblad [[Indeling]] helemaal rechts. Dat is het tabblad van de tabel.", a:"tab:tindeling", h:"Er zijn twee tabbladen Indeling. Je zoekt het gele tabblad helemaal rechts, naast Tabelontwerp."},
+   {t:"Klik op [[Onder invoegen]].", a:"tins:onder", h:"In de groep Rijen en kolommen. Je voegt een rij toe ónder de rij waarin je cursor staat."},
+   {t:"Klik in de eerste cel van de nieuwe rij.", a:"cel:4,0", h:"De nieuwe lege rij helemaal onderaan, eerste cel."},
+   {t:"Typ {{Klimmen}}.", a:"ttype", v:"Klimmen", h:"Typ Klimmen in het gele vakje."},
+   {info:"Nu moet er nog een <b>kolom</b> bij: welke leerkracht gaat mee? Een kolom voeg je links of rechts toe van de kolom waarin je cursor staat.", run:d=>tFill(d.table,[[],[],[],[],[null,"Klimmuur","14.30 uur"]])},
+   {t:"Klik in de cel 'Uur'.", a:"cel:0,2", h:"Bovenaan in de tabel, de laatste cel van de eerste rij."},
+   {t:"Klik op [[Rechts invoegen]].", a:"tins:rechts", h:"Tabblad Indeling (van de tabel), groep Rijen en kolommen."},
+   {t:"Klik in de bovenste cel van de nieuwe kolom.", a:"cel:0,3", h:"Helemaal rechts in de bovenste rij."},
+   {t:"Typ {{Leerkracht}}.", a:"ttype", v:"Leerkracht", h:"Typ Leerkracht in het gele vakje."},
+   {info:"Klaar: je tabel heeft nu 4 kolommen en 5 rijen. Onthoud: <b>Invoegen > Tabel</b> om een tabel te maken, en op het tabblad <b>Indeling</b> van de tabel voeg je rijen en kolommen toe.", run:d=>tFill(d.table,[[],["","","","Mevr. Claes"],["","","","Mr. Wouters"],["","","","Mevr. Jacobs"],["","","","Mr. Peeters"]].map(r=>r.map(x=>x===""?null:x)))}
+ ]},
+ { name:"Kolombreedte en rijhoogte", d:"Een tabel invoegen via het venster, het blad liggend zetten en de grootte van kolommen en rijen in cm instellen.", doc:"weekmenu", file:"Weekmenu", steps:[
+   {info:"Met het raster kan je maximaal 10 kolommen en 8 rijen kiezen. Er is nog een manier, die altijd werkt: het venster <b>Tabel invoegen</b>. Daarin typ je zelf het aantal kolommen en rijen."},
+   {t:"Klik op de lege regel onder de inleiding.", a:"sel:p2", h:"Onder 'Dit eten we volgende week…' staat een lege regel met enkel ¶."},
+   {t:"Klik op het tabblad [[Invoegen]].", a:"tab:invoegen", h:"In de blauwe balk bovenaan, naast Start."},
+   {t:"Klik op [[Tabel]].", a:"menu:tabel", h:"Groep Tabellen."},
+   {t:"Klik onder het raster op [[Tabel invoegen…]].", a:"tabel:dlg", h:"In het lijstje dat openging, onder de streep."},
+   {t:"Typ {{6}} bij Aantal kolommen.", a:"tdlg:cols", v:"6", h:"Het eerste vak in het venster."},
+   {t:"Typ {{4}} bij Aantal rijen.", a:"tdlg:rows", v:"4", h:"Het tweede vak in het venster."},
+   {t:"Klik op [[OK]].", a:"tdlg:ok", h:"Rechtsonder in het venster."},
+   {info:"We vulden het menu al voor je in. Er staat veel tekst in de cellen en de kolommen zijn smal. Zet het blad daarom <b>liggend</b>: dan heb je meer plaats in de breedte.", run:d=>tFill(d.table,[["","Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag"],["Soep","Tomatensoep","Kervelsoep","Pompoensoep","Groentesoep","Erwtensoep"],["Hoofdgerecht","Spaghetti","Kip met frietjes","Vispannetje","Chili sin carne","Lasagne"],["Dessert","Appel","Yoghurt","Chocomousse","Banaan","Pudding"]])},
+   {t:"Klik op het tabblad [[Indeling]] tussen Ontwerpen en Verwijzingen (de indeling van het blad).", a:"tab:indeling", h:"Niet het gele tabblad van de tabel, maar het gewone tabblad Indeling, links daarvan."},
+   {t:"Klik op [[Afdrukstand]].", a:"btn:afdrukstand", h:"De tweede grote knop, naast Marges."},
+   {t:"Kies [[Liggend]].", a:"orient:liggend", h:"Het tweede woord in het lijstje."},
+   {info:"Het blad is breder, maar de tabel niet. Dat pas je aan met de <b>breedte</b> van de kolommen. Eerst selecteer je de hele tabel met het <b>kruisje ✥</b> linksboven de tabel."},
+   {t:"Klik op het kruisje [[✥]] linksboven de tabel.", a:"tabel:all", h:"Net boven de eerste cel, links van de tabel, staat een klein vierkantje met vier pijltjes."},
+   {t:"Klik op het tabblad [[Indeling]] helemaal rechts (van de tabel).", a:"tab:tindeling", h:"Het gele tabblad helemaal rechts, naast Tabelontwerp."},
+   {t:"Typ {{4}} in het vak Breedte en druk op Enter.", a:"tsize:w", v:"4", h:"In de groep Celgrootte, het tweede vak."},
+   {t:"De eerste kolom mag smaller. Selecteer ze: klik op het pijltje [[▼]] boven de eerste kolom.", a:"kol:0", h:"Boven de eerste kolom staat een klein pijltje ▼. In het echte Word verschijnt het als je je muis net boven de kolom houdt."},
+   {t:"Breedte: {{3}}", a:"tsize:w", v:"3", h:"Groep Celgrootte, het vak Breedte."},
+   {t:"Nu de hoogte. Selecteer opnieuw de hele tabel met het kruisje [[✥]].", a:"tabel:all", h:"Linksboven de tabel."},
+   {t:"Typ {{1,5}} in het vak Hoogte.", a:"tsize:h", v:"1.5", h:"In de groep Celgrootte, het eerste vak."},
+   {t:"De bovenste rij mag lager. Selecteer ze: klik op het pijltje [[▶]] links van de eerste rij.", a:"rij:0", h:"Links naast de eerste rij staat een klein pijltje ▶."},
+   {t:"Hoogte: {{1}}", a:"tsize:h", v:"1", h:"Groep Celgrootte, het vak Hoogte."},
+   {t:"Maak de dagen vet. Klik op het tabblad [[Start]].", a:"tab:start", h:"De rij is nog geselecteerd. Start staat links in de blauwe balk."},
+   {t:"Klik op [[B]].", a:"btn:vet", h:"Groep Lettertype, de knop B. Ook in een tabel werken de gewone opmaakknoppen."}
+ ]},
+ { name:"Cellen samenvoegen en splitsen", d:"Van meerdere cellen één cel maken, en één cel in twee verdelen.", doc:"klasfeest", file:"Klasfeest", steps:[
+   {info:"<b>Cellen samenvoegen</b>: van een paar cellen maak je één grote cel. Dat is handig voor een titel boven de tabel. <b>Cellen splitsen</b>: één cel verdeel je in kleinere cellen. Beide knoppen staan op het tabblad Indeling van de tabel."},
+   {t:"De titel moet over de hele breedte. Selecteer de eerste rij: klik op het pijltje [[▶]] links van de rij.", a:"rij:0", h:"Links naast 'Taakverdeling klasfeest' staat een klein pijltje ▶."},
+   {t:"Klik op het tabblad [[Indeling]] helemaal rechts.", a:"tab:tindeling", h:"Het gele tabblad van de tabel, naast Tabelontwerp."},
+   {t:"Klik op [[Cellen samenvoegen]].", a:"tmerge", h:"In de groep Samenvoegen, de eerste knop."},
+   {info:"De drie cellen zijn nu één cel. Hapjes en drankjes zijn allebei op vrijdag. Dan hoeft 'Vrijdag' er maar één keer te staan: je voegt twee cellen <b>onder elkaar</b> samen."},
+   {t:"Klik op de cel 'Vrijdag'.", a:"cel:2,2", h:"In de rij van Hapjes, laatste kolom."},
+   {t:"Hou de <b>Shift</b>-toets ingedrukt en klik op de lege cel eronder.", a:"tshift:3,2", h:"Shift is de toets met het pijltje omhoog. Hou hem vast en klik op de lege cel in de rij van Drankjes."},
+   {t:"Klik op [[Cellen samenvoegen]].", a:"tmerge", h:"Groep Samenvoegen."},
+   {info:"Voor de muziek zijn er twee mensen: Sara doet de muziek en Jonas de lichten. Daarom <b>splits</b> je de cel van Sara in twee rijen."},
+   {t:"Klik op de cel 'Sara'.", a:"cel:4,1", h:"In de rij van Muziek, kolom Wie."},
+   {t:"Klik op [[Cellen splitsen]].", a:"tsplit", h:"Groep Samenvoegen, onder Cellen samenvoegen."},
+   {t:"Typ {{1}} bij Aantal kolommen.", a:"tsp:cols", v:"1", h:"Het eerste vak. Je wil geen extra kolom, dus 1."},
+   {t:"Typ {{2}} bij Aantal rijen.", a:"tsp:rows", v:"2", h:"Het tweede vak. Je wil twee rijen."},
+   {t:"Klik op [[OK]].", a:"tsp:ok", h:"Rechtsonder in het venster."},
+   {t:"Klik in de nieuwe lege cel onder 'Sara'.", a:"cel:5,1", h:"Net onder Sara staat nu een lege cel."},
+   {t:"Typ {{Jonas}}.", a:"ttype", v:"Jonas", h:"Typ Jonas in het gele vakje."},
+   {info:"Kijk: 'Muziek' en 'Zaterdag' lopen nu over twee rijen, want enkel de cel van Sara werd gesplitst. Tot slot maak je de titel vet."},
+   {t:"Klik op de titel 'Taakverdeling klasfeest'.", a:"cel:0,0", h:"De brede cel bovenaan."},
+   {t:"Klik op het tabblad [[Start]].", a:"tab:start", h:"Links in de blauwe balk."},
+   {t:"Klik op [[B]].", a:"btn:vet", h:"Groep Lettertype."}
+ ]},
+ { name:"Uitlijnen, tekstrichting en arcering", d:"Tekst in het midden van een cel zetten, cellen een achtergrondkleur geven en tekst laten draaien.", doc:"training", file:"Trainingsschema", steps:[
+   {info:"In een cel kan je tekst <b>horizontaal</b> uitlijnen (links, midden, rechts) én <b>verticaal</b> (boven, midden, onder). Daarvoor staan er <b>9 knoppen</b> in de groep Uitlijning op het tabblad Indeling van de tabel. Kijk naar de streepjes in de knoppen: ze tonen waar de tekst komt."},
+   {t:"Selecteer de hele tabel met het kruisje [[✥]] linksboven.", a:"tabel:all", h:"Net linksboven de tabel staat een vierkantje met vier pijltjes."},
+   {t:"Klik op het tabblad [[Indeling]] helemaal rechts.", a:"tab:tindeling", h:"Het gele tabblad van de tabel."},
+   {t:"Klik in de groep Uitlijning op [[Gecentreerd uitlijnen]]: de middelste van de 9 knoppen.", a:"cal:mc", h:"Groep Uitlijning: 3 rijen van 3 knoppen. Je zoekt de knop in het midden, met de streepjes in het midden."},
+   {info:"Alle tekst staat nu in het midden van zijn cel. Nu krijgt de titel een achtergrondkleur. Dat heet <b>arcering</b>. Je vindt ze op het tabblad <b>Tabelontwerp</b>."},
+   {t:"Klik op de titel 'Trainingsschema mei'.", a:"cel:0,0", h:"De brede cel bovenaan."},
+   {t:"Klik op het tabblad [[Tabelontwerp]].", a:"tab:tontwerp", h:"Het gele tabblad naast Indeling, helemaal rechts."},
+   {t:"Klik op [[Arcering]].", a:"menu:arcering", h:"In de groep Tabelstijlen: de grote knop met de verfpot."},
+   {t:"Kies {{Blauw}} bij de standaardkleuren.", a:"tshade", v:"Blauw", h:"Hou je muis op een kleur om de naam te zien. Blauw staat in de onderste rij, bij Standaardkleuren."},
+   {t:"Zwarte tekst op blauw leest moeilijk. Klik op het tabblad [[Start]].", a:"tab:start", h:"Links in de blauwe balk."},
+   {t:"Klik op het pijltje naast [[Tekenkleur]].", a:"menu:kleur", h:"Groep Lettertype: de A met de rode streep, en het pijltje ernaast."},
+   {t:"Kies {{Wit, Achtergrond 1}}.", a:"color", v:"Wit, Achtergrond 1", h:"Het eerste vakje linksboven bij Themakleuren."},
+   {t:"Selecteer de tweede rij met de dagen: klik op het pijltje [[▶]] links van de rij.", a:"rij:1", h:"Links naast 'Week Maandag Woensdag Zaterdag'."},
+   {t:"Klik op het tabblad [[Tabelontwerp]].", a:"tab:tontwerp", h:"Geel tabblad, rechts."},
+   {t:"Klik op [[Arcering]].", a:"menu:arcering", h:"Groep Tabelstijlen."},
+   {t:"Kies {{Blauw, Accent 1, lichter 80%}}.", a:"tshade", v:"Blauw, Accent 1, lichter 80%", h:"De vijfde kolom bij Themakleuren, het eerste vakje onder de bovenste rij. Hou je muis erop om de naam te zien."},
+   {info:"Links komt nog een smalle kolom met de tekst 'Seizoen 2026', van onder naar boven geschreven. Dat doe je in vier stappen: kolom invoegen, cellen samenvoegen, tekst typen en de <b>tekstrichting</b> aanpassen."},
+   {t:"Selecteer de eerste kolom: klik op het pijltje [[▼]] boven de kolom.", a:"kol:0", h:"Boven 'Week' staat een klein pijltje ▼."},
+   {t:"Klik op het tabblad [[Indeling]] helemaal rechts.", a:"tab:tindeling", h:"Geel tabblad, helemaal rechts."},
+   {t:"Klik op [[Links invoegen]].", a:"tins:links", h:"Groep Rijen en kolommen."},
+   {t:"De nieuwe kolom is geselecteerd. Klik op [[Cellen samenvoegen]].", a:"tmerge", h:"Groep Samenvoegen."},
+   {t:"Typ {{Seizoen 2026}}.", a:"ttype", v:"Seizoen 2026", h:"Typ in het gele vakje in de nieuwe cel."},
+   {t:"Klik op [[Tekstrichting]].", a:"tdir", h:"Groep Uitlijning, de grote knop met de A en het pijltje."},
+   {t:"De tekst loopt nu van boven naar onder. Klik nog eens op [[Tekstrichting]]: dan loopt hij van onder naar boven.", a:"tdir", h:"Dezelfde knop nog eens."},
+   {t:"Maak de kolom smal: typ {{1,5}} in het vak Breedte.", a:"tsize:w", v:"1.5", h:"Groep Celgrootte, het tweede vak."}
+ ]},
+ { name:"Randen en rasterlijnen", d:"Randen weghalen, een pen kiezen (stijl, dikte, kleur) en buiten- en binnenranden tekenen.", doc:"bestel", file:"Bestelling", steps:[
+   {info:"Een nieuwe tabel heeft dunne zwarte <b>randen</b>. Die worden afgedrukt. Haal je de randen weg, dan zie je blauwe stippellijntjes: de <b>rasterlijnen</b>. Die helpen je enkel op het scherm en worden <b>niet</b> afgedrukt."},
+   {t:"Selecteer de hele tabel met het kruisje [[✥]].", a:"tabel:all", h:"Linksboven de tabel."},
+   {t:"Klik op het tabblad [[Tabelontwerp]].", a:"tab:tontwerp", h:"Het gele tabblad rechts in de blauwe balk."},
+   {t:"Klik op het pijltje bij [[Randen]].", a:"menu:trand", h:"Groep Randen, de grote knop rechts."},
+   {t:"Kies [[Geen rand]].", a:"trand:geen", h:"In het lijstje dat openging."},
+   {quiz:"Je drukt de tabel nu af. Staan de blauwe stippellijntjes op het papier?", opts:[["ja","Ja"],["nee","Nee"]], a:"quiz:nee", h:"Rasterlijnen zie je enkel op het scherm. Ze worden niet afgedrukt."},
+   {info:"Een rand tekenen gaat in twee stappen. Eerst kies je de <b>pen</b>: de lijnstijl, de lijndikte en de penkleur. Daarna kies je bij <b>Randen</b> waar de lijn komt. Eerst een dikke groene rand rond de hele tabel."},
+   {t:"Kies bij Lijndikte {{3 pt}}.", a:"pen:w", v:"3", vl:"3 pt", h:"Groep Randen, het tweede lijstje (nu ½ pt)."},
+   {t:"Klik op [[Penkleur]].", a:"menu:penkleur", h:"Groep Randen, onder de twee lijstjes."},
+   {t:"Kies {{Groen}}.", a:"pencolor", v:"Groen", h:"Bij Standaardkleuren, onderaan. Hou je muis op een kleur om de naam te zien."},
+   {t:"Klik op het pijltje bij [[Randen]].", a:"menu:trand", h:"De grote knop rechts in de groep Randen."},
+   {t:"Kies [[Buitenranden]].", a:"trand:buiten", h:"Buitenranden = enkel rond de buitenkant van wat je selecteerde."},
+   {info:"Nu fijne stippellijnen tussen de cellen: dat zijn de <b>binnenranden</b>."},
+   {t:"Kies bij Lijnstijl {{Gestippeld}}.", a:"pen:st", v:"Gestippeld", h:"Groep Randen, het eerste lijstje."},
+   {t:"Kies bij Lijndikte {{1 pt}}.", a:"pen:w", v:"1", vl:"1 pt", h:"Het tweede lijstje."},
+   {t:"Klik op het pijltje bij [[Randen]].", a:"menu:trand", h:"De grote knop Randen."},
+   {t:"Kies [[Binnenranden]].", a:"trand:binnen", h:"Binnenranden = alle lijnen tussen de cellen, niet rond de buitenkant."},
+   {t:"Onder de titelrij komt een gewone lijn. Selecteer de eerste rij met het pijltje [[▶]].", a:"rij:0", h:"Links naast 'Naam'."},
+   {t:"Kies bij Lijnstijl {{Enkel}}.", a:"pen:st", v:"Enkel", h:"Het eerste lijstje, bovenaan: de gewone volle lijn."},
+   {t:"Kies bij Lijndikte {{1½ pt}}.", a:"pen:w", v:"1.5", vl:"1½ pt", h:"Het tweede lijstje."},
+   {t:"Klik op het pijltje bij [[Randen]].", a:"menu:trand", h:"De grote knop Randen."},
+   {t:"Kies [[Onderrand]].", a:"trand:onder", h:"Bovenaan in het lijstje."},
+   {t:"Selecteer de laatste rij met het totaal: klik op het pijltje [[▶]].", a:"rij:5", h:"Links naast 'Totaal'."},
+   {t:"Klik op [[Arcering]].", a:"menu:arcering", h:"Groep Tabelstijlen, de verfpot."},
+   {t:"Kies {{Groen, Accent 6, lichter 80%}}.", a:"tshade", v:"Groen, Accent 6, lichter 80%", h:"De laatste kolom bij Themakleuren, het eerste vakje onder de bovenste rij."},
+   {t:"Hoe ziet het eruit op papier? Klik op het tabblad [[Indeling]] helemaal rechts.", a:"tab:tindeling", h:"Het gele tabblad helemaal rechts."},
+   {t:"Zet [[Rasterlijnen weergeven]] uit.", a:"btn:raster", h:"In de groep Tabel, helemaal links op dit tabblad."}
  ]}
 ];
 
@@ -848,7 +1083,9 @@ const CHAPTERS = [
    tasks:[{id:"1", name:"Oef 3.4 Festivals", after:12, d:"Nu in het echte Word: maak zelf de stijlen aan en pas de gouden regel toe op een tekst over festivals.",
      files:[["Opdrachtfiche (pdf)","festivals-fiche.pdf"],["Starttekst (Word)","festivals-opgave.docx"]]}]},
   {name:"Opsomming en nummering", levels:[9,13,14], code:"LIJST5"},
-  {name:"Tabellen", levels:[], code:"TABEL4"}
+  {name:"Tabellen", levels:[15,16,17,18,19], code:"TABEL4",
+   tasks:[{id:"2", name:"Weekplanning sportkamp", after:19, d:"Nu in het echte Word: maak zelf een weekplanning met een tabel. Je stelt de kolommen en rijen in, voegt cellen samen, splitst een cel, draait tekst en werkt met arcering en randen.",
+     files:[["Opdrachtfiche (pdf)","sportkamp-fiche.pdf"],["Starttekst (Word)","sportkamp-opgave.docx"]]}]}
 ];
 function chapterByCode(c){ c=String(c).toUpperCase().replace(/[\s-]/g,""); return CHAPTERS.findIndex(ch=>ch.code===c); }
 function openChapter(ci){ S.prog.open=[...new Set([...(S.prog.open||[]), ci])]; S.prog.ch=ci; }
@@ -914,14 +1151,16 @@ function renderMap(){
 /* ---------- het spel ---------- */
 function startLevel(n){
   const L = LEVELS[n-1];
-  const doc = ({tiramisu:tiramisuDoc, films:filmsDoc, netflix:netflixDoc, avatar:avatarDoc, rasgroepen:rasgroepenDoc, vr:vrDoc}[L.doc] || freshDoc)();
+  const doc = ({tiramisu:tiramisuDoc, films:filmsDoc, netflix:netflixDoc, avatar:avatarDoc, rasgroepen:rasgroepenDoc, vr:vrDoc, sportdag:sportdagDoc, weekmenu:weekmenuDoc, klasfeest:klasfeestDoc, training:trainingDoc, bestel:bestelDoc}[L.doc] || freshDoc)();
   if(chapterOf(n)>=0){ S.prog.ch=chapterOf(n); save(); }
   if(L.preset==="kwast"){ Object.assign(doc.paras[2].s, SUB_STYLE); Object.assign(doc.paras[3].s, BODY_STYLE); doc.margins={boven:2,onder:2,links:2,rechts:2}; }
   if(n>=6 && !L.preset){ doc.margins={boven:2,onder:2,links:2,rechts:2}; }
-  G = { n, L, i:0, miss:0, score:0, errors:0, doc, ui:{tab:"start", menu:null, dialog:null, dlg:{}, sel:null, marks:n>1, kwast:0, ctxPos:null}, msg:null, pop:"" };
-  S.screen="play"; render(); window.scrollTo({top:0});
+  doc.pen = {st:"solid", w:.5, c:"#000000"};
+  G = { n, L, i:0, miss:0, score:0, errors:0, doc, ui:{tab:"start", menu:null, dialog:null, dlg:{}, sel:null, tsel:null, grid:true, marks:n>1, kwast:0, ctxPos:null}, msg:null, pop:"" };
+  runStep(); S.screen="play"; render(); window.scrollTo({top:0});
 }
 function step(){ return G.L.steps[G.i]; }
+function runStep(){ const st=step(); if(st && st.run) st.run(G.doc); }
 function fmt(t, boss){ return t.replace(/\[\[(.+?)\]\]/g, (m,x)=> boss?esc(x):`<span class="k">${esc(x)}</span>`).replace(/\{\{(.+?)\}\}/g,(m,x)=>`<span class="v">${esc(x)}</span>`); }
 
 function renderPlay(){
@@ -930,7 +1169,7 @@ function renderPlay(){
   app.innerHTML = header() + `<div class="card mission">
     <div style="min-width:0"><div class="stepline"><b style="color:var(--word)">${lvLabel(G.n)}: ${esc(L.name)}</b><span>Stap ${Math.min(doneSteps+1,real)} van ${real}</span><span class="bar" aria-hidden="true"><i style="width:${doneSteps/real*100}%"></i></span></div>
       <div class="say" id="say">${st.info? st.info : st.quiz? fmt(st.quiz) : fmt(st.t, L.boss)}</div>
-      ${st.quiz?`<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-quiz="lint" data-name="Lint">Via het lint</button><button class="btn" data-quiz="stijl" data-name="Stijl">Met een stijl</button></div>`:""}
+      ${st.quiz?`<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">${(st.opts||[["lint","Via het lint"],["stijl","Met een stijl"]]).map(([k,n])=>`<button class="btn" data-quiz="${esc(k)}" data-name="${esc(n)}">${esc(n)}</button>`).join("")}</div>`:""}
       ${st.info?`<div style="margin-top:12px"><button class="btn" id="next">Verder</button></div>`:""}
       <div class="fb ${G.msg?"show "+G.msg.k:""}" id="fb" role="status">${G.msg?G.msg.h:""}</div></div>
     <div class="side"><span class="chip pts">Dit level <b>${G.score}</b></span><span class="pop" id="pop">${G.pop}</span><button class="btn ghost small" data-go="map">Stoppen</button></div></div>
@@ -940,6 +1179,7 @@ function renderPlay(){
   app.querySelectorAll("[data-quiz]").forEach(b=>b.addEventListener("click", ()=>act2("quiz:"+b.dataset.quiz, undefined, b)));
   bindWord();
   if(!st.info && G.miss>=2) markTarget();
+  const tin=$("#word .tin"); if(tin){ try{ tin.focus({preventScroll:true}); }catch(e){} }
   const pop=$("#pop"); if(pop.textContent){ pop.classList.add("anim"); }
 }
 
@@ -963,13 +1203,25 @@ const I = {
  orient:'<svg viewBox="0 0 32 32"><rect x="4" y="9" width="22" height="16" fill="#fff" stroke="#555"/><rect x="12" y="4" width="14" height="19" fill="#fff" stroke="#2B579A"/></svg>',
  size:'<svg viewBox="0 0 32 32"><rect x="8" y="4" width="16" height="24" fill="#fff" stroke="#555"/><path d="M5 4v24M27 4v24" stroke="#2B579A"/></svg>',
  cols:'<svg viewBox="0 0 32 32"><rect x="5" y="4" width="22" height="24" fill="#fff" stroke="#555"/><path d="M8 9h7M8 13h7M8 17h7M17 9h7M17 13h7M17 17h7" stroke="#2B579A"/></svg>',
+ table:'<svg viewBox="0 0 32 32"><rect x="4" y="6" width="24" height="20" fill="#fff" stroke="#555"/><rect x="4" y="6" width="24" height="5" fill="#5B9BD5"/><path d="M4 16h24M4 21h24M12 6v20M20 6v20" stroke="#555"/></svg>',
+ shade:'<svg viewBox="0 0 32 32"><path d="M8 18 17 7l8 8-9 11z" fill="#fff" stroke="#333"/><path d="M25 15c2 3 3 5 1 7" stroke="#2B579A" fill="none"/><rect x="4" y="26" width="24" height="4" fill="#FFC000"/></svg>',
+ dir:'<svg viewBox="0 0 32 32"><text x="6" y="22" font-size="14" font-weight="700" fill="#333">A</text><path d="M22 6v20M19 22l3 4 3-4" stroke="#2B579A" stroke-width="1.6" fill="none"/></svg>',
+ insRow:(d)=>`<svg viewBox="0 0 16 16"><rect x="1.5" y="${d==="up"?8:1.5}" width="13" height="6.5" fill="#fff" stroke="#555"/><path d="M1.5 ${d==="up"?11.2:4.7}h13M6 ${d==="up"?8:1.5}v6.5M10.5 ${d==="up"?8:1.5}v6.5" stroke="#555"/><rect x="1.5" y="${d==="up"?1.5:8.5}" width="13" height="5" fill="#BDD7EE" stroke="#2B579A"/></svg>`,
+ insCol:(d)=>`<svg viewBox="0 0 16 16"><rect x="${d==="l"?8:1.5}" y="1.5" width="6.5" height="13" fill="#fff" stroke="#555"/><path d="M${d==="l"?8:1.5} 6h6.5M${d==="l"?8:1.5} 10.5h6.5" stroke="#555"/><rect x="${d==="l"?1.5:8.5}" y="1.5" width="5" height="13" fill="#BDD7EE" stroke="#2B579A"/></svg>`,
+ merge:'<svg viewBox="0 0 16 16"><rect x="1.5" y="3.5" width="13" height="9" fill="#fff" stroke="#555"/><path d="M4 8h3M12 8H9M5.5 6.5 7 8 5.5 9.5M10.5 6.5 9 8l1.5 1.5" stroke="#2B579A" fill="none"/></svg>',
+ split:'<svg viewBox="0 0 16 16"><rect x="1.5" y="3.5" width="13" height="9" fill="#fff" stroke="#555"/><path d="M8 3.5v9" stroke="#555" stroke-dasharray="1 1"/><path d="M6.5 8h-3M9.5 8h3M5 6.5 3.5 8 5 9.5M11 6.5 12.5 8 11 9.5" stroke="#2B579A" fill="none"/></svg>',
+ cal:(a)=>{ const y={t:3,m:6,b:9}[a[0]], x={l:2.5,c:4,r:5.5}[a[1]]; return `<svg viewBox="0 0 16 16"><rect x=".5" y=".5" width="15" height="15" fill="#fff" stroke="#BBB"/>${[0,1,2].map(i=>`<rect x="${x+(i===1?(a[1]==="l"?0:a[1]==="c"?1:2):0)}" y="${y+i*1.6}" width="${i===1?6:8}" height="1" fill="#333"/>`).join("")}</svg>`; },
+ rnd:(k)=>{ const L={onder:"M2 14h12",boven:"M2 2h12",links:"M2 2v12",rechts:"M14 2v12",alle:"M2 2h12v12H2zM8 2v12M2 8h12",buiten:"M2 2h12v12H2z",binnen:"M8 2v12M2 8h12",binnenh:"M2 8h12",binnenv:"M8 2v12",geen:""}[k];
+   return `<svg width="16" height="16" viewBox="0 0 16 16" style="flex:none"><rect x="2" y="2" width="12" height="12" fill="none" stroke="#AAA" stroke-dasharray="1 1"/><path d="M8 2v12M2 8h12" stroke="#AAA" stroke-dasharray="1 1"/>${L?`<path d="${L}" stroke="#000" stroke-width="1.6" fill="none"/>`:""}</svg>`; },
+ orientP:'<svg viewBox="0 0 32 32"><rect x="9" y="4" width="14" height="22" fill="#fff" stroke="#555"/><path d="M12 9h8M12 12h8M12 15h8" stroke="#2B579A"/></svg>',
+ orientL:'<svg viewBox="0 0 32 32"><rect x="4" y="8" width="24" height="15" fill="#fff" stroke="#555"/><path d="M8 12h16M8 15h16M8 18h16" stroke="#2B579A"/></svg>',
  gen:(c)=>`<svg viewBox="0 0 32 32"><rect x="6" y="5" width="20" height="22" rx="2" fill="#fff" stroke="#555"/><rect x="10" y="10" width="12" height="8" fill="${c}"/></svg>`
 };
 function B(act, name, inner, cls="rb"){ return `<button class="${cls}" data-act="${act}" data-name="${esc(name)}" title="${esc(name)}" aria-label="${esc(name)}">${inner}</button>`; }
 function big(act,name,icon,label){ return B(act,name,`${icon}<span>${label}</span>`,"rb big"); }
 function grp(name, inner, launch){ return `<div class="grp"><div class="gb">${inner}</div><div class="gname">${name}</div>${launch?B(launch,"Instellingen voor "+name.toLowerCase()+" (klein pijltje)",'<svg width="9" height="9" viewBox="0 0 9 9"><path d="M1 1h7v7M8 8 2 2" stroke="#444" fill="none"/></svg>',"launch"):""}</div>`; }
 
-function curStyle(){ const p = selP(); return p? p.s : null; }
+function curStyle(){ if(G.ui.tsel && G.doc.table && !G.ui.sel){ const o=owners(G.doc.table,G.ui.tsel)[0]; return o? o.s : null; } const p = selP(); return p? p.s : null; }
 function ribbonStart(){
   const s = curStyle()||{}; const on = k=> s[k]?" on":"";
   const fontOpts = Object.keys(FONTS).map(f=>`<option value="${f}">`).join(""), sizeOpts = SIZES.map(z=>`<option value="${String(z).replace(".",",")}">`).join("");
@@ -999,6 +1251,38 @@ function ribbonIndeling(){
    + grp("Alinea", `<div class="col"><b style="font-weight:600">Inspringen</b><div class="row">Links: ${B("btn:ind-links","Inspringen links","0 cm")}</div><div class="row">Rechts: ${B("btn:ind-rechts","Inspringen rechts","0 cm")}</div></div>
       <div class="col"><b style="font-weight:600">Afstand</b><div class="row">Voor: ${B("btn:afst-voor","Afstand voor","0 pt")}</div><div class="row">Na: ${B("btn:afst-na","Afstand na","8 pt")}</div></div>`, "launch:alinea2")
    + grp("Schikken", big("btn:positie","Positie",I.gen("#9DC3E6"),"Positie")+big("btn:terugloop","Tekstterugloop",I.gen("#F4B183"),"Tekst-<br>terugloop")+big("btn:draaien","Draaien",I.gen("#C5E0B4"),"Draaien"));
+}
+function ribbonInvoegen(){
+  const g=(n,c,l)=>big("btn:invoegen-"+n.toLowerCase().replace(/[^a-z0-9]+/g,"-"), n, I.gen(c), l||n);
+  return grp("Pagina's", g("Voorblad","#9DC3E6")+g("Lege pagina","#fff","Lege<br>pagina")+g("Pagina-einde","#ddd","Pagina-<br>einde"))
+   + grp("Tabellen", big("menu:tabel","Tabel",I.table,"Tabel ▾"))
+   + grp("Illustraties", g("Afbeeldingen","#70AD47")+g("Vormen","#ED7D31")+g("SmartArt","#A5A5A5")+g("Grafiek","#FFC000"))
+   + grp("Koptekst en voettekst", g("Koptekst","#9DC3E6")+g("Voettekst","#9DC3E6")+g("Paginanummer","#2B579A","Pagina-<br>nummer"))
+   + grp("Tekst", g("Tekstvak","#fff")+g("Symbool","#7030A0"));
+}
+function ribbonTOntwerp(){ const P=G.doc.pen, stN={solid:"Enkel",dotted:"Gestippeld",dashed:"Gestreept",double:"Dubbel"};
+  const W=[[.25,"¼ pt"],[.5,"½ pt"],[.75,"¾ pt"],[1,"1 pt"],[1.5,"1½ pt"],[2.25,"2¼ pt"],[3,"3 pt"],[4.5,"4½ pt"],[6,"6 pt"]];
+  return grp("Opties voor tabelstijlen", `<div class="col">${["Veldnamenrij","Totaalrij","Gestreepte rijen"].map((n,i)=>B("btn:topt-"+i,n,(i===1?"☐ ":"☑ ")+n,"rb wide")).join("")}</div>`)
+   + grp("Tabelstijlen", ["#FFFFFF","#DEEAF6","#E2EFD9","#FBE4D5"].map((c,i)=>B("btn:tstijl-"+(i+1),"Tabelstijl "+(i+1),`<svg viewBox="0 0 40 30" style="width:40px;height:30px"><rect x=".5" y=".5" width="39" height="29" fill="${c}" stroke="#999"/><path d="M0 7.5h40M0 15h40M0 22.5h40M13 0v30M27 0v30" stroke="#999" stroke-width=".6"/></svg>`,"rb big")).join("")
+      + big("menu:arcering","Arcering",I.shade,"Arcering ▾"))
+   + grp("Randen", big("btn:randstijlen","Randstijlen",I.gen("#555"),"Rand-<br>stijlen ▾")+`<div class="col">
+       <select class="combo" data-act="pen:st" data-name="Lijnstijl" title="Lijnstijl" aria-label="Lijnstijl" style="width:112px">${Object.values(stN).map(n=>`<option${stN[P.st]===n?" selected":""}>${n}</option>`).join("")}</select>
+       <select class="combo" data-act="pen:w" data-name="Lijndikte" title="Lijndikte" aria-label="Lijndikte" style="width:112px">${W.map(([v,n])=>`<option value="${v}"${P.w===v?" selected":""}>${n}</option>`).join("")}</select>
+       ${B("menu:penkleur","Penkleur",`<span style="display:inline-block;width:14px;height:5px;background:${P.c};border:1px solid #999"></span> Penkleur ▾`,"rb wide")}</div>`
+      + big("menu:trand","Randen",I.border,"Randen ▾"));
+}
+function ribbonTIndeling(){ const T=G.doc.table, R=G.ui.tsel, f=x=>String(x).replace(".",",");
+  const h = R && T.rows[R.r0].h, w = R && T.colW[R.c0];
+  const an={tl:"Linksboven uitlijnen",tc:"Boven centreren",tr:"Rechtsboven uitlijnen",ml:"Links centreren",mc:"Gecentreerd uitlijnen",mr:"Rechts centreren",bl:"Linksonder uitlijnen",bc:"Onder centreren",br:"Rechtsonder uitlijnen"};
+  const o = owners(T,R)[0], cur = o? ({top:"t",middle:"m",bottom:"b"}[o.va]+({left:"l",center:"c",right:"r",justify:"l"}[o.s.align])) : "";
+  return grp("Tabel", `<div class="col">${B("menu:tselect","Selecteren","Selecteren ▾","rb wide")}${B("btn:raster","Rasterlijnen weergeven","▦ Rasterlijnen weergeven","rb wide"+(G.ui.grid?" on":""))}${B("btn:teigenschappen","Eigenschappen","Eigenschappen","rb wide")}</div>`)
+   + grp("Rijen en kolommen", big("btn:tverwijderen","Verwijderen",I.gen("#C00000"),"Verwijderen ▾")+big("tins:boven","Boven invoegen",I.insRow("up"),"Boven<br>invoegen")
+      +`<div class="col">${B("tins:onder","Onder invoegen",I.insRow("dn")+"Onder invoegen","rb wide")}${B("tins:links","Links invoegen",I.insCol("l")+"Links invoegen","rb wide")}${B("tins:rechts","Rechts invoegen",I.insCol("r")+"Rechts invoegen","rb wide")}</div>`)
+   + grp("Samenvoegen", `<div class="col">${B("tmerge","Cellen samenvoegen",I.merge+"Cellen samenvoegen","rb wide")}${B("tsplit","Cellen splitsen",I.split+"Cellen splitsen","rb wide")}${B("btn:tabel-splitsen","Tabel splitsen","Tabel splitsen","rb wide")}</div>`)
+   + grp("Celgrootte", `<div class="col"><div class="row"><label for="ts-h" style="width:52px">Hoogte:</label><input id="ts-h" class="combo" style="width:72px" data-act="tsize:h" data-name="Hoogte (rij)" value="${h?f(h)+" cm":""}"></div>
+       <div class="row"><label for="ts-w" style="width:52px">Breedte:</label><input id="ts-w" class="combo" style="width:72px" data-act="tsize:w" data-name="Breedte (kolom)" value="${w?f(w)+" cm":""}"></div>
+       <div class="row">${B("btn:rijen-verdelen","Rijen gelijk verdelen","Rijen verdelen")}${B("btn:kolommen-verdelen","Kolommen gelijk verdelen","Kolommen verdelen")}</div></div>`, "launch:tabel")
+   + grp("Uitlijning", `<div class="cal">${["tl","tc","tr","ml","mc","mr","bl","bc","br"].map(a=>B("cal:"+a,an[a],I.cal(a),"rb"+(cur===a?" on":""))).join("")}</div>`+big("tdir","Tekstrichting",I.dir,"Tekst-<br>richting")+`<div class="col">${B("btn:celmarges","Celmarges","Celmarges")}</div>`);
 }
 function ribbonVerwijzingen(){
   return grp("Inhoudsopgave", big("menu:toc","Inhoudsopgave",I.toc,"Inhouds-<br>opgave ▾")+`<div class="col">${B("btn:toc-tekst","Tekst toevoegen","Tekst toevoegen ▾")}${B("btn:tocupdate","Tabel bijwerken","↻ Tabel bijwerken")}</div>`)
@@ -1060,12 +1344,22 @@ function menuHTML(){
       ${[["lettertype","Lettertype…"],["alinea","Alinea…"]].map(([k,n])=>B("ctxi:"+k,n,n,"mi")).join("")}<div class="sep"></div>
       ${B("ctxi:opsomming","Opsommingstekens ▸","Opsommingstekens ▸","mi")}${B("ctxi:nummering","Nummering ▸","Nummering ▸","mi")}${B("ctx:lijst","Lijstinspringing aanpassen…","Lijstinspringing aanpassen…","mi")}${B("ctxi:nieuwe-lijst","Opnieuw nummeren vanaf 1","Opnieuw nummeren vanaf 1","mi")}</div>`;
   }
+  if(m==="tabel"){ let cells=""; for(let r=1;r<=8;r++) for(let c=1;c<=10;c++) cells+=`<button class="tg" data-act="tgrid" data-val="${c}x${r}" data-c="${c}" data-r="${r}" data-name="${c}x${r} tabel" title="${c}x${r} tabel" aria-label="${c}x${r} tabel"></button>`;
+    return `<div class="menu" data-for="menu:tabel" style="width:auto"><div class="mh" id="tglab">Tabel invoegen</div><div class="tgrid">${cells}</div><div class="sep"></div>${B("tabel:dlg","Tabel invoegen…","Tabel invoegen…","mi")}${B("btn:tabel-tekenen","Tabel tekenen","Tabel tekenen","mi")}${B("btn:tekst-naar-tabel","Tekst naar tabel converteren…","Tekst naar tabel converteren…","mi")}${B("btn:excel-werkblad","Excel-werkblad","Excel-werkblad","mi")}${B("btn:snelle-tabellen","Snelle tabellen","Snelle tabellen ▸","mi")}</div>`; }
+  if(m==="afdrukstand"){ return `<div class="menu" data-for="btn:afdrukstand" style="width:170px">${B("orient:staand","Staand",`${I.orientP.replace('viewBox','width="30" height="30" viewBox')}<span>Staand</span>`,"mi")}${B("orient:liggend","Liggend",`${I.orientL.replace('viewBox','width="30" height="30" viewBox')}<span>Liggend</span>`,"mi")}</div>`; }
+  if(m==="tselect"){ return `<div class="menu" data-for="menu:tselect">${[["cel","Cel selecteren"],["kol","Kolom selecteren"],["rij","Rij selecteren"],["tabel","Tabel selecteren"]].map(([k,n])=>B("tsel:"+k,n,n,"mi")).join("")}</div>`; }
+  if(m==="arcering") return swMenu("menu:arcering","tshade",`<button class="mi" data-act="tshade" data-val="Geen kleur" data-name="Geen kleur" title="Geen kleur">Geen kleur</button>`);
+  if(m==="penkleur") return swMenu("menu:penkleur","pencolor","");
+  if(m==="trand"){ const opts=[["onder","Onderrand"],["boven","Bovenrand"],["links","Linkerrand"],["rechts","Rechterrand"],["geen","Geen rand"],["alle","Alle randen"],["buiten","Buitenranden"],["binnen","Binnenranden"],["binnenh","Horizontale binnenrand"],["binnenv","Verticale binnenrand"]];
+    return `<div class="menu" data-for="menu:trand" style="width:210px">${opts.map(([k,n])=>B("trand:"+k,n,`${I.rnd(k)}<span>${n}</span>`,"mi")).join("")}<div class="sep"></div>${B("rand:dlg","Randen en arcering…","Randen en arcering…","mi")}</div>`; }
   if(m==="randen"){
     const opts=[["onder","Onderrand"],["boven","Bovenrand"],["links","Linkerrand"],["rechts","Rechterrand"],["geen","Geen rand"],["alle","Alle randen"],["buiten","Randen buiten"]];
     return `<div class="menu" data-for="menu:randen">${opts.map(([k,n])=>B("rand:"+k,n,`<span>${n}</span>`,"mi")).join("")}<div class="sep"></div>${B("rand:dlg","Randen en arcering…","Randen en arcering…","mi")}</div>`;
   }
   return "";
 }
+function swMenu(forAct, act, top){ const rows=swatchRows(), sw=(n,c)=>`<button class="sw" data-act="${act}" data-val="${esc(n)}" data-name="${esc(n)}" title="${esc(n)}" aria-label="${esc(n)}" style="background:${c}"></button>`;
+  return `<div class="menu" data-for="${forAct}">${top}<div class="mh">Themakleuren</div><div class="swatches">${rows.flat().map(x=>sw(x.n,x.c)).join("")}</div><div class="mh">Standaardkleuren</div><div class="swatches">${STD.map(([n,c])=>sw(n,c)).join("")}</div></div>`; }
 function dialogHTML(){
   const d=G.ui.dialog, v=G.ui.dlg; if(!d) return "";
   const f = x=> String(x).replace(".",",");
@@ -1100,6 +1394,17 @@ function dialogHTML(){
     return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Inhoudsopgave bijwerken" style="width:min(340px,94%)"><div class="dt"><span>Inhoudsopgave bijwerken</span>${B("tocu:x","Sluiten (kruisje)","✕","db")}</div>
     <div class="dc"><span>Word werkt de inhoudsopgave bij. Kies een van de volgende opties:</span>${r("pag","Alleen paginanummers bijwerken")}${r("alles","Volledige tabel bijwerken")}</div>
     <div class="df">${B("tocu:ok","OK","OK","db primary")}${B("tocu:x","Annuleren","Annuleren","db")}</div></div></div>`; }
+  if(d==="tins") return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Tabel invoegen" style="width:min(320px,94%)"><div class="dt"><span>Tabel invoegen</span>${B("tdlg:x","Sluiten (kruisje)","✕","db")}</div>
+    <div class="dc"><fieldset style="grid-template-columns:auto 80px"><legend>Tabelgrootte</legend>
+      <label for="td-cols">Aantal kolommen:</label><input id="td-cols" data-act="tdlg:cols" data-name="Aantal kolommen" value="${v.cols}">
+      <label for="td-rows">Aantal rijen:</label><input id="td-rows" data-act="tdlg:rows" data-name="Aantal rijen" value="${v.rows}"></fieldset>
+    <fieldset style="grid-template-columns:1fr"><legend>Gedrag bij AutoAanpassen</legend><span>◉ Vaste kolombreedte: Automatisch</span><span>○ AutoAanpassen aan inhoud</span><span>○ AutoAanpassen aan venster</span></fieldset></div>
+    <div class="df">${B("tdlg:ok","OK","OK","db primary")}${B("tdlg:x","Annuleren","Annuleren","db")}</div></div></div>`;
+  if(d==="tsplit") return `<div class="dlgback"><div class="dlg" role="dialog" aria-label="Cellen splitsen" style="width:min(300px,94%)"><div class="dt"><span>Cellen splitsen</span>${B("tsp:x","Sluiten (kruisje)","✕","db")}</div>
+    <div class="dc"><fieldset style="grid-template-columns:auto 80px"><legend>Splitsen</legend>
+      <label for="tsp-cols">Aantal kolommen:</label><input id="tsp-cols" data-act="tsp:cols" data-name="Aantal kolommen" value="${v.cols}">
+      <label for="tsp-rows">Aantal rijen:</label><input id="tsp-rows" data-act="tsp:rows" data-name="Aantal rijen" value="${v.rows}"></fieldset><span>☑ Cellen samenvoegen vóór splitsen</span></div>
+    <div class="df">${B("tsp:ok","OK","OK","db primary")}${B("tsp:x","Annuleren","Annuleren","db")}</div></div></div>`;
   if(d==="alinea") return alineaDlg(v);
   if(d==="stijl") return stijlDlg(v) + (G.ui.sub==="alinea"? alineaDlg(G.ui.dlg2) : "");
   return "";
@@ -1157,25 +1462,45 @@ function paraCSS(s, li){
 function tocHTML(toc){
   return `<div class="toc"><div style="font-family:${FONTS["Calibri Light"]};font-size:${(16*PT).toFixed(2)}px;color:#2F5496;margin-bottom:4px">Inhoud</div>${toc.entries.map(e=>`<div class="tocl" style="padding-left:${(e.lvl-1)*.4*CM}px;font-size:${(11*PT).toFixed(2)}px"><span style="display:inline-block;min-width:${1.5*CM}px">${esc(e.label)}</span><span>${esc(e.text)}</span><span class="dots"></span><span>1</span></div>`).join("")}</div>`;
 }
+function edgeCSS(e){ if(!e) return G.ui.grid? "1px dashed #8FAADC" : "1px solid transparent";
+  const px = e.st==="double"? Math.max(3, Math.round(e.w*PT*3)) : Math.max(1, Math.round(e.w*PT*10)/10); return `${px}px ${e.st} ${e.c}`; }
+function tableHTML(){
+  const T=G.doc.table, R=G.ui.tsel, st=step(), marks=G.ui.marks;
+  const inSel=(r,c)=> R && r>=R.r0 && r<=R.r1 && c>=R.c0 && c<=R.c1, single = R && owners(T,R).length===1;
+  let h=`<div class="tblwrap"><table class="wt" style="width:${22+T.colW.reduce((a,b)=>a+b,0)*CM}px"><colgroup><col style="width:22px">${T.colW.map(w=>`<col style="width:${w*CM}px">`).join("")}</colgroup>`;
+  h+=`<tr class="ch"><td>${B("tabel:all","Hele tabel selecteren (kruisje linksboven)","✥","hd mv")}</td>${T.colW.map((w,c)=>`<td>${B("kol:"+c,`Kolom ${c+1} selecteren (pijltje boven de kolom)`,"▼","hd")}</td>`).join("")}</tr>`;
+  T.rows.forEach((row,r)=>{ h+=`<tr${row.h?` style="height:${row.h*CM}px"`:""}><td class="rh">${B("rij:"+r,`Rij ${r+1} selecteren (pijltje links van de rij)`,"▶","hd")}</td>`;
+    row.cells.forEach((x,c)=>{ if(x.own) return; const s=x.s;
+      const txt = (single && inSel(r,c) && st && st.a==="ttype") ? `<input class="tin" data-act="ttype" data-name="tekst in de cel" aria-label="Typ in de cel" value="${esc(x.t)}" autocomplete="off" placeholder="typ hier">`
+        : esc(x.t).replace(/\n/g,"<br>")+(marks?'<span class="mark">¤</span>':"");
+      const inner = x.dir? `<div class="cv" style="writing-mode:vertical-rl;${x.dir===270?"transform:rotate(180deg);":""}">${txt}</div>` : txt;
+      const nm = x.t? `'${esc(x.t.split("\n")[0].slice(0,24))}'` : "(leeg)";
+      h+=`<td class="c${inSel(r,c)?" ts":""}" data-act="cel:${r},${c}" data-cel="${r},${c}" data-name="de cel ${nm} (rij ${r+1}, kolom ${c+1})"${x.cs>1?` colspan="${x.cs}"`:""}${x.rs>1?` rowspan="${x.rs}"`:""} style="border-top:${edgeCSS(x.b.t)};border-right:${edgeCSS(x.b.r)};border-bottom:${edgeCSS(x.b.b)};border-left:${edgeCSS(x.b.l)};${x.bg?`background-color:${x.bg};`:""}vertical-align:${x.va};text-align:${s.align};font-family:${FONTS[s.font]||s.font};font-size:${(s.size*PT).toFixed(2)}px;font-weight:${s.bold?700:400};font-style:${s.italic?"italic":"normal"};text-decoration:${s.underline?"underline":"none"};color:${s.color}">${inner}</td>`; });
+    h+="</tr>"; });
+  return h+`</table></div>`;
+}
 function docHTML(){
   const m=G.doc.margins, marks=G.ui.marks, sel=new Set(selList()), lab=mlLabels(), toc=G.doc.toc;
-  return `<div class="page${G.ui.kwast?" kwast":""}" style="padding:${m.boven*CM}px ${m.rechts*CM}px ${m.onder*CM}px ${m.links*CM}px"><div class="area">
+  return `<div class="page${G.ui.kwast?" kwast":""}" style="padding:${m.boven*CM}px ${m.rechts*CM}px ${m.onder*CM}px ${m.links*CM}px;${G.doc.land?`width:${29.7*CM}px;min-height:${21*CM}px;`:""}"><div class="area">
     ${G.doc.paras.map(p=>{ let t=esc(p.text); if(marks) t=t.replace(/ /g,'<span class="mark">·</span>\u200B');
       const key=p.grp||p.id, s=p.s, lv=listOf(p), li=lv? G.doc.ml.levels[lv-1] : null;
       if(li){ t=`<span style="display:inline-block;text-indent:0;min-width:${Math.max(.3,li.ind-li.pos)*CM}px">${esc(lab.get(p)||"")}${marks?'<span class="mark">→</span>':""}</span>`+t; }
       else if(s.list){ const nr=G.doc.paras.filter(x=>x.grp&&x.grp===p.grp&&x.s.list==="number").indexOf(p);
         const mk = s.list==="bullet"? (BGLYPH[s.bullet]||"●") : numLabel(s.numfmt, Math.max(0,nr));
         t=`<span style="display:inline-block;text-indent:0;min-width:${Math.max(.3,(s.lind-s.lpos))*CM}px;font-weight:400">${mk}${marks?'<span class="mark">→</span>':""}</span>`+t; }
-      return (toc && toc.at===p.id? tocHTML(toc) : "") + `<div class="p${sel.has(p)?" sel":""}" data-act="sel:${key}" data-pid="${p.id}" data-name="${p.text? `tekst '${esc(p.text.slice(0,28))}${p.text.length>28?"…":""}'` : "de lege regel"}" style="${paraCSS(p.s, li)}${p.text?"":"min-height:1.3em;"}">${t}${marks?'<span class="mark">¶</span>':""}</div>`;}).join("")}
+      return (toc && toc.at===p.id? tocHTML(toc) : "") + (G.doc.table && G.doc.table.at===p.id? tableHTML() : "") + `<div class="p${sel.has(p)?" sel":""}" data-act="sel:${key}" data-pid="${p.id}" data-name="${p.text? `tekst '${esc(p.text.slice(0,28))}${p.text.length>28?"…":""}'` : "de lege regel"}" style="${paraCSS(p.s, li)}${p.text?"":"min-height:1.3em;"}">${t}${marks?'<span class="mark">¶</span>':""}</div>`;}).join("")}
     ${marks?'<div class="p" style="font-size:12px"><span class="mark">¶</span></div>':""}</div></div>`;
 }
 function wordHTML(){
   const tabs=["bestand","start","invoegen","ontwerpen","indeling","verwijzingen","verzendlijsten","controleren","beeld"];
   const tn = t=> t==="bestand"?"Bestand": t[0].toUpperCase()+t.slice(1);
-  const rib = G.ui.tab==="start"? ribbonStart() : G.ui.tab==="indeling"? ribbonIndeling() : G.ui.tab==="verwijzingen"? ribbonVerwijzingen() : ribbonOther(G.ui.tab);
-  const words = G.doc.paras.reduce((a,p)=>a+p.text.split(/\s+/).length,0);
+  const ctx = !!(G.doc.table && G.ui.tsel); if(ctx) tabs.push("tontwerp","tindeling");
+  const tn2 = t=> t==="tontwerp"?"Tabelontwerp" : t==="tindeling"?"Indeling" : tn(t);
+  const rib = G.ui.tab==="start"? ribbonStart() : G.ui.tab==="indeling"? ribbonIndeling() : G.ui.tab==="verwijzingen"? ribbonVerwijzingen() : G.ui.tab==="invoegen"? ribbonInvoegen()
+    : G.ui.tab==="tontwerp" && ctx? ribbonTOntwerp() : G.ui.tab==="tindeling" && ctx? ribbonTIndeling() : ribbonOther(G.ui.tab);
+  const words = G.doc.paras.reduce((a,p)=>a+(p.text? p.text.split(/\s+/).length : 0),0) + (G.doc.table? G.doc.table.rows.flatMap(r=>r.cells).reduce((a,c)=>a+(!c.own && c.t? c.t.split(/\s+/).length:0),0) : 0);
   return `<div class="word" id="word"><div class="wtitle"><span>↶ ↷</span><span class="doc">klas_${G.L.file||"Iphone"}_${esc((S.name.split(/\s+/)[0]||"voornaam"))} - Word</span><span>— ☐ ✕</span></div>
-    <div class="wtabs">${tabs.map(t=>`<button class="wtab${t==="bestand"?" file":""}${G.ui.tab===t?" on":""}" data-act="tab:${t}" data-name="tabblad ${tn(t)}">${tn(t)}</button>`).join("")}</div>
+    <div class="wtabs">${tabs.map(t=>`<button class="wtab${t==="bestand"?" file":""}${t==="tontwerp"||t==="tindeling"?" ctx":""}${G.ui.tab===t?" on":""}" data-act="tab:${t}" data-name="tabblad ${tn2(t)}${t==="tindeling"?" (van de tabel)":""}">${tn2(t)}</button>`).join("")}</div>
     <div class="ribbonwrap" id="ribwrap"><div class="ribbon">${rib}</div></div>
     <div class="wbody" id="wbody">${docHTML()}</div>
     <div class="wstatus"><span>Pagina 1 van 1</span><span>${words} woorden</span><span>Nederlands (België)</span>${G.ui.kwast?`<span class="kw">Opmaak kopiëren staat aan${G.ui.kwast===2?" (meerdere keren)":""}</span>`:""}</div>${menuHTML()}${dialogHTML()}</div>`;
@@ -1190,7 +1515,8 @@ function bindWord(){
   placeMenu();
   w.addEventListener("input", e=>{ const el=e.target; if(el.list && e.inputType==="insertReplacementText") act2(el.dataset.act, el.value, el); });
   w.addEventListener("click", e=>{
-    if(e.shiftKey){ const pe=e.target.closest(".p[data-pid]"); if(pe && w.contains(pe)){ act2("shift:"+pe.dataset.pid, undefined, pe); return; } }
+    if(e.shiftKey){ const pe=e.target.closest(".p[data-pid]"); if(pe && w.contains(pe)){ act2("shift:"+pe.dataset.pid, undefined, pe); return; }
+      const ce=e.target.closest("td[data-cel]"); if(ce && w.contains(ce) && e.target.tagName!=="INPUT"){ act2("tshift:"+ce.dataset.cel, undefined, ce); return; } }
     const el=e.target.closest("[data-act]"); if(!el || !w.contains(el)) return;
     if(el.tagName==="INPUT"||el.tagName==="SELECT") return;
     const act=el.dataset.act;
@@ -1210,6 +1536,8 @@ function bindWord(){
     const wb=w.getBoundingClientRect(); G.ui._ctxNext={x:Math.min(e.clientX-wb.left, wb.width-240), y:e.clientY-wb.top};
     act2(el.dataset.act.replace("sel:","ctx:"), undefined, el, true);
   });
+  w.addEventListener("mouseover", e=>{ const t=e.target.closest(".tg"); if(!t) return; const C=+t.dataset.c, Rr=+t.dataset.r;
+    w.querySelectorAll(".tg").forEach(b=>b.classList.toggle("on", +b.dataset.c<=C && +b.dataset.r<=Rr)); const lab=$("#tglab"); if(lab) lab.textContent=`${C}x${Rr} tabel`; });
   w.addEventListener("change", e=>{ const el=e.target; if(el.dataset && el.dataset.act) act2(el.dataset.act, el.value, el); });
   w.addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target.tagName==="INPUT"){ e.preventDefault(); e.target.blur(); } });
 }
@@ -1235,7 +1563,7 @@ function nameOf(act, val, el){
   if(act==="esc") return "de toets Esc";
   if(act==="kwast1") return "Opmaak kopiëren (één klik)";
   if(act==="kwast2") return "Opmaak kopiëren (dubbelklik)";
-  if(act.startsWith("shift:")) return "Shift + klik op " + (el && el.dataset.name || "tekst");
+  if(act.startsWith("shift:")||act.startsWith("tshift:")) return "Shift + klik op " + (el && el.dataset.name || "tekst");
   if(el && el.tagName==="SELECT") return el.dataset.name + ` (je koos '${el.options[el.selectedIndex]? el.options[el.selectedIndex].text : val}')`;
   if(el && el.dataset.name) return el.dataset.name + (el.tagName==="INPUT"? ` (je koos '${val}')` : "");
   return act;
@@ -1254,7 +1582,7 @@ function act2(act, val, el, right){
   } else {
     G.miss++; G.errors++;
     const wrongName = nameOf(act,val,el);
-    const what = st.quiz? `Dat klopt niet.` : (st.a.startsWith("shift:") && act.startsWith("sel:"))? `Je klikte zonder Shift. Hou de <b>Shift</b>-toets ingedrukt terwijl je klikt.` : ((st.a.startsWith("ctx:") && act.startsWith("sel:")) || (st.a.startsWith("stylectx:") && act.startsWith("style:")))? `Dat was een gewone klik met de <b>linkermuisknop</b>. Gebruik de <b>rechtermuisknop</b>.` : (right && !/^(ctx|stylectx):/.test(st.a))? `Dat was een klik met de <b>rechtermuisknop</b>. Hier heb je de gewone (linker)muisknop nodig.` : (st.a===act && st.v!==undefined)? `Dat is niet de juiste waarde. Typ of kies <b>${esc(st.vl || String(st.v).replace(".",","))}</b>.` : `Dat was <b>${esc(wrongName)}</b>. Je zoekt iets anders.`;
+    const what = st.quiz? `Dat klopt niet.` : ((st.a.startsWith("shift:") && act.startsWith("sel:")) || (st.a.startsWith("tshift:") && act.startsWith("cel:")))? `Je klikte zonder Shift. Hou de <b>Shift</b>-toets ingedrukt terwijl je klikt.` : ((st.a.startsWith("ctx:") && act.startsWith("sel:")) || (st.a.startsWith("stylectx:") && act.startsWith("style:")))? `Dat was een gewone klik met de <b>linkermuisknop</b>. Gebruik de <b>rechtermuisknop</b>.` : (right && !/^(ctx|stylectx):/.test(st.a))? `Dat was een klik met de <b>rechtermuisknop</b>. Hier heb je de gewone (linker)muisknop nodig.` : (st.a===act && st.v!==undefined)? `Dat is niet de juiste waarde. Typ of kies <b>${esc(st.vl || String(st.v).replace(".",","))}</b>.` : `Dat was <b>${esc(wrongName)}</b>. Je zoekt iets anders.`;
     G.msg = {k: G.miss>=1? "hint":"bad", h: `${what}<br><b>Tip:</b> ${esc(st.h)}${G.miss>=2?" <b>Kijk: de juiste plaats knippert.</b>":""}`};
     renderPlay();
   }
@@ -1277,6 +1605,42 @@ function apply1(act, val){
   const ui=G.ui, p=selP(), s=p&&p.s;
   const [k, sub] = act.split(":");
   if(k==="tab"){ ui.tab=sub; ui.menu=null; return; }
+  const T=G.doc.table, R=ui.tsel;
+  if(T && R && !ui.sel){ const os=owners(T,R);
+    if(act==="btn:vet"||act==="btn:cursief"||act==="btn:onderstreept"){ const k2={vet:"bold",cursief:"italic",onderstreept:"underline"}[sub], nv=!os[0].s[k2]; os.forEach(o=>o.s[k2]=nv); return; }
+    if(k==="btn" && {links:1,centreren:1,rechts:1,uitvullen:1}[sub]){ os.forEach(o=>o.s.align={links:"left",centreren:"center",rechts:"right",uitvullen:"justify"}[sub]); return; }
+    if(act==="fontname"){ os.forEach(o=>o.s.font=Object.keys(FONTS).find(f=>f.toLowerCase()===String(val).trim().toLowerCase())||val); return; }
+    if(act==="fontsize"){ os.forEach(o=>o.s.size=numOf(val)); return; }
+    if(act==="color"){ os.forEach(o=>o.s.color=COLORS[val]||o.s.color); ui.menu=null; return; }
+    if(act==="ttype"){ if(os[0]) os[0].t=String(val).trim(); return; }
+    if(k==="tins"){ if(sub==="boven"){ tInsRow(T,R.r0,R.r0); ui.tsel={r0:R.r0,r1:R.r0,c0:0,c1:nC(T)-1}; } if(sub==="onder"){ tInsRow(T,R.r1+1,R.r1); ui.tsel={r0:R.r1+1,r1:R.r1+1,c0:0,c1:nC(T)-1}; }
+      if(sub==="links"){ tInsCol(T,R.c0,R.c0); ui.tsel={r0:0,r1:nR(T)-1,c0:R.c0,c1:R.c0}; } if(sub==="rechts"){ tInsCol(T,R.c1+1,R.c1); ui.tsel={r0:0,r1:nR(T)-1,c0:R.c1+1,c1:R.c1+1}; } return; }
+    if(act==="tmerge"){ ui.tsel=tMerge(T,R); return; }
+    if(act==="tsplit"){ ui.dialog="tsplit"; ui.dlg={cols:2, rows:1}; return; }
+    if(k==="tsp"){ if(sub==="x"){ ui.dialog=null; return; }
+      if(sub==="ok"){ const o=os[0], d=ui.dlg; ui.dialog=null; if(d.cols>1 && o.cs===1) tSplitCols(T,o,d.cols); if(d.rows>1 && o.rs===1) tSplitRows(T,o,d.rows); const [r,c]=posOf(T,o); ui.tsel=rectOfCell(T,r,c); return; }
+      ui.dlg[sub]=Math.max(1,Math.min(10,Math.round(numOf(val))||1)); return; }
+    if(k==="tsize"){ const v=numOf(val); if(isNaN(v)||v<=0) return; if(sub==="h") for(let r=R.r0;r<=R.r1;r++) T.rows[r].h=v; else for(let c=R.c0;c<=R.c1;c++) T.colW[c]=v; return; }
+    if(k==="cal"){ os.forEach(o=>{ o.va={t:"top",m:"middle",b:"bottom"}[sub[0]]; o.s.align={l:"left",c:"center",r:"right"}[sub[1]]; }); return; }
+    if(act==="tdir"){ os.forEach(o=>o.dir={0:90,90:270,270:0}[o.dir]); return; }
+    if(act==="tshade"){ os.forEach(o=>o.bg= val==="Geen kleur"? null : (COLORS[val]||o.bg)); ui.menu=null; return; }
+    if(k==="trand"){ tBorders(T,R,sub,G.doc.pen); ui.menu=null; return; }
+    if(k==="tsel"){ ui.menu=null; ui.tsel= sub==="cel"? rectOfCell(T,R.r0,R.c0) : sub==="rij"? {r0:R.r0,r1:R.r1,c0:0,c1:nC(T)-1} : sub==="kol"? {r0:0,r1:nR(T)-1,c0:R.c0,c1:R.c1} : {r0:0,c0:0,r1:nR(T)-1,c1:nC(T)-1}; return; }
+  }
+  if(k==="pen"){ const P=G.doc.pen; if(sub==="st") P.st={Enkel:"solid",Gestippeld:"dotted",Gestreept:"dashed",Dubbel:"double"}[val]||P.st; if(sub==="w"){ const v=numOf(val); if(!isNaN(v)) P.w=v; } return; }
+  if(act==="pencolor"){ G.doc.pen.c=COLORS[val]||G.doc.pen.c; ui.menu=null; return; }
+  if(act==="tgrid"){ ui.menu=null; const [c,r]=String(val).split("x").map(Number); insertTable(c,r); return; }
+  if(act==="tabel:dlg"){ ui.menu=null; ui.dialog="tins"; ui.dlg={cols:5, rows:2}; return; }
+  if(k==="tdlg"){ if(sub==="x"){ ui.dialog=null; return; } if(sub==="ok"){ ui.dialog=null; insertTable(ui.dlg.cols, ui.dlg.rows); return; } ui.dlg[sub]=Math.max(1,Math.min(63,Math.round(numOf(val))||1)); return; }
+  if(T){
+    if(k==="cel"){ const [r,c]=sub.split(",").map(Number); ui.tsel=rectOfCell(T,r,c); ui.sel=null; ui.menu=null; return; }
+    if(k==="rij"){ ui.tsel={r0:+sub,r1:+sub,c0:0,c1:nC(T)-1}; ui.sel=null; ui.menu=null; return; }
+    if(k==="kol"){ ui.tsel={r0:0,r1:nR(T)-1,c0:+sub,c1:+sub}; ui.sel=null; ui.menu=null; return; }
+    if(act==="tabel:all"){ ui.tsel={r0:0,c0:0,r1:nR(T)-1,c1:nC(T)-1}; ui.sel=null; ui.menu=null; return; }
+    if(k==="tshift"){ const [r,c]=sub.split(",").map(Number), q=rectOfCell(T,r,c), a=(!ui.sel && R)||q;
+      ui.tsel=expand(T,{r0:Math.min(a.r0,q.r0),c0:Math.min(a.c0,q.c0),r1:Math.max(a.r1,q.r1),c1:Math.max(a.c1,q.c1)}); ui.sel=null; return; }
+  }
+  if(k==="orient"){ G.doc.land = sub==="liggend"; ui.menu=null; return; }
   if(k==="style"){ selList().forEach(x=>{ x.st=sub; for(const kk of Object.keys(x.ov)) delete x.ov[kk]; }); return; }
   if(k==="stylectx"){ ui.menu="stylectx"; ui.ctxPos=ui._ctxNext; ui.styleKey=sub; return; }
   if(act==="stijl:wijzigen"){ ui.menu=null; ui.dialog="stijl"; ui.dlgStyle=ui.styleKey; ui.dlg=resolvedStyle(G.doc, ui.styleKey); ui.sub=null; ui.swMenu=false; return; }
@@ -1302,7 +1666,7 @@ function apply1(act, val){
     d[sub==="pos"?"lpos":"lind"]=numOf(val); return; }
   if(act==="bullet"){ s.list= val==="geen"? null : "bullet"; s.bullet=val; ui.menu=null; return; }
   if(act==="num"){ s.list= val==="geen"? null : "number"; s.numfmt=val; ui.menu=null; return; }
-  if(k==="sel"){ const tgts=selList(sub);
+  if(k==="sel"){ const tgts=selList(sub); ui.tsel=null; if(ui.tab==="tontwerp"||ui.tab==="tindeling") ui.tab="start";
     if(ui.kwast && ui.copy){ tgts.forEach(t=>Object.assign(t.s, ui.copy)); if(ui.kwast===1){ ui.kwast=0; ui.copy=null; } }
     ui.sel=sub; return; }
   if(act==="kwast1"||act==="kwast2"){ if(ui.kwast){ ui.kwast=0; ui.copy=null; return; } ui.kwast=act==="kwast1"?1:2; ui.copy= s? {...s}:null; return; }
@@ -1325,6 +1689,8 @@ function apply1(act, val){
     if(sub==="opsomming" && s){ s.list = s.list==="bullet"? null : "bullet"; if(s.list && !BGLYPH[s.bullet]) s.bullet="rond"; return; }
     if(sub==="nummering" && s){ s.list = s.list==="number"? null : "number"; if(s.list && s.numfmt==="geen") s.numfmt="1."; return; }
     if(sub==="marges"){ ui.menu="marges"; return; }
+    if(sub==="afdrukstand"){ ui.menu="afdrukstand"; return; }
+    if(sub==="raster"){ ui.grid=!ui.grid; return; }
     if(sub==="tocupdate"){ if(G.doc.toc){ ui.dialog="tocu"; ui.dlg={mode:"pag"}; } return; }
     if((sub==="inspringen-plus"||sub==="inspringen-min") && s && s.list==="multi"){ s.lvl=Math.max(1, Math.min(9, (s.lvl||1)+(sub==="inspringen-plus"?1:-1))); return; }
     if(!s) return;
@@ -1360,10 +1726,10 @@ function apply1(act, val){
 function advance(){
   G.i++; G.miss=0;
   if(G.i>=G.L.steps.length) return finish();
-  renderPlay();
+  runStep(); renderPlay();
 }
 function markTarget(){
-  const st=step(); let el=document.querySelector(`#word [data-act="${CSS.escape(st.a)}"]`);
+  const st=step(); let el=(st.v!==undefined && document.querySelector(`#word [data-act="${CSS.escape(st.a)}"][data-val="${CSS.escape(String(st.v))}"]`)) || document.querySelector(`#word [data-act="${CSS.escape(st.a)}"]`);
   if(st.quiz) el=document.querySelector(`[data-quiz="${st.a.slice(5)}"]`);
   if(st.a.startsWith("stylectx:")) el=document.querySelector(`#word [data-act="style:${st.a.slice(9)}"]`);
   if(st.a==="kwast1"||st.a==="kwast2"||st.a==="esc") el=document.querySelector('#word [data-act="kwast"]');
@@ -1371,6 +1737,7 @@ function markTarget(){
   if(st.a==="bullet"||st.a==="num") el=document.querySelector(`#word [data-act="${st.a}"][data-val="${CSS.escape(String(st.v))}"]`);
   if(st.a==="ml"||st.a==="toc") el=document.querySelector(`#word [data-act="${st.a}"][data-val="${CSS.escape(String(st.v))}"]`);
   if(st.a.startsWith("shift:")) el=document.querySelector(`#word [data-pid="${st.a.slice(6)}"]`);
+  if(st.a.startsWith("tshift:")) el=document.querySelector(`#word [data-cel="${st.a.slice(7)}"]`);
   if(st.a==="color"||st.a==="effect") el=document.querySelector(`#word [data-act="${st.a}"][data-val="${CSS.escape(String(st.v))}"]`);
   if(el){ el.classList.add("target"); el.scrollIntoView({block:"nearest",inline:"nearest"}); }
 }
