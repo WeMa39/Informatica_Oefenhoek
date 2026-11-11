@@ -115,6 +115,20 @@ select{font:inherit;font-weight:800;background:var(--bg);color:var(--text);borde
 .flag{font:inherit;font-weight:800;width:42px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;flex:none}
 .flag.on{background:var(--good);color:#0f0d18;border-color:var(--good)}.flag.wrong{border-color:var(--warn)}
 .cmfb{display:none;font-size:14px;color:var(--warn);padding:0 0 6px}.cmfb.show{display:block}
+.warnbar{padding:10px 14px;border-radius:12px;background:rgba(255,107,122,.12);border:1px solid var(--bad);margin-bottom:12px;font-size:16px}
+.bub.sx{cursor:pointer;border:2px solid transparent}.bub.sx:hover{border-color:var(--warn)}
+.bub.sx.flagged{border-color:var(--bad);background:rgba(255,107,122,.18)}
+.flagd{margin-top:4px;font-family:Fredoka;font-weight:700;color:var(--bad)}
+.krant{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.clip{background:#f4f1ea;color:#1c1b19;border-radius:6px;padding:16px 16px 12px;box-shadow:0 6px 18px rgba(0,0,0,.35);font-family:Georgia,"Times New Roman",serif;transform:rotate(-.4deg)}
+.clip:nth-child(even){transform:rotate(.5deg)}
+.clip .src{font-family:Nunito,sans-serif;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#a12b2b;border-bottom:2px solid #1c1b19;padding-bottom:6px;margin-bottom:8px}
+.clip h4{font-size:20px;line-height:1.2;margin:0 0 8px;font-family:Georgia,serif}
+.clip p{font-size:15.5px;line-height:1.45;margin:0 0 10px}
+.clip a{font-family:Nunito,sans-serif;font-size:14px;font-weight:800;color:#a12b2b}
+.qrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.qrow input{width:110px;text-align:center}
+.qrow.ok input{border-color:var(--good);background:rgba(61,220,132,.12)}
 .hidden{display:none!important}
 .shake{animation:sh .35s}
 @keyframes sh{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
@@ -155,17 +169,17 @@ const P = [
 { // 1
   title:"Slot 1 · Plagen of pesten?",
   hash:"1oq7no6s1zb",
-  hint:"Pesten heeft drie kenmerken: het gebeurt <b>herhaaldelijk</b>, vaak <b>in groep</b>, en er is een <b>machtsverschil</b> (het slachtoffer kan zich moeilijk verdedigen). Eén keer een grapje waar iedereen om lacht, of ruzie tussen twee gelijken: dat is géén pesten.",
+  hint:"Pesten = <b>herhaling</b> + <b>machtsverschil</b> + het doet pijn. Let op: <b>negeren</b> kan ook pesten zijn, en wie <b>meelacht</b> kan zich toch gekwetst voelen. Ruzie tussen twee gelijken is géén pesten, en een terechte opmerking van een leerkracht ook niet. Er zijn 5 pestsituaties.",
   render(el){
     const sits = [
-      ["M","Al weken krijgt Jonas elke ochtend berichtjes in de klasgroep over zijn kleren. Iedereen reageert met lachende emoji’s."],
-      ["O","Sara en Emma sturen elkaar foto’s met rare filters. Ze liggen er allebei plat van het lachen."],
-      ["A","Een groepje zegt telkens tegen Ilias dat hij niet mag meedoen. Ze maken zelfs een nieuwe chat zonder hem."],
+      ["M","Niemand zegt ooit iets gemeens tegen Jonas. Maar als hij iets vraagt in de klasgroep, reageert al weken niemand, terwijl de anderen wél antwoord krijgen."],
+      ["O","Ruben verspreekt zich tijdens een spreekbeurt. De hele klas lacht één keer luid, en Ruben zelf ligt plat van het lachen."],
+      ["A","Een groepje noemt Ilias al maanden ‘de grapjas’. Ilias lacht altijd mee, maar thuis zit hij er zwaar mee."],
       ["C","Iemand heeft een nep-account gemaakt met de naam en foto van Noor en post daar al dagen rare dingen."],
-      ["L","Na de voetbalmatch noemt Tim zijn beste vriend één keer ‘kluns’. Zijn vriend lacht en zegt iets grappigs terug."],
-      ["H","Lien is de kleinste van de klas. Drie oudere leerlingen pakken al de hele maand haar koek af en filmen het."],
-      ["E","Twee vriendinnen hebben ruzie over een feestje. Ze zijn een dag kwaad op elkaar en maken het dan weer goed."],
-      ["T","Telkens als Yara iets post, reageert een groep van vijf met ‘niemand vraagt dit 🤡’. Dat gebeurt al sinds september."]
+      ["L","Tim en Senne hebben al twee weken ruzie en zeggen gemene dingen tegen elkaar. Ze zijn allebei even populair en even mondig."],
+      ["H","Elke keer als Lien iets zegt in de les, doen drie leerlingen achteraan haar stem na. De leerkracht merkt het nooit op."],
+      ["E","Een leerkracht spreekt Noah elke les aan omdat hij zijn huiswerk niet gemaakt heeft."],
+      ["T","Een anonieme Instagrampagina post elke week ‘de lelijkste van 3B’. Al drie keer was het Yara."]
     ];
     el.innerHTML = `
       <p>Iemand heeft de klasgroep op slot gezet. Om het eerste slot te openen moet je weten wat pesten <i>echt</i> is.</p>
@@ -255,24 +269,25 @@ const P = [
 { // 2
   title:"Slot 3 · Vormen van online pesten",
   hash:"zqxaj8k0sw",
-  hint:"Haatspraak gaat over <b>wie iemand is</b> (afkomst, geloof, geaardheid, …). Imitatie = <b>je voordoen als</b> iemand anders. Vernederen = iets <b>gênants verspreiden</b>.",
+  hint:"Haatspraak gaat over <b>wie iemand is</b> (afkomst, geloof, geaardheid, …). Imitatie = <b>je voordoen als</b> iemand anders. Vernederen = iets <b>gênants</b> verspreiden. Voorbeeld 7 is de valstrik.",
   render(el){
-    const forms=["Uitsluiten","Imitatie (je voordoen als iemand anders)","Bedreigen","Vernederen","Haatspraak","Beledigen"];
+    const forms=["Uitsluiten","Imitatie (je voordoen als iemand anders)","Bedreigen","Vernederen","Haatspraak","Sexting zonder toestemming"];
     const exs=[
       "Iemand stuurt naar Daan: ‘Als je morgen naar school komt, zal je het voelen.’",
       "Een gênante foto van Milan, genomen in de kleedkamer, wordt doorgestuurd naar alle klasgroepen.",
       "Iemand logt in op het account van Sofie en stuurt in haar naam gemene berichten naar haar vrienden.",
       "De klas maakt een nieuwe groepschat ‘3B ECHTE 🔥’: iedereen zit erin, behalve Ruben.",
       "Onder een filmpje van Amina: ‘Mensen zoals jij horen hier niet thuis’, omdat ze een hoofddoek draagt.",
-      "Onder elke foto die Kobe post, verschijnt ‘lelijke dikkerd’."
+      "Een naaktfoto die Kobe ooit privé naar zijn lief stuurde, belandt na hun breuk in de groepschat van het 4de jaar.",
+      "Iemand post een grappige meme over de schoolmaaltijd. Iedereen lacht, ook de koks."
     ];
     S.p2 = S.p2 || {};
     el.innerHTML = `
       <p>De groepschat staat vol berichten. Welke vorm van online pesten is het telkens?</p>
-      <p class="muted">Koppel elke vorm (A–F) aan het juiste voorbeeld (1–6). Lees daarna de nummers af van A tot F: dat is de code.</p>
+      <p class="muted">Koppel elke vorm (A–F) aan het juiste voorbeeld. Let op: er is één voorbeeld te veel, en dat is géén pesten. Lees daarna de nummers af van A tot F: dat is de code.</p>
       <div class="match">
         <div>${forms.map((f,i)=>`<div class="form-row"><span><b>${"ABCDEF"[i]}</b>${f}</span>
-          <select data-i="${i}"><option value="">–</option>${[1,2,3,4,5,6].map(n=>`<option ${S.p2[i]==n?'selected':''}>${n}</option>`).join("")}</select></div>`).join("")}</div>
+          <select data-i="${i}"><option value="">–</option>${[1,2,3,4,5,6,7].map(n=>`<option ${S.p2[i]==n?'selected':''}>${n}</option>`).join("")}</select></div>`).join("")}</div>
         <div>${exs.map((x,i)=>`<div class="ex"><span class="n">${i+1}</span>${x}</div>`).join("")}</div>
       </div>`;
     el.querySelectorAll("select").forEach(s=>s.addEventListener("change",()=>{S.p2[s.dataset.i]=s.value;save();}));
@@ -409,23 +424,70 @@ const P = [
     });
   }
 },
+{ // SEXTORTION
+  title:"Slot 7 · Rode vlaggen",
+  hash:"z3cbaf3fy1",
+  hint:"Er zijn <b>6</b> rode vlaggen. Let op: iemand die je niet kan zien, die je naar een ander platform lokt, die eerst iets van jou wil, en die je onder druk zet.",
+  render(el){
+    S.sx = S.sx || {};
+    const M=[
+      ["e","Hey 😊 ik zag je op de foto bij Senne. Je bent echt knap trouwens","1","Een onbekende die je meteen complimenten geeft: zo bouwen afpersers vertrouwen op."],
+      ["m","haha thx. ken ik jou?",""],
+      ["e","Nee, ik woon in Gent, ben 17. Videobellen gaat niet, mijn camera is kapot 😅","1","Je kan niet controleren wie er écht achter het profiel zit. Vaak is het een volwassen man of een criminele bende."],
+      ["e","Kom naar Snapchat, daar is het meer privé 🤫","6","Weglokken naar een ander, ‘geheimer’ platform is een klassieke rode vlag."],
+      ["m","oké",""],
+      ["e","Ik stuur jou iets spannends… als jij eerst iets stuurt 😏","0","Druk om een intieme foto te sturen. Je bent nooit verplicht om iets te sturen."],
+      ["s","📷 Mats heeft een foto verstuurd.",""],
+      ["e","Betaal €300 binnen het uur. Anders gaat je foto naar al je volgers en naar je school.","0","Dit is sextortion: afpersing met een intiem beeld. Dit is een misdrijf."],
+      ["e","Ik heb de lijst van je vrienden al. Tik tak ⏰","0","Tijdsdruk en angst aanjagen: zo willen afpersers dat je in paniek betaalt."],
+      ["m","pls niet doen. ik heb geen 300 euro",""]
+    ];
+    const flags=M.filter(m=>m[2]);
+    const all=flags.every(m=>S.sx[M.indexOf(m)]);
+    el.innerHTML=`
+      <div class="warnbar">⚠️ Dit slot gaat over <b>sextortion</b>: iemand afpersen met een naaktfoto. Volgens Child Focus zijn de slachtoffers vooral <b>jongens van rond de 15 jaar</b>.</div>
+      <p>Mats (15) krijgt een berichtje van een onbekend profiel. Lees het hele gesprek.</p>
+      <p class="muted">Klik op elk bericht dat een <b>rode vlag</b> is: een teken dat er iets niet klopt. Elke rode vlag levert een cijfer op. Samen vormen ze een telefoonnummer dat je beter kent.</p>
+      <div class="phone">
+        <div class="head"><div class="av">E</div><div>emma.x17<div class="muted" style="font-size:13px;font-weight:600">2 gemeenschappelijke volgers</div></div></div>
+        <div class="chat">${M.map((m,i)=>m[0]==="s"?`<div class="bub sys">${m[1]}</div>`:`<div class="bub sx ${m[0]==="m"?"me":""} ${S.sx[i]?"flagged":""}" data-i="${i}">${m[0]==="e"?'<div class="who">emma.x17</div>':''}${m[1]}${S.sx[i]?`<div class="flagd">🚩 ${m[2]}</div>`:''}</div>`).join("")}</div>
+        <div id="sxfb"></div>
+      </div>
+      <div class="letters">${flags.map(m=>{const i=M.indexOf(m);return `<span class="${S.sx[i]?'got':''}">${S.sx[i]?m[2]:''}</span>`}).join("")}</div>
+      ${all?`<div class="card" style="margin-top:16px;border-color:var(--good)">
+        <h3>Wat moet Mats nu doen?</h3>
+        <ul style="margin:0;padding-left:22px">
+          <li><b>Niet betalen.</b> Wie betaalt, krijgt meestal nóg meer eisen.</li>
+          <li><b>Stoppen met reageren</b> en het profiel blokkeren.</li>
+          <li><b>Screenshots nemen</b> van het gesprek en het profiel: dat is bewijs.</li>
+          <li><b>Praten met een volwassene</b> die hij vertrouwt. Hij heeft niets strafbaars gedaan, de afperser wel.</li>
+          <li>Hulp vragen bij <b>Child Focus</b> (gratis, dag en nacht) of aangifte doen bij de <b>politie</b>.</li>
+        </ul>
+        <p class="muted" style="margin-top:8px;font-size:15px">Het nummer van Child Focus zie je hierboven staan. 😉</p></div>`:''}`;
+    el.querySelectorAll(".bub.sx").forEach(b=>b.addEventListener("click",()=>{
+      const i=+b.dataset.i, m=M[i], fb=$("#sxfb",el);
+      if(m[2]){ S.sx[i]=1; save(); P.find(x=>x.hash==="z3cbaf3fy1").render(el); $("#sxfb",el).innerHTML=`<div class="fb good">🚩 <b>Rode vlag!</b> ${m[3]}</div>`; }
+      else { fb.innerHTML=`<div class="fb bad">Dit bericht is op zich geen rode vlag. Zoek verder.</div>`; }
+    }));
+  }
+},
 { // 4
-  title:"Slot 7 · Melden of verklikken?",
+  title:"Slot 8 · Wat zegt de wet?",
   hash:"6szhd6uj6o",
-  hint:"Er zijn precies <b>vier</b> uitspraken waar. Denk eraan: <b>melden = iemand helpen</b>, klikken = iemand in de problemen willen brengen.",
+  hint:"Er zijn precies <b>vier</b> uitspraken waar. Iets <b>doorsturen</b> is ook verspreiden, ook naar één persoon. En sextortion treft vooral jongens.",
   render(el){
     const st=[
-      ["7","Melden is iemand helpen. Klikken is iemand in de problemen willen brengen."],
-      ["2","Als je iets meldt, weet iedereen meteen dat jij het was."],
-      ["4","Ook als je twijfelt of het ‘wel erg genoeg’ is, mag je erover praten met een volwassene."],
-      ["9","Pesten stopt meestal vanzelf als je niets doet."],
-      ["1","Je kan terecht bij je ouders, een leerkracht, de leerlingbegeleiding of een andere volwassene die je vertrouwt."],
-      ["5","Als het slachtoffer niet wil dat je het meldt, moet je het gewoon vergeten."],
-      ["8","Online pesten kan je ook melden op het platform zelf (Instagram, TikTok, Snapchat, …)."],
-      ["3","Een screenshot doorsturen naar de hele klas is een goede manier om pesten te melden."]
+      ["7","Een naaktfoto van iemand doorsturen zonder toestemming is strafbaar, ook als die persoon de foto zelf gemaakt en verstuurd heeft."],
+      ["2","Als je een naaktfoto alleen naar je beste vriend doorstuurt, is dat niet strafbaar."],
+      ["4","Met een AI-app een nep-naaktfoto (deepnude) van een klasgenoot maken en delen is strafbaar, ook al is het beeld niet echt."],
+      ["9","Wie aan een leerkracht vertelt dat een klasgenoot gepest wordt, is een verklikker."],
+      ["1","Bij sextortion is het beste advies: niet betalen, contact stoppen, screenshots bewaren en praten met een volwassene."],
+      ["5","Jongens worden bijna nooit slachtoffer van sextortion."],
+      ["8","Je mag pesten of sexting zonder toestemming melden, ook als het slachtoffer zelf liever zwijgt."],
+      ["3","Een naaktfoto die rondgaat, stuur je best door naar de klasgroep met ‘dit is niet oké!’, zodat iedereen weet wat er gebeurt."]
     ];
     el.innerHTML = `
-      <p>Veel jongeren durven niets te zeggen uit schrik om een ‘verklikker’ te zijn. Klopt dat wel?</p>
+      <p>Veel jongeren weten niet goed wat mag en wat niet, en durven niets te zeggen uit schrik om een ‘verklikker’ te zijn. Weten jullie het?</p>
       <p class="muted">Duid bij elke uitspraak aan: <b>waar</b> of <b>niet waar</b>. De cijfers van de <b>ware</b> uitspraken vormen, van boven naar onder, de code.</p>
       ${st.map((s,i)=>`<div class="st"><div class="dg">${s[0]}</div><div class="tx">${s[1]}</div>
         <div class="toggle" data-i="${i}"><button class="n ${S.p4[i]==='n'?'on':''}" data-v="n">Waar</button><button class="p ${S.p4[i]==='p'?'on':''}" data-v="p">Niet waar</button></div></div>`).join("")}`;
@@ -436,8 +498,51 @@ const P = [
     }));
   }
 },
+{ // KRANT
+  title:"Slot 9 · Dit is écht gebeurd",
+  hash:"107jmyn7lhs",
+  hint:"Lees de artikels goed: alle antwoorden staan in de korte samenvattingen. Tel de vier antwoorden daarna op.",
+  render(el){
+    S.kr = S.kr || {};
+    const A=[
+      ["VRT NWS · 16 december 2021","Gepeste jongen (16) ziet filmpjes van zijn eigen vernedering pas wanneer hij uit de les gehaald wordt",
+       "In Sint-Truiden gaan filmpjes rond waarin een 16-jarige jongen op school mentaal en fysiek aangevallen wordt. Hij ziet ze zelf pas wanneer het secretariaat hem uit de klas haalt. Politie en parket starten een onderzoek. Een expert benadrukt: online pesten vernedert je voor een enorm publiek, en het stopt niet aan de schoolpoort.",
+       "https://www.vrt.be/vrtnws/nl/2021/12/15/expert-reageert-op-geval-van-extreem-pestgedrag/"],
+      ["VRT NWS · 30 mei 2023","Anonieme roddelpagina’s zetten Vlaamse scholieren te kijk",
+       "Op Instagram en TikTok verschijnen pagina’s met de naam van een school of stad, waarop scheldwoorden, seksuele roddels en foto’s van leerlingen staan. Een filmpje over Britt (schuilnaam) werd zo’n 70.000 keer bekeken. Ze meldde het vaak, maar het bleef online staan. Slachtoffers gaan soms niet meer naar school, halen slechtere punten en worden depressief.",
+       "https://www.vrt.be/vrtnws/nl/2023/05/30/pestgroepen/"],
+      ["VRT NWS · 19 mei 2026","Recordaantal minderjarige slachtoffers van online seksuele uitbuiting",
+       "Child Focus hielp in 2025 433 slachtoffers van sextortion: 143% meer dan het jaar ervoor. Daarnaast kwamen er 296 nieuwe dossiers van sexting zonder toestemming bij. De slachtoffers daarvan zijn gemiddeld 14 jaar. Voor het eerst zijn jongens de grootste groep slachtoffers van online seksuele uitbuiting.",
+       "https://www.vrt.be/vrtnws/nl/2026/05/19/jaarrapport-child-focus/"],
+      ["VRT NWS · 10 februari 2023","Pesten en cyberpesten opnieuw stevig in opmars",
+       "Uit een bevraging bij 20.000 Vlaamse en Brusselse jongeren blijkt dat 1 op de 5 jongeren de voorbije maanden minstens één keer gepest werd op school. Ongeveer 1 op de 12 werd zelfs intens gepest. Ook cyberpesten steeg: van 7,7% in 2018 naar 12,3% in 2022.",
+       "https://www.vrt.be/vrtnws/nl/2023/02/10/pesten-bij-jongeren/"],
+      ["VRT NWS · 14 februari 2020","Cyberpesten laat sporen na, tot jaren later",
+       "Onderzoekers van de Universiteit Antwerpen bevroegen 1.000 jongvolwassenen. Wie als tiener online én offline gepest werd, heeft later het grootste risico op depressie, eenzaamheid en sociale angst. Sommigen vermijden jaren later nog altijd waarvoor ze vroeger gepest werden: wie uitgelachen werd om een bril, draagt er nu vaak geen meer.",
+       "https://www.vrt.be/vrtnws/nl/2020/02/14/cyberpesten-leidt-tot-mentale-problemen/"],
+      ["VRT NWS · 8 juni 2023","“Hun naaktbeelden verspreid zien, is voor jongeren het einde van de wereld”",
+       "Dat zegt de woordvoerder van Child Focus. Jongeren van wie intieme beelden zonder toestemming rondgaan, lopen volgens hem rond met erg donkere gedachten. Toch melden de meeste slachtoffers het niet: wat Child Focus ziet, is maar het topje van de ijsberg.",
+       "https://www.vrt.be/vrtnws/nl/2023/06/08/childfocus-jaarverslag-2022/"]
+    ];
+    const Q=[["Hoe oud was de jongen uit Sint-Truiden?","16"],["Hoeveel <b>duizend</b> keer werd het filmpje over Britt ongeveer bekeken?","70"],["Hoeveel slachtoffers van sextortion hielp Child Focus in 2025?","433"],["1 op hoeveel jongeren werd de voorbije maanden gepest op school (bevraging 2022)?","5"]];
+    el.innerHTML=`
+      <div class="warnbar">⚠️ Pesten is geen spelletje. Dit zijn <b>echte krantenartikels</b> over Vlaamse en Belgische jongeren. Sommige komen hard binnen.</div>
+      <p class="muted">Lees de artikels in jullie groep en beantwoord de vier vragen. <b>Tel de vier antwoorden op</b>: dat is de code.</p>
+      <div class="krant">${A.map(a=>`<article class="clip"><div class="src">${a[0]}</div><h4>${a[1]}</h4><p>${a[2]}</p><a href="${a[3]}" target="_blank" rel="noopener">Lees het volledige artikel ↗</a></article>`).join("")}</div>
+      <div class="card" style="margin-top:16px">
+        <h3>Vragen</h3>
+        ${Q.map((q,i)=>`<div class="qrow" data-i="${i}"><span>${i+1}. ${q[0]}</span><input type="text" inputmode="numeric" value="${S.kr[i]||''}" placeholder="?"></div>`).join("")}
+      </div>
+      <p class="muted center" style="font-size:16px;margin-top:12px">🤔 Welk artikel raakt jou het meest? Waarom denk je dat de pesters niet doorhebben wat ze aanrichten?</p>`;
+    el.querySelectorAll(".qrow").forEach(r=>{
+      const i=+r.dataset.i, inp=r.querySelector("input");
+      const chk=()=>{S.kr[i]=inp.value; save(); r.classList.toggle("ok", inp.value.replace(/\D/g,"")===Q[i][1]);};
+      inp.addEventListener("input",chk); chk();
+    });
+  }
+},
 { // 5
-  title:"Slot 8 · Het laatste slot",
+  title:"Slot 10 · Het laatste slot",
   hash:"2zaf0cadxg",
   hint:"Alle antwoorden kwamen al voor in de vorige sloten. Kijk naar slot 1 (ruzie, eenmalig), slot 4 (rollen in de groep) en slot 5 (screenshot bewaren).",
   render(el){
@@ -531,7 +636,7 @@ function intro(){
     <div class="card center">
       <div class="intro-ill">📱🔒</div>
       <h1>Ontsnap uit de groepschat</h1>
-      <p class="big" style="max-width:640px;margin:0 auto 10px">In de klasgroep van 3B loopt het helemaal uit de hand. <b>Lien</b> wordt al weken gepest, en de beheerder heeft de chat op slot gezet met <b>8 codes</b>.</p>
+      <p class="big" style="max-width:640px;margin:0 auto 10px">In de klasgroep van 3B loopt het helemaal uit de hand. <b>Lien</b> wordt al weken gepest, en de beheerder heeft de chat op slot gezet met <b>10 codes</b>.</p>
       <p class="muted" style="max-width:640px;margin:0 auto">Kraak alle sloten om uit de chat te ontsnappen en Lien te helpen. Jullie hebben <b>${DUUR_MIN} minuten</b>. Een hint kan, maar die kost ${STRAF_HINT_MIN} strafminuut.</p>
     </div>
     <div class="card">
@@ -578,7 +683,7 @@ function finish(){
       <p class="muted" style="max-width:640px;margin:0 auto">De vragenbus is <b>anoniem</b>: niemand ziet wie wat schreef. Wat bleef er hangen van de voordracht? Heb je nog een vraag? Of wil je iets kwijt over wat jij meemaakt of ziet gebeuren? Dat kan hier.</p>
       ${FORMS_URL ? `<div class="qr" id="qr">${QR_SVG}</div><p><a href="${FORMS_URL}" target="_blank" rel="noopener" style="color:var(--accent2);font-weight:800">Of klik hier om de vragenbus te openen</a></p>`
                   : `<div class="card" style="border-style:dashed;max-width:520px;margin:16px auto 0">Je leerkracht toont de link naar de vragenbus.</div>`}
-      <p class="muted" style="font-size:15px;margin-top:14px">Zit je ergens mee? Je kan ook altijd terecht bij de leerlingbegeleiding, een leerkracht die je vertrouwt, of anoniem bij <b>Awel</b> (bel 102 of chat via awel.be).</p>
+      <p class="muted" style="font-size:15px;margin-top:14px">Zit je ergens mee? Je kan ook altijd terecht bij de leerlingbegeleiding, een leerkracht die je vertrouwt, of anoniem bij <b>Awel</b> (bel 102 of chat via awel.be). Gaat het over naaktbeelden of afpersing? Bel <b>Child Focus</b> op 116 000 (gratis, dag en nacht). Heb je donkere gedachten? Praat erover met de <b>Zelfmoordlijn</b>: 1813.</p>
     </div>
     <div class="footer"><span></span><button class="btn ghost small" id="reset">↺ Opnieuw beginnen (nieuwe groep)</button></div>`;
   $("#reset").onclick=resetConfirm;
