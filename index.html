@@ -10,14 +10,14 @@
 /* Layout: korte kop, daaronder één kaart per programma; nieuwe programma's voeg je toe als extra kaart. */
 :root{
   --bg:#EEF2F8; --panel:#FFFFFF; --ink:#16233A; --muted:#55627A; --line:#D3DAE6;
-  --word:#2B579A; --excel:#1D6F42; --ppt:#C43E1C; --gold:#F2B705; --on-accent:#FFFFFF;
+  --word:#2B579A; --excel:#1D6F42; --ppt:#C43E1C; --varia:#6B46C1; --gold:#F2B705; --on-accent:#FFFFFF;
   --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root{
   --bg:#0F1726; --panel:#18233A; --ink:#E8EEF8; --muted:#A3B0C6; --line:#2C3B57;
-  --word:#7EA6E8; --excel:#6CC08F; --ppt:#F0896B; --gold:#F5C83A; --on-accent:#0F1726; color-scheme:dark}}
+  --word:#7EA6E8; --excel:#6CC08F; --ppt:#F0896B; --varia:#B49BF0; --gold:#F5C83A; --on-accent:#0F1726; color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
 .wrap{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:22px}
@@ -32,7 +32,7 @@ h1{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-.01em}
 .app::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:var(--c)}
 a.app:hover{border-color:var(--c);box-shadow:0 8px 24px rgba(16,30,60,.12)}
 a.app:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
-.app.excel{--c:var(--excel)} .app.ppt{--c:var(--ppt)}
+.app.excel{--c:var(--excel)} .app.ppt{--c:var(--ppt)} .app.varia{--c:var(--varia)}
 .app .head{display:flex;gap:12px;align-items:center}
 .app h3{font-family:var(--display);font-size:1.5rem;font-weight:800;margin:0;line-height:1.1}
 .year{display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:20px;background:color-mix(in srgb,var(--word) 7%,transparent);border:1px solid var(--line)}
@@ -77,6 +77,12 @@ a.app:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
         <p>Komt later dit schooljaar.</p>
         <span class="soon">Binnenkort</span>
       </div>
+      <a class="app varia" href="varia3/">
+        <div class="head"><svg width="44" height="44" viewBox="0 0 38 38" aria-hidden="true"><rect x="2" y="4" width="34" height="30" rx="6" fill="#6B46C1"/><path d="M19 10l2.4 5.6 6.1.5-4.6 4 1.4 5.9L19 23l-5.3 3 1.4-5.9-4.6-4 6.1-.5z" fill="#fff"/></svg><div><h3>Varia</h3><div class="sub">extra activiteiten</div></div></div>
+        <p>Spellen en opdrachten rond andere thema's. Sommige activiteiten start je met een code van je leerkracht.</p>
+        <ul class="topics" aria-label="Activiteiten"><li>Escaperoom pesten</li></ul>
+        <span class="go">Naar Varia</span>
+      </a>
     </div>
   </section>
 

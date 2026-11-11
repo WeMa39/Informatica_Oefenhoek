@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Varia · 3de jaar · Oefenhoek Informatica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Varia: één kaart per activiteit; nieuwe activiteiten voeg je toe als extra kaart in .grid */
+:root{
+  --bg:#EEF2F8; --panel:#FFFFFF; --ink:#16233A; --muted:#55627A; --line:#D3DAE6;
+  --varia:#6B46C1; --gold:#F2B705; --on-accent:#FFFFFF;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0F1726; --panel:#18233A; --ink:#E8EEF8; --muted:#A3B0C6; --line:#2C3B57;
+  --varia:#B49BF0; --gold:#F5C83A; --on-accent:#0F1726; color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:22px}
+h1{font-family:var(--display);margin:0;line-height:1.1;font-size:clamp(2rem,5vw,3rem);font-weight:800}
+.back{color:var(--muted);text-decoration:none;font-weight:700}
+.back:hover{color:var(--ink)}
+.lead{color:var(--muted);max-width:60ch;margin:8px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.app{--c:var(--varia);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px;text-decoration:none;color:var(--ink);position:relative;overflow:hidden}
+.app::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:var(--c)}
+a.app:hover{border-color:var(--c);box-shadow:0 8px 24px rgba(16,30,60,.12)}
+a.app:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.app .head{display:flex;gap:12px;align-items:center}
+.app .ico{font-size:34px;line-height:1}
+.app h3{font-family:var(--display);font-size:1.5rem;font-weight:800;margin:0;line-height:1.1}
+.app .sub{color:var(--muted);font-size:.9rem}
+.app p{margin:0}
+.go{margin-top:auto;align-self:flex-start;background:var(--c);color:var(--on-accent);font-weight:700;border-radius:10px;padding:10px 18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="../">← Oefenhoek</a>
+  <header>
+    <h1>Varia · 3de jaar</h1>
+    <p class="lead">Extra activiteiten rond andere thema's. Voor sommige activiteiten heb je een startcode van je leerkracht nodig.</p>
+  </header>
+  <div class="grid">
+    <a class="app" href="escaperoom-pesten/">
+      <div class="head"><span class="ico" aria-hidden="true">📱🔒</span><div><h3>Ontsnap uit de groepschat</h3><div class="sub">Escaperoom · pesten · ± 30 min · in groep</div></div></div>
+      <p>Kraak 5 sloten en help Lien, die gepest wordt in de klasgroep.</p>
+      <span class="go">Start de escaperoom</span>
+    </a>
+  </div>
+</div>
+</body>
+</html>
