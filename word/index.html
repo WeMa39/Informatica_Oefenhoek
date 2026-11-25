@@ -321,6 +321,8 @@ table.wt tr.ch td{height:16px}
 .rup{align-self:flex-start;cursor:pointer}
 .rtheme .tfiles{display:flex;gap:8px;flex-wrap:wrap}
 .rtheme .tsave{font-size:.92rem;color:var(--muted)}
+.rfig{margin:4px 0 0;display:grid;gap:4px}
+.rfig figcaption{font-size:.88rem}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -1411,8 +1413,8 @@ function renderMap(){
 /* oefeningen in het echte Word: per onderdeel een startbestand dat de website nakijkt */
 const EXO = {
   marges:{stem:"Marges", file:"marges.docx", steps:["Indeling › <b>Marges</b> › <b>Aangepaste marges…</b>","Typ <b>2 cm</b> bij Boven, Onder, Links en Rechts en klik op OK."]},
-  hoofdtitel:{stem:"Hoofdtitel", file:"hoofdtitel.docx", steps:["De hoofdtitel 'Klimmen in de klimzaal' staat in de stijl <b>Titel</b>. Klik erin en kies eerst de stijl <b>Standaard</b>.","Selecteer de titel en maak hem op via het <b>lint</b>: Arial Black, 20 pt, tekstkleur wit.","<b>Arcering</b> (het verfpotje in de groep Alinea): kies een donkere kleur.","<b>Centreer</b> de titel. Open het venster Alinea (klein pijltje) en zet Afstand na op <b>12 pt</b>."]},
-  kop1:{stem:"Kop1", file:"kop1.docx", steps:["De titel 'Coöperatieve spellen' kreeg opmaak via het lint. Selecteer hem en klik op <b>Alle opmaak wissen</b> (de A met het gommetje).","Klik met de rechtermuisknop op <b>Kop 1</b> in de groep Stijlen › <b>Wijzigen…</b>","Kies Arial Narrow, 16 pt en een (goud)gele kleur. <b>Opmaak › Lettertype…</b>: vink Klein kapitaal aan.","<b>Opmaak › Alinea…</b>: Afstand voor 24 pt, na 12 pt.","<b>Opmaak › Rand…</b>: kies geel, 3 pt en klik op de onderrand. Sluit alles met OK."]},
+  hoofdtitel:{stem:"Hoofdtitel", file:"hoofdtitel.docx", fig:"wissen", steps:["De hoofdtitel 'Klimmen in de klimzaal' staat in de stijl <b>Titel</b>. Klik erin › open de stijlgalerij met het pijltje rechtsonder in de groep Stijlen › kies <b>Opmaak wissen</b> (zie de afbeelding). De titel staat nu weer in Standaard.","Selecteer de titel en maak hem op via het <b>lint</b>: Arial Black, 20 pt, tekstkleur wit.","<b>Arcering</b> (het verfpotje in de groep Alinea): kies een donkere kleur.","<b>Centreer</b> de titel. Open het venster Alinea (klein pijltje) en zet Afstand na op <b>12 pt</b>."]},
+  kop1:{stem:"Kop1", file:"kop1.docx", fig:"wissen", steps:["De titel 'Coöperatieve spellen' werd opgemaakt via het lint en staat niet in Kop 1. Klik erin › open de stijlgalerij › kies <b>Opmaak wissen</b> (zie de afbeelding) › klik daarna op de stijl <b>Kop 1</b>.","Klik met de rechtermuisknop op <b>Kop 1</b> in de groep Stijlen › <b>Wijzigen…</b>","<b>Opmaak › Lettertype…</b>: kies Arial Narrow, 16 pt, een (goud)gele tekstkleur en vink <b>Klein kapitaal</b> aan › OK.","<b>Opmaak › Alinea…</b>: Afstand voor 24 pt, na 12 pt › OK.","<b>Opmaak › Rand…</b>: kies geel, 3 pt en klik op de onderrand. Sluit alles met OK."]},
   standaard:{stem:"Standaard", file:"standaard.docx", steps:["Klik met de rechtermuisknop op <b>Standaard</b> in de groep Stijlen › <b>Wijzigen…</b>","Klik in het venster op de knop <b>Uitvullen</b>.","<b>Opmaak › Alinea…</b>: Afstand voor 0 pt, na 12 pt, Regelafstand <b>Enkel</b>. Klik twee keer op OK."]},
   nummering:{stem:"Nummering", file:"nummering.docx", steps:["De titels staan al in Kop 1 en Kop 2. Klik in de titel 'Hoe ontstaat een vulkaan?'.","<b>Lijst met meerdere niveaus</b> › kies de lijst waarin <b>Kop 1</b> en <b>Kop 2</b> staan.","Opnieuw <b>Lijst met meerdere niveaus</b> › <b>Nieuwe lijst met meerdere niveaus definiëren…</b>","Niveau 1: Uitlijning op <b>0 cm</b>, Tekstinspringing op <b>1 cm</b>. Niveau 2: hetzelfde. Klik op OK."]},
   opsomming:{stem:"Opsomming", file:"opsomming.docx", steps:["Haal de zelf getypte streepjes (-) voor de vijf items weg.","Selecteer de vijf items en klik op <b>Opsommingstekens</b>.","Klik met de rechtermuisknop op de opsomming › <b>Lijstinspringing aanpassen…</b>: positie 0 cm, tekstinspringing 1 cm."]},
@@ -1423,6 +1425,19 @@ const EXO = {
   voettekst:{stem:"Voettekst", file:"voettekst.docx", steps:["<b>Invoegen › Voettekst › Leeg</b>.","Typ <b>pgnr.</b> en een spatie › <b>Paginanummer › Huidige positie › Normaal nummer</b>.","Selecteer de voettekst en zet de tekengrootte op <b>9</b> (2 pt kleiner dan Standaard).","Groep Alinea › pijltje bij Randen › <b>Bovenrand</b>. Klik op Koptekst en voettekst sluiten."]},
   pagina:{stem:"Paginaeinde", file:"paginaeinde.docx", steps:["Zet de tekens <b>¶</b> aan (groep Alinea).","'De eerste stappen' moet op een nieuwe pagina beginnen: haal de lege regels erboven weg en klik vooraan in de titel › <b>Invoegen › Pagina-einde</b> (of Ctrl + Enter).","Doe hetzelfde voor 'Het ruimtestation': haal de zes lege regels weg en voeg een pagina-einde in."], check:"paginaeinde"}
 };
+const FIGS = { wissen:`<figure class="rfig"><svg viewBox="0 0 520 250" role="img" aria-label="De stijlgalerij in Word, opengeklapt: onderaan staat Opmaak wissen" style="width:100%;max-width:520px;height:auto;font-family:'Segoe UI',Arial,sans-serif">
+  <rect x="0.5" y="0.5" width="519" height="249" rx="6" fill="#fff" stroke="#C8C6C4"/>
+  <text x="14" y="22" font-size="12" fill="#605E5C">Tabblad Start › groep Stijlen › klik op het pijltje rechtsonder (▾)</text>
+  <g font-size="11" text-anchor="middle">${[["Standaard","AaBbCcDd","#000",12],["Geen afstand","AaBbCcDd","#000",12],["Kop 1","AaBbCc","#2F5496",15],["Kop 2","AaBbCcD","#2F5496",13],["Titel","AaB","#000",20]].map(([n,t,c,fs],i)=>`<rect x="${14+i*96}" y="36" width="90" height="62" fill="#fff" stroke="#E1DFDD"/><text x="${59+i*96}" y="68" fill="${c}" font-size="${fs}">${t}</text><text x="${59+i*96}" y="90" fill="#323130">${n}</text>`).join("")}</g>
+  <rect x="14" y="104" width="474" height="1" fill="#E1DFDD"/>
+  <text x="34" y="132" font-size="13" fill="#323130">Stijl maken</text>
+  <rect x="14" y="146" width="300" height="34" rx="3" fill="#FFF4CE" stroke="#F2B705" stroke-width="2"/>
+  <text x="26" y="168" font-size="15" fill="#C00000" font-weight="700">A</text><text x="38" y="170" font-size="11" fill="#C00000">⌫</text>
+  <text x="58" y="168" font-size="13" fill="#000" font-weight="700">Opmaak wissen</text>
+  <text x="34" y="206" font-size="13" fill="#323130">Stijlen toepassen…</text>
+  <path d="M330 163h60" stroke="#C00000" stroke-width="2.5"/><path d="M330 163l10-6v12z" fill="#C00000"/>
+  <text x="396" y="160" font-size="12" fill="#C00000" font-weight="700">Klik hier</text><text x="396" y="175" font-size="11" fill="#C00000">zet de alinea terug</text><text x="396" y="189" font-size="11" fill="#C00000">op Standaard</text>
+</svg><figcaption class="muted">Opmaak wissen haalt alle opmaak weg en zet de alinea terug in de stijl Standaard.</figcaption></figure>` };
 function exName(k){ const e=EXO[k], kl=(S.klas||"klas").trim().replace(/\s+/g,""); return `${kl}_Rem_${e.stem}_${S.name.trim().replace(/\s+/g,"_")}.docx`; }
 function exThemes(rT){ return rT.filter(t=>EXO[t.k]); }
 let RCHK = {}; // laatste nakijkresultaat per oefening (enkel in dit scherm)
@@ -1447,11 +1462,10 @@ function remedPanel(rT0, rD0){
     <div class="rthemes">${rT.map((t,i)=>{ const e=EXO[t.k], x=X[t.k]||{}, nm=exName(t.k), open = S.ui_ropen? S.ui_ropen===t.k : t===first;
       return `<details class="rtheme${x.ok?" ok":""}" data-rk="${t.k}"${open?" open":""}><summary><h4><span class="rnr">${x.ok?"✓":i+1}</span>${esc(t.name)}<span class="muted rst">${x.ok? (x.sent?"juist · doorgestuurd":"juist · nog doorsturen") : x.tries? "nog niet juist" : "oefening in Word"}</span></h4></summary>
       <p class="rmust"><b>Zo moet het:</b> ${t.must}</p>
-      ${t.levels.length? `<p class="rlab">Uitleg nodig? Oefen eerst in de oefenomgeving</p><div class="rlv">${t.levels.map(lvBtn).join("")}</div>` : ""}
       <p class="rlab">1. Download het startbestand</p>
       <div class="tfiles"><a class="btn small" href="rem/${e.file}" download="${esc(nm)}">Startbestand (Word)</a>${(e.extra||[]).map(([l,f])=>`<a class="btn ghost small" href="rem/${f}" download="${f}">${esc(l)}</a>`).join("")}</div>
       <span class="tsave">Bewaar in <b>Word › Remediëring</b> als <b>${esc(nm)}</b></span>
-      <p class="rlab">2. Maak de oefening in Word</p><ol>${e.steps.map(x2=>`<li>${x2}</li>`).join("")}</ol>
+      <p class="rlab">2. Maak de oefening in Word</p><ol>${e.steps.map(x2=>`<li>${x2}</li>`).join("")}</ol>${e.fig? FIGS[e.fig] : ""}
       <p class="rlab">3. Bewaar en upload je oefening</p>
       <label class="btn small ghost rup">Kies je bestand…<input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-rup="${t.k}" hidden></label>
       <div class="rresw" id="rres-${t.k}">${resHTML(t.k)}</div>
@@ -1577,7 +1591,7 @@ const CHECKS = {
     r.push({ok:bok && bsz===24 && isYellow(bc), t: !bok? "Stijl Kop 1 – geen onderrand (Opmaak › Rand)" : `Stijl Kop 1 – onderrand: ${String(bsz/8).replace(".",",")} pt${isYellow(bc)?", geel":", niet geel"} (moet geel en 3 pt zijn)`});
     const heads=M.topParas.filter(p=>isHeading(M,p,1)), names=["Strategiespellen","Coöperatieve spellen","Partyspellen"];
     names.forEach(n=>{ const p=paraByText(M,n); if(!p) return r.push({ok:false,t:`De titel '${n}' vind ik niet meer.`});
-      if(!isHeading(M,p,1)) return r.push({ok:false,t:`'${n}' staat niet (meer) in de stijl Kop 1.`});
+      if(!isHeading(M,p,1)) return r.push({ok:false,t:`'${n}' staat niet in de stijl Kop 1: klik erin, Opmaak wissen en dan de stijl Kop 1.`});
       const lint=M.textRuns(p).some(x=>{ const rp=kid(x,"w:rPr"); return rp && ["w:rFonts","w:sz","w:color","w:b","w:smallCaps","w:caps"].some(t=>kid(rp,t)); });
       r.push({ok:!lint, t: lint? `'${n}' heeft nog opmaak via het lint. Selecteer de titel en klik op Alle opmaak wissen.` : `'${n}' staat in Kop 1, zonder extra opmaak via het lint`}); });
     return r; },
