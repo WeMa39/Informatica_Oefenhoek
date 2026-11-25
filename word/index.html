@@ -312,6 +312,15 @@ table.wt tr.ch td{height:16px}
 .rmini:hover{border-color:var(--word)}
 .rmini small{color:var(--muted)}
 @media (max-width:600px){.rmini{min-width:0;width:100%}}
+.rres{border-radius:10px;padding:10px 12px;display:grid;gap:6px}
+.rres.good{background:var(--good-bg);color:var(--good)}
+.rres.bad{background:var(--hint-bg)}
+.rres ul{margin:0;padding-left:0;list-style:none;display:grid;gap:3px}
+.rres li.no{color:var(--bad);font-weight:600}
+.rres li.ok{color:var(--good)}
+.rup{align-self:flex-start;cursor:pointer}
+.rtheme .tfiles{display:flex;gap:8px;flex-wrap:wrap}
+.rtheme .tsave{font-size:.92rem;color:var(--muted)}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -1366,15 +1375,15 @@ function curCh(){ const c=S.prog.ch; if(c==="R") return "R"; if(Number.isInteger
   const i=CHAPTERS.findIndex(ch=>ch.levels.some(n=>isOpen(n) && !S.prog.best[n])); return i>=0? i : 0; }
 function renderMap(){
   const code = done().length? makeCode(S.name, done(), total()) : "", ci=curCh(), isR=ci==="R", c=isR? null : CHAPTERS[ci], inf=isR? null : chapterInfo(c, ci);
-  const rT=remedThemes(), rD=rT.filter(t=>(S.prog.rdone||{})[t.k]).length;
+  const rT=remedThemes(), rTx=exThemes(rT), rD=rTx.filter(t=>((S.prog.rex||{})[t.k]||{}).ok).length;
   app.innerHTML = header() + `<div class="card codebox" style="justify-content:space-between">
     <div><h2 style="font-size:1.5rem">Kies een hoofdstuk</h2><p class="muted" style="margin:4px 0 0">In elk hoofdstuk leer je eerst in de oefenomgeving. Daarna pas je het toe in het echte Word.</p></div>
     ${code?`<div><div class="muted" style="font-size:.85rem">Jouw code om verder te spelen</div><span class="code">${code}</span></div>`:""}</div>
     <div class="chtabs" role="tablist" aria-label="Hoofdstukken">${CHAPTERS.map((c2,i)=>{ const f=chapterInfo(c2,i), pct=c2.levels.length? f.got/c2.levels.length*100 : 0;
       return `<button class="chtab${f.open||!c2.levels.length?"":" off"}" role="tab" aria-selected="${i===ci}" data-ch="${i}"><span class="chnum">Hoofdstuk ${i+1}${f.full?" · klaar ✓":!f.open&&c2.levels.length?" · op slot":""}</span><b>${esc(c2.name)}</b>
         <span class="minibar" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="meta">${c2.levels.length? `${f.got} van ${c2.levels.length} levels`:"Binnenkort"}${f.tasks.length?` · ${f.tdone} van ${f.tasks.length} opdrachten`:""}</span></button>`; }).join("")}
-      <button class="chtab rtab" role="tab" aria-selected="${isR}" data-ch="R"><span class="chnum">Na de toets${rT.length && rD===rT.length?" · klaar ✓":""}</span><b>${REMED.name}</b>
-        <span class="minibar" aria-hidden="true"><i style="width:${rT.length? rD/rT.length*100 : 0}%"></i></span><span class="meta">${rT.length? `${rD} van ${rT.length} onderdelen` : "Met je persoonlijke code"}</span></button></div>
+      <button class="chtab rtab" role="tab" aria-selected="${isR}" data-ch="R"><span class="chnum">Na de toets${rTx.length && rD===rTx.length?" · klaar ✓":""}</span><b>${REMED.name}</b>
+        <span class="minibar" aria-hidden="true"><i style="width:${rTx.length? rD/rTx.length*100 : 0}%"></i></span><span class="meta">${rT.length? `${rD} van ${rTx.length} oefeningen juist` : "Met je persoonlijke code"}</span></button></div>
     ${isR? remedPanel(rT, rD) : `<section class="card chapter" role="tabpanel" aria-label="Hoofdstuk ${ci+1}: ${esc(c.name)}">
       <div class="chhead"><span class="chnum">Hoofdstuk ${ci+1}</span><h2>${esc(c.name)}</h2>${c.levels.length?`<span class="muted chprog">${inf.got} van ${c.levels.length} levels gedaan</span>`:""}</div>
       ${c.levels.length? `<div class="part"><h3 class="parthead"><span class="pn">1</span>Leren in de oefenomgeving</h3><p class="muted parttxt">Speel de levels in volgorde. Je mag een level altijd opnieuw spelen om meer sterren te halen.</p><div class="levels">${c.levels.map(levelCard).join("")}</div></div>`
@@ -1399,28 +1408,56 @@ function renderMap(){
     renderMap(); }));
 }
 
-function remedPanel(rT, rD){
-  if(!rT.length) return `<section class="card chapter" role="tabpanel" aria-label="${REMED.name}">
+/* oefeningen in het echte Word: per onderdeel een startbestand dat de website nakijkt */
+const EXO = {
+  marges:{stem:"Marges", file:"marges.docx", steps:["Indeling › <b>Marges</b> › <b>Aangepaste marges…</b>","Typ <b>2 cm</b> bij Boven, Onder, Links en Rechts en klik op OK."]},
+  hoofdtitel:{stem:"Hoofdtitel", file:"hoofdtitel.docx", steps:["De hoofdtitel 'Klimmen in de klimzaal' staat in de stijl <b>Titel</b>. Klik erin en kies eerst de stijl <b>Standaard</b>.","Selecteer de titel en maak hem op via het <b>lint</b>: Arial Black, 20 pt, tekstkleur wit.","<b>Arcering</b> (het verfpotje in de groep Alinea): kies een donkere kleur.","<b>Centreer</b> de titel. Open het venster Alinea (klein pijltje) en zet Afstand na op <b>12 pt</b>."]},
+  kop1:{stem:"Kop1", file:"kop1.docx", steps:["De titel 'Coöperatieve spellen' kreeg opmaak via het lint. Selecteer hem en klik op <b>Alle opmaak wissen</b> (de A met het gommetje).","Klik met de rechtermuisknop op <b>Kop 1</b> in de groep Stijlen › <b>Wijzigen…</b>","Kies Arial Narrow, 16 pt en een (goud)gele kleur. <b>Opmaak › Lettertype…</b>: vink Klein kapitaal aan.","<b>Opmaak › Alinea…</b>: Afstand voor 24 pt, na 12 pt.","<b>Opmaak › Rand…</b>: kies geel, 3 pt en klik op de onderrand. Sluit alles met OK."]},
+  standaard:{stem:"Standaard", file:"standaard.docx", steps:["Klik met de rechtermuisknop op <b>Standaard</b> in de groep Stijlen › <b>Wijzigen…</b>","Klik in het venster op de knop <b>Uitvullen</b>.","<b>Opmaak › Alinea…</b>: Afstand voor 0 pt, na 12 pt, Regelafstand <b>Enkel</b>. Klik twee keer op OK."]},
+  nummering:{stem:"Nummering", file:"nummering.docx", steps:["De titels staan al in Kop 1 en Kop 2. Klik in de titel 'Hoe ontstaat een vulkaan?'.","<b>Lijst met meerdere niveaus</b> › kies de lijst waarin <b>Kop 1</b> en <b>Kop 2</b> staan.","Opnieuw <b>Lijst met meerdere niveaus</b> › <b>Nieuwe lijst met meerdere niveaus definiëren…</b>","Niveau 1: Uitlijning op <b>0 cm</b>, Tekstinspringing op <b>1 cm</b>. Niveau 2: hetzelfde. Klik op OK."]},
+  opsomming:{stem:"Opsomming", file:"opsomming.docx", steps:["Haal de zelf getypte streepjes (-) voor de vijf items weg.","Selecteer de vijf items en klik op <b>Opsommingstekens</b>.","Klik met de rechtermuisknop op de opsomming › <b>Lijstinspringing aanpassen…</b>: positie 0 cm, tekstinspringing 1 cm."]},
+  inhoud:{stem:"Inhoudstafel", file:"inhoudstafel.docx", steps:["Klik op de lege regel onder de titel 'Bijen'.","<b>Verwijzingen › Inhoudsopgave › Automatische inhoudsopgave 1</b>.","Geef de titel 'Bijen in gevaar' (onderaan) de stijl <b>Kop 1</b>.","<b>Verwijzingen › Tabel bijwerken › Volledige tabel bijwerken</b> › OK."], check:"inhoudstafel"},
+  afbeeldingen:{stem:"Afbeeldingen", file:"afbeeldingen.docx", extra:[["Afbeelding panda.png","panda.png"]], steps:["Download ook de afbeelding <b>panda.png</b> hierboven.","Klik op de lege regel onder de tekst over de reuzenpanda › <b>Invoegen › Afbeeldingen › Dit apparaat…</b> › kies panda.png.","Zet <b>elke</b> afbeelding op <b>5 cm</b> breed: klik erop › Afbeeldingsopmaak › Breedte.","Geef elke afbeelding een schaduw: <b>Afbeeldingseffecten › Schaduw</b> › kies een schaduw bij Buiten."]},
+  tabel1:{stem:"Tabelstructuur", file:"tabelstructuur.docx", steps:["Kolombreedtes: <b>1,5 / 3 / 3 / 3 / 6 cm</b> (klik in een kolom › Indeling van de tabel › Breedte).","Rij 1: hoogte <b>1 cm</b>.","Selecteer 'Sporten' en de drie lege cellen eronder › <b>Cellen samenvoegen</b>.","Selecteer in de laatste rij de cel 'Inschrijven…' en de drie lege cellen ernaast › <b>Cellen samenvoegen</b>."], check:"tabelstructuur"},
+  tabel2:{stem:"Tabelopmaak", file:"tabelopmaak.docx", steps:["Kopregel en eerste kolom: een <b>achtergrondkleur</b> (Tabelontwerp › Arcering) en een andere <b>tekstkleur</b>.","Alle andere cellen: Indeling › Uitlijning › <b>Links centreren</b>.","'Zwemclub': <b>Tekstrichting</b> van onder naar boven en <b>Gecentreerd uitlijnen</b>.","Selecteer de hele tabel: <b>buitenranden</b> van minstens 1½ pt in een kleur, <b>binnenranden</b> als dunne lijnen."], check:"tabelopmaak"},
+  voettekst:{stem:"Voettekst", file:"voettekst.docx", steps:["<b>Invoegen › Voettekst › Leeg</b>.","Typ <b>pgnr.</b> en een spatie › <b>Paginanummer › Huidige positie › Normaal nummer</b>.","Selecteer de voettekst en zet de tekengrootte op <b>9</b> (2 pt kleiner dan Standaard).","Groep Alinea › pijltje bij Randen › <b>Bovenrand</b>. Klik op Koptekst en voettekst sluiten."]},
+  pagina:{stem:"Paginaeinde", file:"paginaeinde.docx", steps:["Zet de tekens <b>¶</b> aan (groep Alinea).","'De eerste stappen' moet op een nieuwe pagina beginnen: haal de lege regels erboven weg en klik vooraan in de titel › <b>Invoegen › Pagina-einde</b> (of Ctrl + Enter).","Doe hetzelfde voor 'Het ruimtestation': haal de zes lege regels weg en voeg een pagina-einde in."], check:"paginaeinde"}
+};
+function exName(k){ const e=EXO[k], kl=(S.klas||"klas").trim().replace(/\s+/g,""); return `${kl}_Rem_${e.stem}_${S.name.trim().replace(/\s+/g,"_")}.docx`; }
+function exThemes(rT){ return rT.filter(t=>EXO[t.k]); }
+let RCHK = {}; // laatste nakijkresultaat per oefening (enkel in dit scherm)
+function remedPanel(rT0, rD0){
+  const rT=exThemes(rT0);
+  if(!rT0.length) return `<section class="card chapter" role="tabpanel" aria-label="${REMED.name}">
     <div class="chhead"><span class="chnum">Na de ${REMED.toets}</span><h2>${REMED.name}</h2></div>
-    <p class="muted" style="margin:0">Je leerkracht gaf je een <b>persoonlijke code</b> die begint met FN. Met die code zie je hier enkel de onderdelen waar je op de toets punten verloor, met oefeningen om ze bij te werken.</p>
+    <p class="muted" style="margin:0">Je leerkracht gaf je een <b>persoonlijke code</b> die begint met FN. Met die code zie je hier enkel de onderdelen waar je op de toets punten verloor. Per onderdeel maak je een korte oefening in Word, die je hier uploadt en meteen nagekeken krijgt.</p>
     <form id="f-remed" class="openbox" novalidate><label class="f" for="in-remed">Jouw persoonlijke code<input class="txt" id="in-remed" autocomplete="off" placeholder="bv. FN-1A2B-3C"></label><button class="btn small" type="submit">Openen</button><div class="err" id="err-remed"></div></form></section>`;
-  const dn=S.prog.rdone||{}, all=rD===rT.length;
+  const X=S.prog.rex||{}, done=rT.filter(t=>X[t.k]&&X[t.k].ok).length, first=rT.find(t=>!(X[t.k]&&X[t.k].ok));
   const lvBtn=n=>{ const L=LEVELS[n-1], b=S.prog.best[n]&&!S.prog.best[n].fromCode? S.prog.best[n] : null;
     return `<button class="rmini" data-rlvl="${n}"><small>${lvLabel(n)}</small><b>${esc(L.name)}</b>${starHTML(b?b.stars:0)}</button>`; };
+  const resHTML=k=>{ const R=RCHK[k], x=X[k]; if(!R) return x&&x.tries? `<p class="muted rres0">${x.ok?"✓ Juist nagekeken":"Laatste keer nagekeken: nog "+x.fouten+" fout(en)"} (${x.tries} keer geüpload).</p>` : "";
+    const bad=R.res.filter(r=>!r.ok);
+    return `<div class="rres ${bad.length?"bad":"good"}" role="status"><b>${bad.length? `Nog ${bad.length} fout${bad.length>1?"en":""} in ${esc(R.name)}:` : `Helemaal juist! ${esc(R.name)} is in orde.`}</b><ul>${R.res.map(r=>`<li class="${r.ok?"ok":"no"}">${r.ok?"✓":"✗"} ${esc(r.t)}</li>`).join("")}</ul>${bad.length?`<span>Verbeter je bestand in Word, bewaar het opnieuw en upload het nog eens.</span>`:""}</div>`; };
   return `<section class="card chapter" role="tabpanel" aria-label="${REMED.name}">
-    <div class="rhead"><div class="chhead"><span class="chnum">Na de ${REMED.toets}</span><h2>${REMED.name}</h2><span class="muted chprog">${rD} van ${rT.length} onderdelen verbeterd</span></div>
+    <div class="rhead"><div class="chhead"><span class="chnum">Na de ${REMED.toets}</span><h2>${REMED.name}</h2><span class="muted chprog">${done} van ${rT.length} oefeningen juist</span></div>
       <button class="btn ghost small" id="r-reset">Andere code ingeven</button></div>
-    <ol class="rsteps"><li>Hieronder staan <b>enkel de onderdelen waar jij punten verloor</b>. Leg je verbeterblad met de aandachtspunten ernaast.</li>
-      <li>Per onderdeel: speel eerst de levels in de oefenomgeving, verbeter het daarna in <b>je eigen toets</b> in Word en vink het af.</li>
-      <li>Alles afgevinkt? Lever je verbeterde toets in op Teams.</li></ol>
-    <div class="rthemes">${rT.map((t,i)=>`<details class="rtheme${dn[t.k]?" ok":""}" data-rk="${t.k}"${(S.ui_ropen? S.ui_ropen===t.k : t===rT.find(x=>!dn[x.k]))?" open":""}><summary><h4><span class="rnr">${dn[t.k]?"✓":i+1}</span>${esc(t.name)}<span class="muted rst">${dn[t.k]?"verbeterd":t.levels.length? t.levels.length+(t.levels.length>1?" levels":" level")+" + verbeteren" : "verbeteren in Word"}</span></h4></summary>
-      <p class="rmust"><b>Zo moest het:</b> ${t.must}</p>
-      ${t.levels.length? `<p class="rlab">1. Oefen in de oefenomgeving</p><div class="rlv">${t.levels.map(lvBtn).join("")}</div>` : ""}
-      <p class="rlab">${t.levels.length? "2. " : ""}Verbeter in je eigen toets (in Word)</p><ol>${t.fix.map(x=>`<li>${x}</li>`).join("")}</ol>
-      <div class="rdone"><button class="btn small${dn[t.k]?" ghost":""}" data-rdone="${t.k}">${dn[t.k]?"Toch nog niet klaar":"Ik heb dit verbeterd ✓"}</button></div></details>`).join("")}</div>
-    <div class="task"${all?"":` style="border-color:var(--line)"`}><span class="num">${all?"Klaar om in te leveren":"Als alles afgevinkt is"}</span><h4>Je verbeterde toets inleveren</h4>
-      <span class="d">Bewaar je verbeterde toets als <b>${esc((S.klas||"klas")+"_Fortnite_"+S.name.trim().replace(/\s+/g,"_"))}_verbeterd</b> en lever hem in op <b>Teams</b>.</span>
-      <button class="btn small" id="r-send"${all?"":" disabled"}>Ik heb mijn verbeterde toets ingeleverd</button></div>
+    <ol class="rsteps"><li>Hieronder staan <b>enkel de onderdelen waar jij punten verloor</b>. Per onderdeel maak je een korte oefening in Word.</li>
+      <li>Maak in je map <b>Word</b> een nieuwe map <b>Remediëring</b>. Bewaar daarin elke oefening, met precies de naam die erbij staat.</li>
+      <li>Upload je oefening hier: je krijgt meteen feedback. Is alles juist, stuur dan je resultaat door naar je leerkracht.</li></ol>
+    <div class="rthemes">${rT.map((t,i)=>{ const e=EXO[t.k], x=X[t.k]||{}, nm=exName(t.k), open = S.ui_ropen? S.ui_ropen===t.k : t===first;
+      return `<details class="rtheme${x.ok?" ok":""}" data-rk="${t.k}"${open?" open":""}><summary><h4><span class="rnr">${x.ok?"✓":i+1}</span>${esc(t.name)}<span class="muted rst">${x.ok? (x.sent?"juist · doorgestuurd":"juist · nog doorsturen") : x.tries? "nog niet juist" : "oefening in Word"}</span></h4></summary>
+      <p class="rmust"><b>Zo moet het:</b> ${t.must}</p>
+      ${t.levels.length? `<p class="rlab">Uitleg nodig? Oefen eerst in de oefenomgeving</p><div class="rlv">${t.levels.map(lvBtn).join("")}</div>` : ""}
+      <p class="rlab">1. Download het startbestand</p>
+      <div class="tfiles"><a class="btn small" href="rem/${e.file}" download="${esc(nm)}">Startbestand (Word)</a>${(e.extra||[]).map(([l,f])=>`<a class="btn ghost small" href="rem/${f}" download="${f}">${esc(l)}</a>`).join("")}</div>
+      <span class="tsave">Bewaar in <b>Word › Remediëring</b> als <b>${esc(nm)}</b></span>
+      <p class="rlab">2. Maak de oefening in Word</p><ol>${e.steps.map(x2=>`<li>${x2}</li>`).join("")}</ol>
+      <p class="rlab">3. Bewaar en upload je oefening</p>
+      <label class="btn small ghost rup">Kies je bestand…<input type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-rup="${t.k}" hidden></label>
+      <div class="rresw" id="rres-${t.k}">${resHTML(t.k)}</div>
+      ${x.tries? `<div class="rdone"><button class="btn small${x.ok?"":" ghost"}" data-rsend="${t.k}">${x.sent? "Opnieuw doorsturen" : x.ok? "4. Resultaat doorsturen naar je leerkracht" : "Resultaat toch al doorsturen"}</button>${x.sent?`<span class="muted">Doorgestuurd ✓</span>`:""}</div>` : ""}
+      </details>`; }).join("")}</div>
+    ${done===rT.length? `<div class="task"><span class="num">Klaar</span><h4>Alle oefeningen zijn juist</h4><span class="d">Goed gedaan! Kijk na of je elk resultaat hebt doorgestuurd.</span></div>` : ""}
   </section>`;
 }
 function bindRemed(){
@@ -1429,12 +1466,253 @@ function bindRemed(){
     S.prog.remed=rm; save(); renderMap(); });
   const r=$("#r-reset"); if(r) r.addEventListener("click", ()=>{ delete S.prog.remed; save(); renderMap(); });
   app.querySelectorAll("[data-rlvl]").forEach(b=>b.addEventListener("click",()=>{ S.remedPlay=true; S.ui_ropen=b.closest("details").dataset.rk; startLevel(+b.dataset.rlvl); }));
-  app.querySelectorAll("[data-rdone]").forEach(b=>b.addEventListener("click",()=>{ const k=b.dataset.rdone; S.prog.rdone={...(S.prog.rdone||{})}; S.prog.rdone[k]=!S.prog.rdone[k]; S.ui_ropen=null; save(); renderMap(); }));
   app.querySelectorAll("details.rtheme").forEach(d=>d.addEventListener("toggle",()=>{ if(d.open) S.ui_ropen=d.dataset.rk; }));
-  const sd=$("#r-send"); if(sd) sd.addEventListener("click", ()=>{ const rT=remedThemes();
-    S.prog.rsent=true; save();
-    if(SEND.url) window.open(sendURL(0,{naam:S.name, klas:S.klas, oefening:REMED.name, score:`${rT.filter(t=>(S.prog.rdone||{})[t.k]).length} van ${rT.length} onderdelen verbeterd`, sterren:"", fouten:rT.map(t=>t.name).join(", ")}),"_blank","noopener");
-    sd.textContent="Ingeleverd ✓"; });
+  app.querySelectorAll("[data-rup]").forEach(inp=>inp.addEventListener("change", async ()=>{ const k=inp.dataset.rup, file=inp.files[0]; if(!file) return;
+    const box=$("#rres-"+k); box.innerHTML=`<p class="muted">Bezig met nakijken…</p>`;
+    const res=await checkDocx(file, EXO[k].check||k, exName(k)), bad=res.filter(x=>!x.ok);
+    const prev=(S.prog.rex||{})[k]||{}; S.prog.rex={...(S.prog.rex||{}), [k]:{ok:!bad.length, tries:(prev.tries||0)+1, fouten:bad.length, lijst:bad.map(x=>x.t).slice(0,8), sent:false}};
+    RCHK[k]={name:file.name, res}; S.ui_ropen=k; save(); renderMap();
+    const nb=$("#rres-"+k); if(nb) nb.scrollIntoView({block:"nearest"}); }));
+  app.querySelectorAll("[data-rsend]").forEach(b=>b.addEventListener("click", ()=>{ const k=b.dataset.rsend, x=S.prog.rex[k], t=REMED.themes.find(t2=>t2.k===k);
+    if(SEND.url) window.open(sendURL(0,{naam:S.name, klas:S.klas, oefening:`Remediëring Fortnite: ${t.name}`, score: x.ok? "juist" : `${x.fouten} fout(en)`, sterren:`${x.tries} keer geüpload`, fouten: x.ok? "" : x.lijst.join(" | ")}),"_blank","noopener");
+    x.sent=true; save(); renderMap(); }));
+}
+/* ---------- nakijken van een Word-bestand (.docx) in de browser: niets wordt verstuurd ---------- */
+async function unzipDocx(buf){
+  const u8=new Uint8Array(buf), dv=new DataView(buf); let e=-1;
+  for(let i=u8.length-22;i>=Math.max(0,u8.length-66000);i--) if(dv.getUint32(i,true)===0x06054b50){ e=i; break; }
+  if(e<0) throw new Error("geen zip");
+  const n=dv.getUint16(e+10,true); let off=dv.getUint32(e+16,true); const out={}, td=new TextDecoder();
+  for(let k=0;k<n;k++){
+    if(dv.getUint32(off,true)!==0x02014b50) break;
+    const meth=dv.getUint16(off+10,true), csize=dv.getUint32(off+20,true), nl=dv.getUint16(off+28,true), xl=dv.getUint16(off+30,true), cl=dv.getUint16(off+32,true), lho=dv.getUint32(off+42,true);
+    const name=td.decode(u8.subarray(off+46,off+46+nl)); off+=46+nl+xl+cl;
+    if(!/\.(xml|rels)$/i.test(name)) { out[name]=null; continue; }
+    const start=lho+30+dv.getUint16(lho+26,true)+dv.getUint16(lho+28,true), data=u8.subarray(start,start+csize);
+    if(meth===0) out[name]=td.decode(data);
+    else if(meth===8){ const s=new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw")); out[name]=await new Response(s).text(); }
+  }
+  return out;
+}
+const XP = new DOMParser();
+const xml = s => s? XP.parseFromString(s,"application/xml") : null;
+const kids = (el,tag) => el? Array.from(el.children).filter(c=>c.tagName===tag) : [];
+const kid = (el,tag) => kids(el,tag)[0]||null;
+const all = (el,tag) => el? Array.from(el.getElementsByTagName(tag)) : [];
+const av = (el,a) => el? el.getAttribute(a) : null;
+const val = el => av(el,"w:val");
+const onOff = el => !!el && !["0","false","off"].includes(String(val(el)));
+const ptxt = p => all(p,"w:t").map(t=>t.textContent).join("");
+const pt = hp => String(hp/2).replace(".",",");          // halve punten -> pt
+const cm = tw => String(Math.round(tw/567*100)/100).replace(".",","); // twips -> cm
+
+function wordModel(files){
+  const doc=xml(files["word/document.xml"]), sty=xml(files["word/styles.xml"]), num=xml(files["word/numbering.xml"]);
+  const rels={}; const R=xml(files["word/_rels/document.xml.rels"]); all(R,"Relationship").forEach(r=>rels[av(r,"Id")]=av(r,"Target"));
+  const styles={}; all(sty,"w:style").forEach(s=>{ styles[av(s,"w:styleId")]={id:av(s,"w:styleId"), type:av(s,"w:type"), name:(val(kid(s,"w:name"))||"").toLowerCase(), based:val(kid(s,"w:basedOn")), pPr:kid(s,"w:pPr"), rPr:kid(s,"w:rPr"), tblPr:kid(s,"w:tblPr"), el:s, def:av(s,"w:default")==="1"}; });
+  const dd=kid(sty&&sty.documentElement,"w:docDefaults"), dR=kid(kid(dd,"w:rPrDefault"),"w:rPr"), dP=kid(kid(dd,"w:pPrDefault"),"w:pPr");
+  const byName=n=>Object.values(styles).find(s=>s.name===n);
+  const normal=Object.values(styles).find(s=>s.type==="paragraph"&&s.def) || byName("normal");
+  const chain=id=>{ const out=[]; let s=styles[id]; const seen=new Set(); while(s && !seen.has(s.id)){ out.push(s); seen.add(s.id); s=styles[s.based]; } return out; };
+  const pStyleId=p=>val(kid(kid(p,"w:pPr"),"w:pStyle")) || (normal&&normal.id);
+  // eigenschap zoeken: eerst de eigen elementen, dan de stijlketen, dan de standaardinstellingen
+  function styleProp(id, kind, tag){ for(const s of chain(id)){ const e=kid(s[kind],tag); if(e) return e; } const d=kind==="rPr"?dR:dP; return kid(d,tag); }
+  function runProp(r, p, tag){ const e=kid(kid(r,"w:rPr"),tag); if(e) return e; const rs=val(kid(kid(r,"w:rPr"),"w:rStyle")); if(rs){ for(const s of chain(rs)){ const x=kid(s.rPr,tag); if(x) return x; } } return styleProp(pStyleId(p),"rPr",tag); }
+  function paraProp(p, tag){ const e=kid(kid(p,"w:pPr"),tag); if(e) return e; return styleProp(pStyleId(p),"pPr",tag); }
+  const body=kid(doc&&doc.documentElement,"w:body");
+  const paras=all(body,"w:p").filter(p=>!p.parentNode || p.parentNode.tagName!=="w:tc" ? true : true);
+  const topParas=Array.from(body? body.children:[]).flatMap(c=> c.tagName==="w:p"? [c] : c.tagName==="w:sdt"? all(c,"w:p") : []);
+  const textRuns=p=>kids(p,"w:r").concat(kids(p,"w:hyperlink").flatMap(h=>kids(h,"w:r"))).filter(r=>kid(r,"w:t") && ptxt(r).trim());
+  // nummering
+  function numInfo(p){ let np=kid(kid(p,"w:pPr"),"w:numPr"), src="alinea"; let ilvl=np? val(kid(np,"w:ilvl")) : null, numId=np? val(kid(np,"w:numId")) : null;
+    if(!numId){ for(const s of chain(pStyleId(p))){ const n=kid(s.pPr,"w:numPr"); if(n){ numId=val(kid(n,"w:numId")); if(ilvl===null) ilvl=val(kid(n,"w:ilvl")); src="stijl"; break; } } }
+    if(!numId || numId==="0" || !num) return null;
+    const nEl=all(num,"w:num").find(n=>av(n,"w:numId")===numId); if(!nEl) return null;
+    const aId=val(kid(nEl,"w:abstractNumId")), abs=all(num,"w:abstractNum").find(a=>av(a,"w:abstractNumId")===aId); if(!abs) return null;
+    if(ilvl===null){ const sid=pStyleId(p); const L=kids(abs,"w:lvl").find(l=>val(kid(l,"w:pStyle"))===sid); ilvl=L? av(L,"w:ilvl") : "0"; }
+    const ov=kids(nEl,"w:lvlOverride").find(o=>av(o,"w:ilvl")===ilvl), lvl=(ov&&kid(ov,"w:lvl")) || kids(abs,"w:lvl").find(l=>av(l,"w:ilvl")===ilvl);
+    return {src, ilvl:+ilvl, lvl, abs, fmt:val(kid(lvl,"w:numFmt")), text:val(kid(lvl,"w:lvlText")), linked:val(kid(lvl,"w:pStyle"))}; }
+  function indOf(p, ni){ const d=kid(kid(p,"w:pPr"),"w:ind"); if(d) return d; if(ni && ni.lvl){ const x=kid(kid(ni.lvl,"w:pPr"),"w:ind"); if(x) return x; } return styleProp(pStyleId(p),"pPr","w:ind"); }
+  return {files, doc, body, styles, byName, normal, chain, pStyleId, styleProp, runProp, paraProp, topParas, textRuns, numInfo, indOf, rels, dR, dP};
+}
+const tw = (el,a) => { const v=av(el,a); return v===null? null : +v; };
+function indCm(ind){ if(!ind) return {pos:0, txt:0}; const left=tw(ind,"w:left")??tw(ind,"w:start")??0, hang=tw(ind,"w:hanging")??0, first=tw(ind,"w:firstLine")??0; return {txt:left, pos:left-hang+first}; }
+const near=(a,b,t=20)=>a!==null && Math.abs(a-b)<=t;
+function hexRGB(h){ h=String(h||"").replace("#",""); if(!/^[0-9a-f]{6}$/i.test(h)) return null; return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)); }
+const isYellow=h=>{ const c=hexRGB(h); return !!c && c[0]>=150 && c[1]>=110 && c[2]<=100 && c[0]-c[2]>=100; };
+const isColor=h=>{ const c=hexRGB(h); return !!c && !(c[0]===c[1]&&c[1]===c[2]&&c[0]<40) && h.toLowerCase()!=="auto"; };
+const filled=sh=>{ const f=av(sh,"w:fill"); return !!f && f.toLowerCase()!=="auto" && f.toUpperCase()!=="FFFFFF"; };
+function fontOf(rf){ return rf? (av(rf,"w:ascii")||av(rf,"w:hAnsi")||"") : ""; }
+const paraByText=(M,t)=>M.topParas.find(p=>ptxt(p).replace(/^[\s\-–•*]+/,"").trim().toLowerCase()===t.toLowerCase());
+const isHeading=(M,p,n)=>{ const s=M.styles[M.pStyleId(p)]; return !!s && s.name==="heading "+n; };
+
+/* ---------- de controles per oefening: elke controle geeft {ok, t} ---------- */
+const CHECKS = {
+  marges(M){ const pm=all(M.body,"w:pgMar")[0]; const r=[];
+    const v=["top","bottom","left","right"].map(k=>tw(pm,"w:"+k)), nm={top:"boven",bottom:"onder",left:"links",right:"rechts"};
+    ["top","bottom","left","right"].forEach((k,i)=>r.push({ok:near(v[i],1134,15), t:`Marge ${nm[k]}: ${v[i]===null?"?":cm(v[i])+" cm"} (moet 2 cm zijn)`}));
+    return r; },
+  hoofdtitel(M){ const p=M.topParas.find(x=>ptxt(x).trim()); const r=[]; if(!p) return [{ok:false,t:"Ik vind geen hoofdtitel."}];
+    const s=M.styles[M.pStyleId(p)], runs=M.textRuns(p);
+    r.push({ok:!s || s.name==="normal", t: !s||s.name==="normal"? "De hoofdtitel staat in de stijl Standaard en is opgemaakt via het lint" : `De hoofdtitel staat nog in de stijl '${s.name==="title"?"Titel":s.name}'. Zet hem eerst in Standaard en maak hem op via het lint.`});
+    const fonts=[...new Set(runs.map(x=>fontOf(M.runProp(x,p,"w:rFonts"))))], sizes=[...new Set(runs.map(x=>+val(M.runProp(x,p,"w:sz"))))], cols=[...new Set(runs.map(x=>(val(M.runProp(x,p,"w:color"))||"auto").toUpperCase()))];
+    r.push({ok:fonts.length===1 && fonts[0]==="Arial Black", t:`Lettertype: ${fonts.join(", ")||"standaard"} (moet Arial Black zijn)`});
+    r.push({ok:sizes.length===1 && sizes[0]===40, t:`Tekengrootte: ${sizes.map(pt).join(", ")} pt (moet 20 pt zijn)`});
+    r.push({ok:cols.length===1 && cols[0]==="FFFFFF", t:`Tekstkleur: ${cols[0]==="FFFFFF"&&cols.length===1?"wit":"niet (overal) wit"}`});
+    const sh = filled(kid(kid(p,"w:pPr"),"w:shd")) || (runs.length && runs.every(x=>filled(kid(kid(x,"w:rPr"),"w:shd")) || filled(kid(kid(x,"w:rPr"),"w:highlight"))));
+    r.push({ok:sh, t: sh? "Achtergrondkleur (arcering): in orde" : "Geen achtergrondkleur: gebruik Arcering (het verfpotje in de groep Alinea)"});
+    const jc=val(M.paraProp(p,"w:jc")); r.push({ok:jc==="center", t:`Uitlijning: ${jc==="center"?"gecentreerd":"niet gecentreerd"}`});
+    const sp=M.paraProp(p,"w:spacing"), after=tw(kid(kid(p,"w:pPr"),"w:spacing"),"w:after") ?? tw(M.styleProp(M.pStyleId(p),"pPr","w:spacing"),"w:after");
+    r.push({ok:after===240, t:`Afstand na: ${after===null?"?":pt(after/10)} pt (moet 12 pt zijn)`});
+    return r; },
+  kop1(M){ const k=M.byName("heading 1"); if(!k) return [{ok:false,t:"Ik vind de stijl Kop 1 niet."}];
+    const P=tag=>M.styleProp(k.id,"pPr",tag), Rr=tag=>M.styleProp(k.id,"rPr",tag), r=[];
+    const f=fontOf(Rr("w:rFonts")); r.push({ok:f==="Arial Narrow", t:`Stijl Kop 1 – lettertype: ${f||"thema-lettertype"} (moet Arial Narrow zijn)`});
+    const sz=+val(Rr("w:sz")); r.push({ok:sz===32, t:`Stijl Kop 1 – tekengrootte: ${pt(sz)} pt (moet 16 pt zijn)`});
+    r.push({ok:onOff(Rr("w:smallCaps")), t:`Stijl Kop 1 – klein kapitaal: ${onOff(Rr("w:smallCaps"))?"ja":"nee (Opmaak › Lettertype › Klein kapitaal)"}`});
+    const c=val(Rr("w:color")); r.push({ok:isYellow(c), t:`Stijl Kop 1 – tekstkleur: ${isYellow(c)?"(goud)geel":"niet geel"}`});
+    const spc=P("w:spacing"), b=tw(spc,"w:before")??0, a=tw(spc,"w:after")??0;
+    r.push({ok:b===480, t:`Stijl Kop 1 – afstand voor: ${pt(b/10)} pt (moet 24 pt zijn)`}); r.push({ok:a===240, t:`Stijl Kop 1 – afstand na: ${pt(a/10)} pt (moet 12 pt zijn)`});
+    const bd=kid(P("w:pBdr"),"w:bottom"), bsz=+av(bd,"w:sz"), bc=av(bd,"w:color"), bok=!!bd && !["none","nil"].includes(val(bd));
+    r.push({ok:bok && bsz===24 && isYellow(bc), t: !bok? "Stijl Kop 1 – geen onderrand (Opmaak › Rand)" : `Stijl Kop 1 – onderrand: ${String(bsz/8).replace(".",",")} pt${isYellow(bc)?", geel":", niet geel"} (moet geel en 3 pt zijn)`});
+    const heads=M.topParas.filter(p=>isHeading(M,p,1)), names=["Strategiespellen","Coöperatieve spellen","Partyspellen"];
+    names.forEach(n=>{ const p=paraByText(M,n); if(!p) return r.push({ok:false,t:`De titel '${n}' vind ik niet meer.`});
+      if(!isHeading(M,p,1)) return r.push({ok:false,t:`'${n}' staat niet (meer) in de stijl Kop 1.`});
+      const lint=M.textRuns(p).some(x=>{ const rp=kid(x,"w:rPr"); return rp && ["w:rFonts","w:sz","w:color","w:b","w:smallCaps","w:caps"].some(t=>kid(rp,t)); });
+      r.push({ok:!lint, t: lint? `'${n}' heeft nog opmaak via het lint. Selecteer de titel en klik op Alle opmaak wissen.` : `'${n}' staat in Kop 1, zonder extra opmaak via het lint`}); });
+    return r; },
+  standaard(M){ const n=M.normal, r=[]; const spc=M.styleProp(n.id,"pPr","w:spacing"), sp=kid(n.pPr,"w:spacing")||spc;
+    const b=tw(sp,"w:before")??tw(kid(M.dP,"w:spacing"),"w:before")??0, a=tw(sp,"w:after")??tw(kid(M.dP,"w:spacing"),"w:after")??0;
+    const line=tw(sp,"w:line")??tw(kid(M.dP,"w:spacing"),"w:line")??240, rule=av(sp,"w:lineRule")||av(kid(M.dP,"w:spacing"),"w:lineRule")||"auto";
+    r.push({ok:b===0, t:`Stijl Standaard – afstand voor: ${pt(b/10)} pt (moet 0 pt zijn)`});
+    r.push({ok:a===240, t:`Stijl Standaard – afstand na: ${pt(a/10)} pt (moet 12 pt zijn)`});
+    const enkel = rule==="auto" && line===240; r.push({ok:enkel, t:`Stijl Standaard – regelafstand: ${enkel?"enkel": rule==="auto"? String(Math.round(line/240*100)/100).replace(".",",")+" (meerdere)" : "vast"} (moet enkel zijn)`});
+    const jc=val(M.styleProp(n.id,"pPr","w:jc")); r.push({ok:jc==="both"||jc==="distribute", t:`Stijl Standaard – uitlijning: ${jc==="both"?"uitgevuld":"niet uitgevuld"}`});
+    const lint=M.topParas.filter(p=>{ if(M.pStyleId(p)!==n.id || !ptxt(p).trim()) return false; const pp=kid(p,"w:pPr"), sp2=kid(pp,"w:spacing"), j=kid(pp,"w:jc");
+      const bad2 = sp2 && ((tw(sp2,"w:after")!==null && tw(sp2,"w:after")!==240) || (tw(sp2,"w:before")||0)!==0 || (tw(sp2,"w:line")!==null && tw(sp2,"w:line")!==240));
+      return bad2 || (j && !["both","distribute"].includes(val(j))); });
+    r.push({ok:!lint.length, t: lint.length? `${lint.length} alinea('s) kregen afstand of uitlijning via het lint. Dat telt niet: wis die opmaak en pas de stijl aan.` : "Geen afstand of uitlijning via het lint op de alinea's"});
+    return r; },
+  nummering(M){ const r=[]; const h=M.topParas.filter(p=>isHeading(M,p,1)||isHeading(M,p,2));
+    if(h.length<5) r.push({ok:false, t:`Ik vind maar ${h.length} titels in Kop 1 of Kop 2 (verwacht 5).`});
+    let noNum=0, wrongLvl=0, notLinked=0, badInd=[];
+    h.forEach(p=>{ const ni=M.numInfo(p), lv=isHeading(M,p,1)?0:1; if(!ni){ noNum++; return; }
+      if(ni.ilvl!==lv || ni.fmt!=="decimal" || (lv===1 && !/%1.*%2/.test(ni.text||""))) wrongLvl++;
+      if(ni.src!=="stijl" && !ni.linked) notLinked++;
+      const ic=indCm(M.indOf(p,ni)); if(!near(ic.pos,0,15)||!near(ic.txt,567,15)) badInd.push(`nummer op ${cm(ic.pos)} cm en tekst op ${cm(ic.txt)} cm`); });
+    r.push({ok:!noNum, t: noNum? `${noNum} van de ${h.length} titels hebben geen nummer` : "Alle titels zijn genummerd"});
+    if(!noNum){ r.push({ok:!wrongLvl, t: wrongLvl? "Niet op het juiste niveau: 1, 2, 3 voor Kop 1 en 1.1, 1.2 voor Kop 2 (lijst met meerdere niveaus)" : "Juiste niveaus: 1, 2 … voor Kop 1 en 1.1, 1.2 … voor Kop 2"});
+      r.push({ok:!notLinked, t: notLinked? "De nummering is niet gekoppeld aan de stijlen Kop 1 en Kop 2. Kies de lijst met Kop 1 en Kop 2 erin." : "De nummering is gekoppeld aan Kop 1 en Kop 2"});
+      r.push({ok:!badInd.length, t: badInd.length? `Inspringing: ${badInd[0]} (moet 0 cm en 1 cm zijn)` : "Inspringing: nummer op 0 cm, tekst op 1 cm"}); }
+    return r; },
+  opsomming(M){ const items=["sportschoenen","een handdoek","een drinkfles met water","deodorant (geen spray)","een reserve-T-shirt"], r=[];
+    const ps=items.map(t=>paraByText(M,t)); const miss=ps.filter(x=>!x).length; if(miss) r.push({ok:false,t:`${miss} van de 5 items vind ik niet meer terug.`});
+    const ok=ps.filter(Boolean), dash=ok.filter(p=>/^\s*[-–•*]/.test(ptxt(p))), nis=ok.map(p=>M.numInfo(p));
+    r.push({ok:!dash.length, t: dash.length? `${dash.length} item(s) beginnen nog met een zelf getypt streepje` : "Geen zelf getypte streepjes meer"});
+    const bul=nis.filter(n=>n&&n.fmt==="bullet").length;
+    r.push({ok:bul===ok.length && ok.length===5, t:`${bul} van de 5 items hebben een automatisch opsommingsteken${nis.some(n=>n&&n.fmt!=="bullet")?" (gebruik opsommingstekens, geen nummering)":""}`});
+    const bad=ok.map((p,i)=>indCm(M.indOf(p,nis[i]))).filter(ic=>!near(ic.pos,0,15)||!near(ic.txt,567,15));
+    r.push({ok:!bad.length, t: bad.length? `Inspringing: opsommingsteken op ${cm(bad[0].pos)} cm en tekst op ${cm(bad[0].txt)} cm (moet 0 cm en 1 cm zijn)` : "Inspringing: teken op 0 cm, tekst op 1 cm"});
+    return r; },
+  inhoudstafel(M){ const r=[]; const instr=all(M.body,"w:instrText").map(x=>x.textContent).join(" ")+" "+all(M.body,"w:fldSimple").map(x=>av(x,"w:instr")).join(" ");
+    const has=/\bTOC\b/.test(instr); r.push({ok:has, t: has? "Er staat een automatische inhoudsopgave in" : "Ik vind geen automatische inhoudsopgave (Verwijzingen › Inhoudsopgave)"});
+    const g=paraByText(M,"Bijen in gevaar"); r.push({ok:!!g && isHeading(M,g,1), t: g&&isHeading(M,g,1)? "'Bijen in gevaar' staat in Kop 1" : "'Bijen in gevaar' staat nog niet in de stijl Kop 1"});
+    if(has){ const toc=M.topParas.filter(p=>/^toc \d/.test((M.styles[M.pStyleId(p)]||{}).name||"")).map(p=>ptxt(p).toLowerCase()).join("|");
+      const want=["Leven in een bijenkorf","Werksters","Darren","Van nectar tot honing","Bijen in gevaar"], miss=want.filter(w=>!toc.includes(w.toLowerCase()));
+      r.push({ok:!miss.length, t: miss.length? `In de inhoudsopgave ontbreekt: ${miss.join(", ")}. Klik op Tabel bijwerken › Volledige tabel bijwerken.` : "De inhoudsopgave is bijgewerkt: alle titels staan erin"}); }
+    return r; },
+  afbeeldingen(M){ const d=all(M.body,"w:drawing"), r=[];
+    r.push({ok:d.length>=3, t:`${d.length} afbeelding(en) in het document (verwacht 3: de panda moet erbij)`});
+    const w=d.map(x=>+av(all(x,"wp:extent")[0],"cx")), bad=w.filter(x=>Math.abs(x-1800000)>18000);
+    r.push({ok:d.length && !bad.length, t: bad.length? `${bad.length} afbeelding(en) zijn niet 5 cm breed (bv. ${String(Math.round(bad[0]/3600)/100).replace(".",",")} cm)` : "Alle afbeeldingen zijn 5 cm breed"});
+    const nosh=d.filter(x=>!all(x,"a:outerShdw").length && !all(x,"a:innerShdw").length && !all(x,"a:prstShdw").length).length;
+    r.push({ok:d.length && !nosh, t: nosh? `${nosh} afbeelding(en) hebben geen schaduw (Afbeeldingseffecten › Schaduw)` : "Alle afbeeldingen hebben een schaduw"});
+    return r; },
+  tabelstructuur(M){ const T=all(M.body,"w:tbl")[0]; if(!T) return [{ok:false,t:"Ik vind de tabel niet meer."}]; const r=[], G=tableGrid(T);
+    const want=[851,1701,1701,1701,3402], gc=kids(kid(T,"w:tblGrid"),"w:gridCol").map(g=>tw(g,"w:w"));
+    const widths = gc.length===5? gc : G.rows[0].filter(c=>c.cs===1).map(c=>tw(kid(kid(c.el,"w:tcPr"),"w:tcW"),"w:w"));
+    const okW = widths.length===5 && widths.every((w,i)=>near(w,want[i],45));
+    r.push({ok:okW, t:`Kolombreedtes: ${widths.map(cm).join(" / ")} cm (moet 1,5 / 3 / 3 / 3 / 6 cm zijn)`});
+    const h=tw(kid(kid(kids(T,"w:tr")[0],"w:trPr"),"w:trHeight"),"w:val"); r.push({ok:near(h,567,15), t:`Hoogte van rij 1: ${h?cm(h)+" cm":"automatisch"} (moet 1 cm zijn)`});
+    const v=G.cellAt(1,0); const vOk = v && v.rs>=4 && v.text.includes("Sporten");
+    r.push({ok:vOk, t: vOk? "'Sporten' is samengevoegd over de vier sporten" : "De eerste kolom ('Sporten') is niet samengevoegd over de vier rijen met sporten"});
+    const last=G.rows[G.rows.length-1], lc=last.find(c=>c.text.startsWith("Inschrijven"));
+    r.push({ok:!!lc && lc.cs===4, t: lc&&lc.cs===4? "De laatste rij is samengevoegd over vier kolommen" : "In de laatste rij zijn de vier cellen na 'Info' niet samengevoegd tot één cel"});
+    return r; },
+  tabelopmaak(M){ const T=all(M.body,"w:tbl")[0]; if(!T) return [{ok:false,t:"Ik vind de tabel niet meer."}]; const r=[], G=tableGrid(T);
+    const head=G.cells.filter(c=>c.r===0 || c.c===0).filter(c=>c.text.trim()), body=G.cells.filter(c=>c.r>0 && c.c>0);
+    const shd=head.filter(c=>!filled(kid(kid(c.el,"w:tcPr"),"w:shd"))); r.push({ok:!shd.length, t: shd.length? "De kopregel en de eerste kolom hebben niet (overal) een achtergrondkleur (Arcering)" : "Kopregel en eerste kolom hebben een achtergrondkleur"});
+    const tc=head.filter(c=>all(c.el,"w:r").filter(x=>ptxt(x).trim()).some(x=>{ const p=x.closest? x.parentNode : x.parentNode; const col=val(M.runProp(x,p,"w:color")); return !col || ["auto","000000"].includes(col.toLowerCase()); }));
+    r.push({ok:!tc.length, t: tc.length? "De tekst in de kopregel en de eerste kolom heeft niet (overal) een andere tekstkleur" : "De tekst in de kopregel en de eerste kolom heeft een andere kleur"});
+    const va=body.filter(c=>val(kid(kid(c.el,"w:tcPr"),"w:vAlign"))!=="center"); r.push({ok:!va.length, t: va.length? `${va.length} cel(len) staan niet verticaal gecentreerd (Uitlijning: Links centreren)` : "De cellen staan verticaal gecentreerd"});
+    const z=G.cells.find(c=>c.text.trim()==="Zwemclub"), zp=z&&kid(z.el,"w:tcPr");
+    const dir=z&&val(kid(zp,"w:textDirection")), zva=z&&val(kid(zp,"w:vAlign")), zjc=z&&all(z.el,"w:p").every(p=>val(M.paraProp(p,"w:jc"))==="center");
+    r.push({ok:dir==="btLr", t: dir==="btLr"? "'Zwemclub' loopt van onder naar boven" : "Tekstrichting van 'Zwemclub' moet van onder naar boven zijn (Tekstrichting)"});
+    r.push({ok:zva==="center" && zjc, t: zva==="center"&&zjc? "'Zwemclub' staat in het midden van de cel" : "'Zwemclub' staat niet in het midden van de cel (Uitlijning: Gecentreerd uitlijnen)"});
+    const E=G.edges(M); const outer=E.filter(e=>e.outer), inner=E.filter(e=>!e.outer);
+    const thin=outer.filter(e=>!e.b || e.b.sz<12), auto=outer.filter(e=>e.b && (!e.b.color || e.b.color==="auto"));
+    r.push({ok:!thin.length, t: thin.length? `De buitenrand is niet (overal) dik genoeg (bv. ${thin[0].b? String(thin[0].b.sz/8).replace(".",",")+" pt": "geen rand"}, moet minstens 1½ pt zijn)` : "De buitenrand is dik genoeg"});
+    r.push({ok:!auto.length, t: auto.length? "De buitenrand heeft niet (overal) een kleur (nu Automatisch)" : "De buitenrand heeft een kleur"});
+    const ithick=inner.filter(e=>!e.b || e.b.sz>8); r.push({ok:!ithick.length, t: ithick.length? (ithick.some(e=>!e.b)? "Er ontbreken binnenranden: alle cellen moeten dunne lijntjes hebben" : "De binnenranden moeten dunne lijnen zijn (maximaal 1 pt)") : "De binnenranden zijn dunne lijnen"});
+    return r; },
+  voettekst(M){ const r=[]; const sp=all(M.body,"w:sectPr"), refs=sp.flatMap(s=>kids(s,"w:footerReference")).filter(f=>av(f,"w:type")!=="even");
+    const parts=refs.map(f=>M.rels[av(f,"r:id")]).filter(Boolean).map(t=>xml(M.files["word/"+t.replace(/^\/?word\//,"")])).filter(Boolean);
+    const fps=parts.flatMap(x=>all(x.documentElement,"w:p")).filter(p=>ptxt(p).trim() || all(p,"w:instrText").length || all(p,"w:fldSimple").length);
+    if(!fps.length) return [{ok:false, t:"Ik vind geen voettekst. Invoegen › Voettekst › Leeg."}];
+    const txt=fps.map(ptxt).join(" "); r.push({ok:/pgnr\./i.test(txt), t: /pgnr\./i.test(txt)? "'pgnr.' staat in de voettekst" : "'pgnr.' ontbreekt in de voettekst (koos je Onder aan pagina? Dan wist Word je tekst)"});
+    const instr=fps.flatMap(p=>all(p,"w:instrText").map(x=>x.textContent).concat(all(p,"w:fldSimple").map(x=>av(x,"w:instr")))).join(" ");
+    r.push({ok:/\bPAGE\b/.test(instr), t: /\bPAGE\b/.test(instr)? "Er staat een automatisch paginanummer" : "Geen automatisch paginanummer: Paginanummer › Huidige positie › Normaal nummer (niet zelf typen)"});
+    const nsz=+val(M.styleProp(M.normal.id,"rPr","w:sz")||null)||22, want=nsz-4;
+    const runs=fps.flatMap(p=>all(p,"w:r").filter(x=>kid(x,"w:t")&&ptxt(x).trim()).map(x=>[x,p])), szs=[...new Set(runs.map(([x,p])=>{ const e=kid(kid(x,"w:rPr"),"w:sz"); return e? +val(e) : +val(M.styleProp(M.pStyleId(p),"rPr","w:sz"))||nsz; }))];
+    r.push({ok:szs.length===1 && szs[0]===want, t:`Tekengrootte: ${szs.map(pt).join(", ")} pt (moet ${pt(want)} pt zijn: 2 pt kleiner dan Standaard)`});
+    const tb=fps.map(p=>kid(M.paraProp(p,"w:pBdr"),"w:top")).find(Boolean), tok=tb && !["none","nil"].includes(val(tb));
+    r.push({ok:tok && val(tb)==="single" && +av(tb,"w:sz")<=8, t: !tok? "Geen bovenrand op de voettekst (Randen › Bovenrand)" : val(tb)==="single" && +av(tb,"w:sz")<=8? "Bovenrand: een dunne lijn" : "De bovenrand moet een dunne, enkele lijn zijn"});
+    return r; },
+  paginaeinde(M){ const r=[]; const P=Array.from(M.body.children).filter(c=>c.tagName==="w:p");
+    const brk=p=>all(p,"w:br").some(b=>av(b,"w:type")==="page") || onOff(kid(kid(p,"w:pPr"),"w:pageBreakBefore"));
+    const before=t=>{ const i=P.findIndex(p=>ptxt(p).trim().toLowerCase()===t.toLowerCase()); if(i<0) return null; if(onOff(M.paraProp(P[i],"w:pageBreakBefore"))) return true;
+      for(let j=i;j>=0;j--){ if(all(P[j],"w:br").some(b=>av(b,"w:type")==="page")) return true; if(j<i && ptxt(P[j]).trim()) return false; } return false; };
+    [["De eerste stappen","na de inleiding"],["Het ruimtestation","voor 'Het ruimtestation'"]].forEach(([t,w])=>{ const b=before(t);
+      r.push({ok:b===true, t: b===null? `De titel '${t}' vind ik niet meer.` : b? `Pagina-einde ${w}: in orde` : `Geen pagina-einde ${w} (Invoegen › Pagina-einde)`}); });
+    let run=0, maxRun=0; P.forEach(p=>{ const empty=!ptxt(p).trim() && !brk(p) && !all(p,"w:drawing").length; run=empty? run+1 : 0; maxRun=Math.max(maxRun,run); });
+    r.push({ok:maxRun<2, t: maxRun>=2? "Er staan nog lege alinea's (Enters) om tekst naar beneden te duwen. Haal ze weg." : "Geen lege Enters meer om tekst te verschuiven"});
+    return r; }
+};
+/* tabel als rooster: houdt rekening met gridSpan (naast elkaar) en vMerge (onder elkaar) */
+function tableGrid(T){
+  const rows=[], cells=[];
+  kids(T,"w:tr").forEach((tr,r)=>{ let c=0; const row=[];
+    kids(tr,"w:tc").forEach(tc=>{ const pr=kid(tc,"w:tcPr"), cs=+val(kid(pr,"w:gridSpan"))||1, vm=kid(pr,"w:vMerge");
+      if(vm && val(vm)!=="restart"){ const up=cells.find(x=>x.c===c && x.r+x.rs===r); if(up){ up.rs++; up.cont.push(tc); } c+=cs; return; }
+      const cell={el:tc, r, c, cs, rs:1, text:all(tc,"w:p").map(ptxt).join("\n"), cont:[]}; cells.push(cell); row.push(cell); c+=cs; });
+    rows.push(row); });
+  const nC=Math.max(...cells.map(x=>x.c+x.cs)), nR=rows.length;
+  const cellAt=(r,c)=>cells.find(x=>r>=x.r && r<x.r+x.rs && c>=x.c && c<x.c+x.cs);
+  function edges(M){ // elke rand van elke cel, met de rand die Word zou tekenen
+    const tp=kid(T,"w:tblPr"), sid=val(kid(tp,"w:tblStyle"));
+    const tb=side=>{ const d=kid(kid(tp,"w:tblBorders"),"w:"+side); if(d) return d; for(const s of (sid? M.chain(sid):[])){ const x=kid(kid(s.tblPr,"w:tblBorders"),"w:"+side); if(x) return x; } return null; };
+    const b=e=> !e || ["none","nil"].includes(val(e))? null : {sz:+av(e,"w:sz")||2, color:(av(e,"w:color")||"auto").toLowerCase()};
+    const cb=(cell,side)=>{ const els=[cell.el,...cell.cont]; for(const el of els){ const x=kid(kid(kid(el,"w:tcPr"),"w:tcBorders"),"w:"+side) || (side==="left"&&kid(kid(kid(el,"w:tcPr"),"w:tcBorders"),"w:start")) || (side==="right"&&kid(kid(kid(el,"w:tcPr"),"w:tcBorders"),"w:end")); if(x) return x; } return null; };
+    const out=[];
+    for(let r=0;r<nR;r++) for(let c=0;c<nC;c++){ const x=cellAt(r,c); if(!x) continue;
+      if(r===0) out.push({outer:true, b:b(cb(x,"top")||tb("top"))});
+      if(c===0) out.push({outer:true, b:b(cb(x,"left")||tb("left"))});
+      const dn=r+1<nR? cellAt(r+1,c) : null, rt=c+1<nC? cellAt(r,c+1) : null;
+      if(!dn) out.push({outer:true, b:b(cb(x,"bottom")||tb("bottom"))});
+      else if(dn!==x){ const e1=cb(x,"bottom"), e2=cb(dn,"top"), e=(e1||e2)? [b(e1),b(e2)].filter(Boolean).sort((a,b2)=>b2.sz-a.sz)[0]||null : b(tb("insideH")); out.push({outer:false, b:e}); }
+      if(!rt) out.push({outer:true, b:b(cb(x,"right")||tb("right"))});
+      else if(rt!==x){ const e1=cb(x,"right"), e2=cb(rt,"left"), e=(e1||e2)? [b(e1),b(e2)].filter(Boolean).sort((a,b2)=>b2.sz-a.sz)[0]||null : b(tb("insideV")); out.push({outer:false, b:e}); }
+    }
+    return out; }
+  return {rows, cells, cellAt, edges, nC, nR};
+}
+async function checkDocx(file, key, expectName){
+  const res=[];
+  const nm=file.name, okName = expectName && nm.toLowerCase()===expectName.toLowerCase();
+  if(expectName) res.push({ok:okName, t: okName? `Bestandsnaam: ${nm}` : `Bestandsnaam: verwacht '${expectName}', gevonden '${nm}'`});
+  if(!/\.docx$/i.test(nm)) return res.concat([{ok:false, t:"Dit is geen Word-bestand (.docx). Bewaar je oefening in Word als Word-document."}]);
+  let M; try{ M=wordModel(await unzipDocx(await file.arrayBuffer())); if(!M.body) throw 0; }catch(e){ return res.concat([{ok:false, t:"Ik kan dit bestand niet openen. Is het wel bewaard als Word-document (.docx)?"}]); }
+  try{ return res.concat(CHECKS[key](M)); }catch(e){ console.error(e); return res.concat([{ok:false, t:"Er liep iets mis bij het nakijken. Vraag hulp aan je leerkracht."}]); }
 }
 
 /* ---------- het spel ---------- */
@@ -2110,7 +2388,7 @@ function renderEnd(){
     <div class="stats"><div><span class="muted">Punten</span><b>${G.score} / ${G.result.max}</b></div><div><span class="muted">Foutjes</span><b>${G.errors}</b></div><div><span class="muted">Totaal</span><b>${total()}</b></div></div>
     <div><div class="muted" style="margin-bottom:6px">Jouw code (lever die in op Teams, en bewaar hem om volgende keer verder te spelen):</div>
       <div class="codebox"><span class="code" id="code">${code}</span><button class="btn ghost small" id="copy">Kopieer code</button></div></div>
-    <p class="muted" style="margin:0">${G.result.stars<3?"Wil je meer sterren? Speel het level gerust opnieuw.":"Drie sterren! Je kent dit nu."} ${rp?"Ga nu terug naar je remediëring en verbeter dit ook in je eigen toets.":last?"Je hebt alle levels gedaan. Probeer het nu in het echte Word!":"Probeer straks hetzelfde ook eens in het echte Word."}</p>
+    <p class="muted" style="margin:0">${G.result.stars<3?"Wil je meer sterren? Speel het level gerust opnieuw.":"Drie sterren! Je kent dit nu."} ${rp?"Ga nu terug naar je remediëring en maak de oefening in Word.":last?"Je hebt alle levels gedaan. Probeer het nu in het echte Word!":"Probeer straks hetzelfde ook eens in het echte Word."}</p>
     ${SEND.url?`<div class="codebox"><a class="btn" id="send" href="${esc(sendURL(n))}" target="_blank" rel="noopener">Verzenden naar de leerkracht</a><span class="muted" id="sendmsg">Er opent een formulier dat al ingevuld is. Klik daar onderaan op <b>Verzenden</b>.</span></div>`:""}
     <div style="display:flex;gap:10px;flex-wrap:wrap">${!last?`<button class="btn${SEND.url?" ghost":""}" id="nxt">Volgend level</button>`:""}<button class="btn ghost" id="again">Opnieuw spelen</button><button class="btn ghost" data-go="map">${rp?"Terug naar je remediëring":"Naar de levels"}</button></div></div>` + footer();
   $("#copy").addEventListener("click", ()=>{ const t=$("#code").textContent;
