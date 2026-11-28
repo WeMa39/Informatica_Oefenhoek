@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Oefenhoek informatica · 3de jaar</title>
+<title>Informatica - Oefenhoek 3</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@400;500;700&display=swap">
 <style>
 /* VOICE  everyday, voor leerlingen van ~14 jaar: vrolijk maar rustig
    IDEA   een prikbord/bureau in de klas: elke kaart is een plek waar je kunt oefenen
-   PICTURE een laptop met Word en een zwevend Excel-blad, cursor en punten-sticker
+   PICTURE kleine laptop met Word en een zwevend Excel-blad naast de titel
    COLOUR zonnig geel veld, inktblauw, Word-blauw, Excel-groen, koraal en paars voor thema's
    TYPE   Fredoka (titels) + Lexend (tekst, goed leesbaar)
    LAYOUT laptop: geel veld met titel links en tekening rechts; telefoon: titel, tekening, kaarten onder elkaar */
 :root{
   --bg:#FFFFFF; --soft:#F4F3FA; --ink:#1C1B3A; --muted:#55546E; --line:#E2E0EE;
-  --sun:#FFD23F; --sun-ink:#1C1B3A; --sun-deep:#F5B700;
+  --sun:#E9E7FB; --sun-ink:#1C1B3A; --sun-deep:#F5B700;
   --word:#2B579A; --excel:#1D7A46; --ppt:#C4421C; --coral:#E85D5D; --violet:#6C4FD8; --teal:#0E8A8A; --pink:#C2367A;
   --on:#FFFFFF;
   --display:"Fredoka","Segoe UI",system-ui,sans-serif;
@@ -41,17 +41,12 @@ a{color:inherit}
 .in{max-width:1180px;margin:0 auto;padding-left:max(5vw,16px,env(safe-area-inset-left,0px));padding-right:max(5vw,16px,env(safe-area-inset-right,0px))}
 
 /* geel veld bovenaan */
-.hero{background:var(--sun);color:var(--sun-ink);padding-top:calc(env(safe-area-inset-top,0px) + 22px);padding-bottom:40px;margin-top:calc(-1*env(safe-area-inset-top,0px))}
-.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:28px}
-.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:1.25rem}
-.year{background:var(--sun-ink);color:var(--sun);font-family:var(--display);font-weight:700;border-radius:999px;padding:4px 14px;font-size:1rem}
-.herogrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:32px;align-items:center}
-.hero h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:700}
-.hero .lead{font-size:1.15rem;margin-top:14px;max-width:34ch}
-.steps{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:10px}
-.steps li{display:flex;align-items:center;gap:12px;background:color-mix(in srgb,var(--bg) 70%,transparent);border-radius:14px;padding:10px 14px;font-weight:500}
-.steps b.n{flex:none;width:34px;height:34px;border-radius:10px;background:var(--sun-ink);color:var(--sun);display:grid;place-items:center;font-family:var(--display);font-size:1.1rem}
-.art svg{width:100%;height:auto;display:block}
+.hero{background:var(--sun);color:var(--sun-ink);padding-top:calc(env(safe-area-inset-top,0px) + 28px);padding-bottom:28px;margin-top:calc(-1*env(safe-area-inset-top,0px))}
+.herogrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,300px);gap:32px;align-items:center}
+.hi{font-family:var(--display);font-weight:600;font-size:1.2rem;margin-bottom:8px}
+.hero h1{font-size:clamp(2.4rem,6.4vw,4.4rem);font-weight:700;line-height:1}
+.hero h1 .vak{display:block;font-size:.55em;font-weight:600;margin-bottom:.12em}
+.art svg{width:100%;height:auto;display:block;max-height:230px}
 
 /* secties */
 .sec{padding-block:44px 8px}
@@ -91,9 +86,7 @@ a.theme:hover{transform:translateY(-3px);border-color:var(--c)}
 
 .foot{padding-block:40px 36px;color:var(--muted);font-size:.9rem}
 @media (max-width:760px){
-  .herogrid{grid-template-columns:1fr;gap:18px}
-  .art{order:-1;max-width:420px}
-  .hero .lead{max-width:none}
+  .herogrid{grid-template-columns:minmax(0,1fr) 120px;gap:14px}
 }
 @media (prefers-reduced-motion:reduce){.card,.theme{transition:none}a.card:hover,a.theme:hover{transform:none}}
 </style>
@@ -102,19 +95,10 @@ a.theme:hover{transform:translateY(-3px);border-color:var(--c)}
 
 <header class="hero">
   <div class="in">
-    <div class="bar">
-      <div class="logo"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="2" y="5" width="30" height="20" rx="4" fill="currentColor"/><rect x="5" y="8" width="24" height="14" rx="2" fill="var(--sun)"/><rect x="11" y="27" width="12" height="3" rx="1.5" fill="currentColor"/><path d="M14 11l7 5-3 .6 1.8 3.4-1.6.8-1.8-3.4-2.4 2z" fill="currentColor"/></svg>Oefenhoek informatica</div>
-      <span class="year">3de jaar</span>
-    </div>
     <div class="herogrid">
       <div>
-        <h1 id="hallo">Klaar om te oefenen?</h1>
-        <p class="lead">Kies hieronder wat je wil oefenen. Je werkt op je eigen tempo en verdient punten voor elke juiste stap.</p>
-        <ol class="steps" aria-label="Zo werkt het">
-          <li><b class="n">1</b>Kies een programma of een thema</li>
-          <li><b class="n">2</b>Vul je naam en klas in</li>
-          <li><b class="n">3</b>Lever je code in bij je leerkracht</li>
-        </ol>
+        <p class="hi" id="hallo" hidden></p>
+        <h1><span class="vak">Informatica</span>Oefenhoek 3</h1>
       </div>
       <div class="art" aria-hidden="true">
         <svg viewBox="0 0 520 380">
@@ -144,12 +128,6 @@ a.theme:hover{transform:translateY(-3px);border-color:var(--c)}
           </g>
           <!-- cursor -->
           <path d="M300 200l34 22-14 3 9 17-8 4-9-17-11 9z" fill="#FFFFFF" stroke="#1C1B3A" stroke-width="3" stroke-linejoin="round"/>
-          <!-- punten-sticker -->
-          <g transform="rotate(-10 70 80)">
-            <circle cx="70" cy="80" r="44" fill="#E85D5D"/>
-            <circle cx="70" cy="80" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 5" opacity=".7"/>
-            <text x="70" y="90" text-anchor="middle" font-family="Fredoka,Segoe UI,sans-serif" font-weight="700" font-size="30" fill="#fff">+10</text>
-          </g>
           <!-- sterren -->
           <path d="M470 50l6 13 14 2-10 10 3 14-13-7-13 7 3-14-10-10 14-2z" fill="#1C1B3A"/>
           <path d="M28 196l4 8 9 1-7 6 2 9-8-4-8 4 2-9-7-6 9-1z" fill="#1C1B3A" opacity=".8"/>
@@ -242,7 +220,7 @@ th.innerHTML = THEMAS.length ? THEMAS.map(t => {
 try {
   const last = JSON.parse(localStorage.getItem("lk:last"));
   const vn = last && last.name ? String(last.name).trim().split(/\s+/)[0] : "";
-  if (vn) document.getElementById("hallo").textContent = "Hoi " + vn + ", klaar om te oefenen?";
+  if (vn) { const h = document.getElementById("hallo"); h.textContent = "Hoi " + vn + "!"; h.hidden = false; }
 } catch (e) {}
 }
 </script>

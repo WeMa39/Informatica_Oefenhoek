@@ -325,7 +325,7 @@ table.wt tr.ch td{height:16px}
 .rfig figcaption{font-size:.88rem}
 
 /* ===== Nieuwe stijl oefenhoek 3de jaar (2026-11): zelfde look als de homepage. Het Word-venster zelf blijft ongewijzigd. ===== */
-:root{--display:"Fredoka","Segoe UI",system-ui,sans-serif;--body:"Lexend","Segoe UI",system-ui,sans-serif;--bg:#F4F3FA;--ink:#1C1B3A;--muted:#55546E;--line:#E2E0EE;--sun:#FFD23F}
+:root{--display:"Fredoka","Segoe UI",system-ui,sans-serif;--body:"Lexend","Segoe UI",system-ui,sans-serif;--bg:#F4F3FA;--ink:#1C1B3A;--muted:#55546E;--line:#E2E0EE;--sun:#FFE8A8}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#13122A;--panel:#1C1B3A;--ink:#F1F0FA;--muted:#B5B3CC;--line:#2F2D52}}
 :root[data-theme="dark"]{--bg:#13122A;--panel:#1C1B3A;--ink:#F1F0FA;--muted:#B5B3CC;--line:#2F2D52}
 h1,h2,h3{letter-spacing:-.01em}
@@ -359,6 +359,154 @@ h1,h2,h3{letter-spacing:-.01em}
 .task{border-radius:18px}
 .code{border-radius:12px}
 @media (prefers-reduced-motion:reduce){.lvl{transition:none}.lvl:hover:not([disabled]){transform:none}}
+
+/* ===== Overzicht aangenamer (2026-11-28) ===== */
+.top{background:var(--word);color:var(--on-word);border-radius:22px;padding:14px 18px}
+.top .brand svg rect{fill:var(--on-word)} .top .brand svg path{fill:var(--word)}
+.brand h1{font-size:2rem}
+.brand a.back{background:color-mix(in srgb,var(--on-word) 16%,transparent);color:var(--on-word)}
+.brand a.back:hover{background:color-mix(in srgb,var(--on-word) 26%,transparent);text-decoration:none}
+.brand .tag{color:inherit;opacity:.85}
+.top .chip{background:color-mix(in srgb,var(--on-word) 14%,transparent);border-color:transparent;color:var(--on-word)}
+.top .chip.pts{background:var(--sun);color:#1C1B3A}
+.card.maphead{background:transparent;border:0;padding:6px 4px 0}
+.card.maphead h2{font-size:clamp(1.8rem,3.6vw,2.4rem)!important;font-weight:700}
+.card.maphead .code{background:var(--sun);border:0;color:#1C1B3A}
+.chtabs{gap:12px}
+.chtab{background:var(--panel);border:2px solid var(--line);gap:8px;transition:transform .15s,border-color .15s}
+.chtab:hover{transform:translateY(-2px)}
+.chtab .chnum{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.85rem}
+.cn{flex:none;width:30px;height:30px;border-radius:10px;background:color-mix(in srgb,var(--word) 14%,var(--panel));color:var(--word);display:grid;place-items:center;font-style:normal;font-family:var(--display);font-weight:700;font-size:1rem}
+.chtab.full .cn{background:var(--good-bg);color:var(--good)}
+.chtab.off .cn{background:var(--line);color:var(--muted)}
+.minibar{height:8px;background:color-mix(in srgb,var(--word) 10%,var(--line))}
+.minibar i{background:var(--word);border-radius:99px}
+.chtab.full .minibar i{background:var(--good)}
+.chtab[aria-selected="true"] .cn{background:var(--sun);color:#1C1B3A}
+.chtab[aria-selected="true"] .minibar i{background:var(--sun)}
+.chtab.rtab{border-style:solid;background:color-mix(in srgb,var(--coral,#E85D5D) 9%,var(--panel));border-color:color-mix(in srgb,#E85D5D 35%,var(--line))}
+.chtab.rtab .cn{background:#E85D5D;color:#fff}
+.chtab.rtab .minibar i{background:#E85D5D}
+.chtab.rtab[aria-selected="true"]{background:#C94545;border-color:#C94545;color:#fff}
+.chtab.rtab[aria-selected="true"] .cn{background:#fff;color:#C94545}
+.chtab.rtab[aria-selected="true"] .minibar i{background:#fff}
+@media (prefers-reduced-motion:reduce){.chtab{transition:none}.chtab:hover{transform:none}}
+
+/* ===== Overzicht v3: "ga verder"-balk, hoofdstukken links, levels als pad ===== */
+.top{background:#E9E7FB;color:#1C1B3A}
+.top .brand svg rect{fill:var(--word)} .top .brand svg path{fill:#fff}
+.brand a.back{background:#fff;color:#1C1B3A}
+.brand a.back:hover{background:#fff;text-decoration:underline}
+.top .chip{background:#fff;color:#1C1B3A}
+.top .chip.pts{background:var(--sun)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .top{background:#2A2756;color:#F1F0FA}:root:not([data-theme="light"]) .top .chip,:root:not([data-theme="light"]) .brand a.back{background:#1C1B3A;color:#F1F0FA}}
+:root[data-theme="dark"] .top{background:#2A2756;color:#F1F0FA}
+:root[data-theme="dark"] .top .chip,:root[data-theme="dark"] .brand a.back{background:#1C1B3A;color:#F1F0FA}
+.go-on{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:14px 24px;align-items:center;background:var(--panel);border:2px solid var(--line);border-radius:22px;padding:18px 22px}
+.go-txt h2{font-size:clamp(1.3rem,2.6vw,1.75rem);font-weight:700;margin-top:2px}
+.btn.big{padding:14px 26px;font-size:1.1rem;border-radius:14px}
+.go-code{display:flex;flex-direction:column;gap:4px;font-size:.85rem;border-left:2px solid var(--line);padding-left:22px}
+.go-code .code{font-size:1.25rem;border:0;background:var(--sun);color:#1C1B3A}
+.mapgrid{display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:start}
+.chnav{display:flex;flex-direction:column;gap:8px;position:sticky;top:12px}
+.navh{font-size:1rem;color:var(--muted);font-weight:600;margin:4px 6px 2px}
+.chnav .chtab{flex-direction:row;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--panel)}
+.chnav .chtab:hover{transform:none;border-color:var(--word)}
+.chname{display:flex;flex-direction:column;gap:2px}
+.chname b{font-size:1.05rem;line-height:1.15}
+.chnav .meta{font-size:.8rem}
+.chnav .cn{width:36px;height:36px;border-radius:12px;font-size:1.1rem}
+.chnav .rtab{margin-top:8px}
+.mapmain{display:flex;flex-direction:column;gap:14px}
+.chhead{align-items:center}
+.chprog{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--muted);margin-left:auto}
+.chprog .minibar{width:120px}
+.path{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;position:relative}
+.path::before{content:"";position:absolute;left:31px;top:24px;bottom:24px;width:3px;background:var(--line);border-radius:3px}
+.lrow .lvl{position:relative;width:100%;min-height:0;display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:16px;align-items:center;padding:12px 16px 12px 10px;border-radius:16px;background:var(--panel)}
+.lrow .node{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:1.15rem;background:var(--panel);border:3px solid var(--line);color:var(--muted);position:relative;z-index:1}
+.lrow.done .node{background:var(--good);border-color:var(--good);color:#fff}
+.lrow.open .node{border-color:var(--word);color:var(--word)}
+.lrow.next .node{background:var(--word);border-color:var(--word);color:var(--on-word);box-shadow:0 0 0 5px color-mix(in srgb,var(--word) 20%,transparent)}
+.lrow.next .lvl{border-color:var(--word);background:color-mix(in srgb,var(--word) 6%,var(--panel))}
+.lrow.done .lvl,.lrow.open .lvl{border-color:var(--line);background:var(--panel)}
+.lrow .lvl:hover:not([disabled]){border-color:var(--word);transform:none}
+.ltxt{display:flex;flex-direction:column;gap:2px}
+.ltxt h3{font-size:1.12rem}
+.ltxt .d{font-size:.88rem}
+.badge{font-style:normal;background:var(--sun);color:#1C1B3A;border-radius:999px;padding:1px 9px;margin-left:6px;font-size:.78rem}
+.lend{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:.82rem;white-space:nowrap}
+.lrow.lock .lvl{opacity:.55}
+.lrow .lvl[disabled]{opacity:1}
+.lrow.lock .lvl{opacity:.55}
+.chnav .chtab[aria-selected="true"]{background:color-mix(in srgb,var(--word) 10%,var(--panel));border-color:var(--word);color:var(--ink)}
+.chnav .chtab[aria-selected="true"] .cn{background:var(--word);color:var(--on-word)}
+.chnav .chtab.full[aria-selected="true"] .cn{background:var(--good);color:#fff}
+.chnav .rtab[aria-selected="true"]{background:color-mix(in srgb,#E85D5D 14%,var(--panel));border-color:#C94545;color:var(--ink)}
+.chnav .rtab[aria-selected="true"] .cn{background:#E85D5D;color:#fff}
+@media (max-width:860px){
+  .mapgrid{grid-template-columns:minmax(0,1fr)}
+  .chnav{position:static;flex-direction:row;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory}
+  .navh{display:none}
+  .chnav .chtab{flex:0 0 auto;min-width:210px;scroll-snap-align:start}
+  .chnav .rtab{margin-top:0}
+  .go-on{grid-template-columns:minmax(0,1fr)}
+  .go-code{border-left:0;padding-left:0;border-top:2px solid var(--line);padding-top:12px}
+  .btn.big{justify-self:start}
+}
+@media (max-width:560px){
+  .lrow .lvl{grid-template-columns:40px minmax(0,1fr);gap:12px}
+  .lrow .node{width:40px;height:40px}
+  .path::before{left:29px}
+  .lend{grid-column:2;flex-direction:row;align-items:center;gap:10px}
+  .chprog{margin-left:0;width:100%}
+}
+
+/* ===== Inhoudslijst (in te klappen) ===== */
+body.has-toc .wrap{max-width:1480px}
+.shell{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}
+.shell.closed{grid-template-columns:minmax(0,1fr)}
+.shell.closed .toc{display:none}
+.shmain{display:flex;flex-direction:column;gap:14px;min-width:0}
+.toc{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;background:var(--panel);border:2px solid var(--line);border-radius:20px;padding:14px 12px}
+.tochead{display:flex;align-items:center;justify-content:space-between;padding:0 4px 8px}
+.tochead h2{font-size:1.25rem;font-weight:700}
+.tocx{background:var(--bg);border:0;border-radius:10px;width:34px;height:34px;font-size:1.2rem;color:var(--ink)}
+.tocx:hover{background:var(--line)}
+.toclist,.toclv{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.tocchb{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:transparent;border:2px solid transparent;border-radius:14px;padding:8px;color:var(--ink)}
+.tocchb:hover{background:var(--bg)}
+.tocchb>span{display:flex;flex-direction:column;min-width:0}
+.tocchb b{font-family:var(--display);font-weight:600;font-size:1.02rem;line-height:1.15}
+.tocchb .meta{font-size:.78rem;color:var(--muted)}
+.toc .cn{width:32px;height:32px;border-radius:10px;font-size:1rem}
+.tocch.full .cn{background:var(--good-bg);color:var(--good)}
+.tocch.off .cn{background:var(--line);color:var(--muted)}
+.tocch.cur>.tocchb{background:color-mix(in srgb,var(--word) 10%,var(--panel));border-color:color-mix(in srgb,var(--word) 40%,var(--line))}
+.tocch.cur .cn{background:var(--word);color:var(--on-word)}
+.tocch.cur.full .cn{background:var(--good);color:#fff}
+.tocch.rem{margin-top:8px;border-top:2px solid var(--line);padding-top:8px}
+.tocch.rem .cn{background:color-mix(in srgb,#0E8A8A 16%,var(--panel));color:#0B7676}
+.tocch.rem.cur>.tocchb{background:color-mix(in srgb,#0E8A8A 10%,var(--panel));border-color:color-mix(in srgb,#0E8A8A 40%,var(--line))}
+.tocch.rem.cur .cn{background:#0B7676;color:#fff}
+.toclv{margin:4px 0 6px 24px;padding-left:12px;border-left:2px solid var(--line)}
+.toclv button{width:100%;display:flex;align-items:center;gap:8px;text-align:left;background:transparent;border:0;border-radius:10px;padding:6px 8px;font-size:.88rem;color:var(--ink);line-height:1.25}
+.toclv button:hover:not([disabled]){background:var(--bg)}
+.toclv button[disabled]{color:var(--muted);opacity:.6;cursor:not-allowed}
+.toclv .dot{flex:none;width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.7rem;font-weight:700}
+.toclv .done .dot{background:var(--good);border-color:var(--good);color:#fff}
+.toclv .ttask .dot{border-radius:6px;border-color:var(--word);color:var(--word);font-size:.65rem}
+.toclv .ttask.done .dot{background:var(--good);border-color:var(--good);color:#fff}
+.toclv .now{background:var(--sun);font-weight:700}
+.tocbtn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#1C1B3A;border:0;border-radius:12px;padding:9px 14px;font-weight:700}
+.tocbtn:hover{background:#F4F3FA}
+.top{justify-content:flex-start}
+.top .chips{margin-left:auto}
+.mapgrid{grid-template-columns:minmax(0,1fr)}
+@media (max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .toc{position:static;max-height:none}
+}
 </style>
 
 <div class="wrap" id="app"></div>
@@ -1229,7 +1377,7 @@ const app = $("#app");
 function header(){
   const pts = total();
   return `<div class="top"><div class="brand"><svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><rect x="2" y="4" width="34" height="30" rx="6" fill="#2B579A"/><path d="M9 13h4l2.5 10 3-10h3l3 10 2.5-10h4l-4.8 14h-3.4L19 17.5 16.3 27h-3.4z" fill="#fff"/></svg>
-    <div><h1>Word stap voor stap</h1>${window.self===window.top?`<a class="tag back" href="../">← Oefenhoek</a>`:`<div class="tag">Oefenhoek Informatica</div>`}</div></div>
+    <div><h1>Word stap voor stap</h1>${window.self===window.top?`<a class="tag back" href="../">← Informatica · Oefenhoek 3</a>`:`<div class="tag">Oefenhoek Informatica</div>`}</div></div>
     ${S.name?`<div class="chips"><span class="chip">${esc(S.name)}${S.klas?" · "+esc(S.klas):""}</span><span class="chip pts">Punten <b>${pts}</b></span><span class="chip">Levels <b>${done().filter(n=>!EXTRA.includes(n)).length}/${LEVELS.length-EXTRA.length}</b></span></div>`:""}</div>`;
 }
 function footer(){
@@ -1250,10 +1398,10 @@ function renderStart(){
      <ul class="rules">
        <li><span class="n">1</span><span>Lees de opdracht bovenaan en voer ze uit.</span></li>
        <li><span class="n">2</span><span>Juist van de eerste keer: <b>10 punten</b>. Een fout? Je krijgt een tip. Nog een fout? De knop begint te knipperen.</span></li>
-       <li><span class="n">3</span><span>Na elk level krijg je een <b>code</b>. Lever die in op Teams. Met die code speel je de volgende les verder.</span></li>
+       <li><span class="n">3</span><span>Na elk level krijg je een <b>code</b>. Lever die in op Teams. Met die code oefen je de volgende les verder.</span></li>
      </ul></div>
    <div class="card"><form id="f-start" novalidate>
-     <h3>Wie speelt er?</h3>
+     <h3>Wie oefent er?</h3>
      <label class="f" for="in-name">Voornaam en achternaam<input class="txt" id="in-name" autocomplete="off" value="${esc(last.name||"")}"></label>
      <label class="f" for="in-klas">Klas<input class="txt" id="in-klas" autocomplete="off" value="${esc(last.klas||"")}" placeholder="bv. 3B"></label>
      <label class="f" for="in-code">Code van vorige keer of van je leerkracht (als je die hebt)<input class="txt" id="in-code" autocomplete="off" placeholder="bv. 3-240-K7QZ of FN-1A2B-3C"></label>
@@ -1411,26 +1559,34 @@ function chapterInfo(c, ci){ const got=c.levels.filter(n=>S.prog.best[n]).length
   return {got, tasks, tdone, open:(S.prog.open||[]).includes(ci) || c.levels.some(isOpen), full:c.levels.length>0 && got===c.levels.length}; }
 function curCh(){ const c=S.prog.ch; if(c==="R") return "R"; if(Number.isInteger(c) && CHAPTERS[c]) return c;
   const i=CHAPTERS.findIndex(ch=>ch.levels.some(n=>isOpen(n) && !S.prog.best[n])); return i>=0? i : 0; }
+function levelRow(n, nx){
+  const L=LEVELS[n-1], b=S.prog.best[n], open=isOpen(n), st=b? "done" : n===nx? "next" : open? "open" : "lock";
+  const right = b&&b.fromCode? "Gedaan via code" : b&&b.score? b.score+" / "+maxPts(L)+" ptn" : L.steps.filter(s=>!s.info).length+" stappen";
+  return `<li class="lrow ${st}"><button class="lvl" data-lvl="${n}" ${open?"":"disabled"}><span class="node" aria-hidden="true">${st==="done"?"✓":st==="lock"?'<svg viewBox="0 0 16 16" width="14" height="14"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5 7V5a3 3 0 016 0v2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>':CHAPTERS[chapterOf(n)].levels.indexOf(n)+1}</span>
+    <span class="ltxt"><span class="num">${lvLabel(n)}${st==="next"?' <em class="badge">Volgende</em>':""}${st==="lock"?" · op slot":""}</span><h3>${esc(L.name)}</h3><span class="d">${esc(L.d)}</span></span>
+    <span class="lend">${starHTML(b?b.stars:0)}<span class="muted">${right}</span></span></button></li>`;
+}
 function renderMap(){
   const code = done().length? makeCode(S.name, done(), total()) : "", ci=curCh(), isR=ci==="R", c=isR? null : CHAPTERS[ci], inf=isR? null : chapterInfo(c, ci);
   const rT=remedThemes(), rTx=exThemes(rT), rD=rTx.filter(t=>((S.prog.rex||{})[t.k]||{}).ok).length;
-  app.innerHTML = header() + `<div class="card codebox" style="justify-content:space-between">
-    <div><h2 style="font-size:1.5rem">Kies een hoofdstuk</h2><p class="muted" style="margin:4px 0 0">In elk hoofdstuk leer je eerst in de oefenomgeving. Daarna pas je het toe in het echte Word.</p></div>
-    ${code?`<div><div class="muted" style="font-size:.85rem">Jouw code om verder te spelen</div><span class="code">${code}</span></div>`:""}</div>
-    <div class="chtabs" role="tablist" aria-label="Hoofdstukken">${CHAPTERS.map((c2,i)=>{ const f=chapterInfo(c2,i), pct=c2.levels.length? f.got/c2.levels.length*100 : 0;
-      return `<button class="chtab${f.open||!c2.levels.length?"":" off"}" role="tab" aria-selected="${i===ci}" data-ch="${i}"><span class="chnum">Hoofdstuk ${i+1}${f.full?" · klaar ✓":!f.open&&c2.levels.length?" · op slot":""}</span><b>${esc(c2.name)}</b>
-        <span class="minibar" aria-hidden="true"><i style="width:${pct}%"></i></span><span class="meta">${c2.levels.length? `${f.got} van ${c2.levels.length} levels`:"Binnenkort"}${f.tasks.length?` · ${f.tdone} van ${f.tasks.length} opdrachten`:""}</span></button>`; }).join("")}
-      <button class="chtab rtab" role="tab" aria-selected="${isR}" data-ch="R"><span class="chnum">Na de toets${rTx.length && rD===rTx.length?" · klaar ✓":""}</span><b>${REMED.name}</b>
-        <span class="minibar" aria-hidden="true"><i style="width:${rTx.length? rD/rTx.length*100 : 0}%"></i></span><span class="meta">${rT.length? `${rD} van ${rTx.length} oefeningen juist` : "Met je persoonlijke code"}</span></button></div>
+  const nx = CHAPTERS.flatMap(c2=>c2.levels).find(n=>isOpen(n) && !S.prog.best[n]);
+  app.innerHTML = header() + `<div class="go-on">
+      <div class="go-txt">${nx? `<span class="muted">Ga verder waar je was</span><h2>${lvLabel(nx)}: ${esc(LEVELS[nx-1].name)}</h2>` : `<span class="muted">Knap werk!</span><h2>Je hebt alle open levels gedaan.</h2>`}</div>
+      ${nx? `<button class="btn big" data-lvl="${nx}">Oefen verder →</button>` : ""}
+      ${code?`<div class="go-code"><span class="muted">Jouw code om verder te oefenen</span><span class="code">${code}</span></div>`:""}
+    </div>
+    <div class="mapgrid">
+    <div class="mapmain">
     ${isR? remedPanel(rT, rD) : `<section class="card chapter" role="tabpanel" aria-label="Hoofdstuk ${ci+1}: ${esc(c.name)}">
-      <div class="chhead"><span class="chnum">Hoofdstuk ${ci+1}</span><h2>${esc(c.name)}</h2>${c.levels.length?`<span class="muted chprog">${inf.got} van ${c.levels.length} levels gedaan</span>`:""}</div>
-      ${c.levels.length? `<div class="part"><h3 class="parthead"><span class="pn">1</span>Leren in de oefenomgeving</h3><p class="muted parttxt">Speel de levels in volgorde. Je mag een level altijd opnieuw spelen om meer sterren te halen.</p><div class="levels">${c.levels.map(levelCard).join("")}</div></div>`
+      <div class="chhead"><span class="chnum">Hoofdstuk ${ci+1}</span><h2>${esc(c.name)}</h2>${c.levels.length?`<span class="chprog"><span class="minibar" aria-hidden="true"><i style="width:${inf.got/c.levels.length*100}%"></i></span>${inf.got} van ${c.levels.length} levels</span>`:""}</div>
+      ${c.levels.length? `<div class="part"><h3 class="parthead"><span class="pn">1</span>Leren in de oefenomgeving</h3><p class="muted parttxt">Oefen de levels in volgorde. Je mag een level altijd opnieuw oefenen om meer sterren te halen.</p><ol class="path">${c.levels.map(n=>levelRow(n,nx)).join("")}</ol></div>`
         : `<div class="soonbox">Binnenkort: hier komen nieuwe levels.</div>`}
       ${inf.tasks.length? `<div class="part"><h3 class="parthead"><span class="pn">2</span>Toepassen in het echte Word</h3><p class="muted parttxt">Download de opdrachtfiche en de starttekst. Open de starttekst in <b>Word</b>, volg de fiche, bewaar met de naam die erbij staat en lever in op <b>Teams</b>.</p><div class="tasks">${inf.tasks.map((t,ti)=>taskCard(t,ci,ti)).join("")}</div></div>` : ""}
     </section>`}
+    </div></div>
     <details class="card more"${S.flash?" open":""}><summary>Een hoofdstuk openen met een code van je leerkracht</summary>
       <form id="f-open" class="openbox" novalidate><label class="f" for="in-open">Code van je leerkracht<input class="txt" id="in-open" autocomplete="off" placeholder="bv. STIJL3"></label><button class="btn small" type="submit">Openen</button><div class="err" id="err-open"></div></form></details>
-    <div><button class="btn ghost small" data-go="start">Andere speler</button></div>` + footer();
+    <div><button class="btn ghost small" data-go="start">Iemand anders</button></div>` + footer();
   if(S.flash){ $("#err-open").style.color="var(--good)"; $("#err-open").textContent=S.flash; S.flash=""; }
   $("#f-open").addEventListener("submit", e=>{ e.preventDefault(); const rm=readRemed($("#in-open").value);
     if(rm){ S.prog.remed=rm; S.prog.ch="R"; save(); return renderMap(); }
@@ -2439,11 +2595,11 @@ function renderEnd(){
     <h2 style="font-size:2rem">${esc(G.L.name)}</h2>
     ${starHTML(G.result.stars,"bigstars")}
     <div class="stats"><div><span class="muted">Punten</span><b>${G.score} / ${G.result.max}</b></div><div><span class="muted">Foutjes</span><b>${G.errors}</b></div><div><span class="muted">Totaal</span><b>${total()}</b></div></div>
-    <div><div class="muted" style="margin-bottom:6px">Jouw code (lever die in op Teams, en bewaar hem om volgende keer verder te spelen):</div>
+    <div><div class="muted" style="margin-bottom:6px">Jouw code (lever die in op Teams, en bewaar hem om volgende keer verder te oefenen):</div>
       <div class="codebox"><span class="code" id="code">${code}</span><button class="btn ghost small" id="copy">Kopieer code</button></div></div>
-    <p class="muted" style="margin:0">${G.result.stars<3?"Wil je meer sterren? Speel het level gerust opnieuw.":"Drie sterren! Je kent dit nu."} ${rp?"Ga nu terug naar je remediëring en maak de oefening in Word.":last?"Je hebt alle levels gedaan. Probeer het nu in het echte Word!":"Probeer straks hetzelfde ook eens in het echte Word."}</p>
+    <p class="muted" style="margin:0">${G.result.stars<3?"Wil je meer sterren? Oefen het level gerust opnieuw.":"Drie sterren! Je kent dit nu."} ${rp?"Ga nu terug naar je remediëring en maak de oefening in Word.":last?"Je hebt alle levels gedaan. Probeer het nu in het echte Word!":"Probeer straks hetzelfde ook eens in het echte Word."}</p>
     ${SEND.url?`<div class="codebox"><a class="btn" id="send" href="${esc(sendURL(n))}" target="_blank" rel="noopener">Verzenden naar de leerkracht</a><span class="muted" id="sendmsg">Er opent een formulier dat al ingevuld is. Klik daar onderaan op <b>Verzenden</b>.</span></div>`:""}
-    <div style="display:flex;gap:10px;flex-wrap:wrap">${!last?`<button class="btn${SEND.url?" ghost":""}" id="nxt">Volgend level</button>`:""}<button class="btn ghost" id="again">Opnieuw spelen</button><button class="btn ghost" data-go="map">${rp?"Terug naar je remediëring":"Naar de levels"}</button></div></div>` + footer();
+    <div style="display:flex;gap:10px;flex-wrap:wrap">${!last?`<button class="btn${SEND.url?" ghost":""}" id="nxt">Volgend level</button>`:""}<button class="btn ghost" id="again">Opnieuw oefenen</button><button class="btn ghost" data-go="map">${rp?"Terug naar je remediëring":"Naar de levels"}</button></div></div>` + footer();
   $("#copy").addEventListener("click", ()=>{ const t=$("#code").textContent;
     try{ navigator.clipboard.writeText(t).then(()=>{$("#copy").textContent="Gekopieerd";}, sel); }catch(e){ sel(); }
     function sel(){ const r=document.createRange(); r.selectNodeContents($("#code")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); $("#copy").textContent="Druk op Ctrl+C"; } });
@@ -2470,6 +2626,49 @@ function renderTeacher(){
   });
 }
 app.addEventListener("click", e=>{ const g=e.target.closest("[data-go]"); if(!g) return; S.screen=g.dataset.go; G=null; render(); });
+
+/* ---------- inhoudslijst links (op het overzicht, tijdens een level en op het eindscherm), in te klappen ---------- */
+/* apart onthouden: op het overzicht standaard open, tijdens een oefening standaard dicht (hele scherm voor Word) */
+const tocMode = ()=> S.screen==="play"? "play" : "map";
+const tocGet = ()=>{ const v=(store.get("lk:toc")||{})[tocMode()]; return v===undefined? (tocMode()==="map" && window.innerWidth>=900) : !!v; };
+const tocSet = v=>{ const o=store.get("lk:toc")||{}; o[tocMode()]=v; store.set("lk:toc", typeof o==="object"? o : {}); };
+function tocHTML(){
+  const cur = S.screen==="map"? curCh() : (G&&G.n? chapterOf(G.n) : curCh());
+  const nowL = S.screen!=="map" && G && G.n;
+  const rT=remedThemes(), rTx=exThemes(rT), rD=rTx.filter(t=>((S.prog.rex||{})[t.k]||{}).ok).length;
+  return `<div class="tochead"><h2>Inhoud</h2><button class="tocx" data-toc-toggle aria-label="Inhoud verbergen" title="Inhoud verbergen">«</button></div>
+  <ol class="toclist">${CHAPTERS.map((c,i)=>{ const f=chapterInfo(c,i), isCur=i===cur;
+    return `<li class="tocch${isCur?" cur":""}${f.full?" full":""}${f.open||!c.levels.length?"":" off"}">
+      <button class="tocchb" data-toc-ch="${i}"><i class="cn" aria-hidden="true">${f.full?"✓":i+1}</i><span><b>${esc(c.name)}</b><span class="meta">${c.levels.length? f.got+" van "+c.levels.length+" levels":"Binnenkort"}${!f.open&&c.levels.length?" · op slot":""}</span></span></button>
+      ${isCur? `<ol class="toclv">${c.levels.map(n=>{ const b=S.prog.best[n], o=isOpen(n);
+        return `<li><button data-toc-lvl="${n}" class="${b?"done":""}${n===nowL?" now":""}" ${o?"":"disabled"}><span class="dot" aria-hidden="true">${b?"✓":""}</span>${esc(lvLabel(n).replace(/^Level /,""))} ${esc(LEVELS[n-1].name)}</button></li>`; }).join("")}
+        ${(c.tasks||[]).map(t=>`<li><button data-toc-ch="${i}" class="ttask${(S.prog.tasks||{})[t.id]?" done":""}"><span class="dot" aria-hidden="true">${(S.prog.tasks||{})[t.id]?"✓":"W"}</span>${esc(t.name)}</button></li>`).join("")}</ol>` : ""}
+    </li>`; }).join("")}
+    <li class="tocch rem${cur==="R"?" cur":""}"><button class="tocchb" data-toc-ch="R"><i class="cn" aria-hidden="true"><svg viewBox="0 0 20 20" width="18" height="18"><path d="M15.5 8A6 6 0 0 0 4.6 6.2M4.5 12a6 6 0 0 0 10.9 1.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M16 3.5V8h-4.5M4 16.5V12h4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></i><span><b>${REMED.name}</b><span class="meta">${rT.length? rD+" van "+rTx.length+" juist" : "Na de toets, met je code"}</span></span></button></li>
+  </ol>`;
+}
+function shell(){
+  if(!S.name || !["map","play","end"].includes(S.screen)) return;
+  const old=document.querySelector(".toc"), keep=old? old.scrollTop : 0;
+  const top=app.querySelector(".top");
+  let tocOpen=tocGet(); const wrap=document.createElement("div"); wrap.className="shell"+(tocOpen?"":" closed");
+  const aside=document.createElement("aside"); aside.className="toc"; aside.setAttribute("aria-label","Inhoud"); aside.innerHTML=tocHTML();
+  const main=document.createElement("div"); main.className="shmain";
+  [...app.childNodes].forEach(n=>{ if(n!==top) main.appendChild(n); });
+  wrap.append(aside, main); app.appendChild(wrap);
+  document.body.classList.add("has-toc");
+  if(top && !top.querySelector("[data-toc-toggle]")){ const t=document.createElement("button"); t.className="tocbtn"; t.setAttribute("data-toc-toggle",""); t.setAttribute("aria-expanded", String(tocOpen));
+    t.innerHTML='<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Inhoud</span>'; top.prepend(t); }
+  aside.scrollTop=keep;
+  app.querySelectorAll("[data-toc-toggle]").forEach(b=>b.addEventListener("click",()=>{ tocOpen=!tocOpen; tocSet(tocOpen);
+    wrap.classList.toggle("closed", !tocOpen); app.querySelectorAll(".tocbtn").forEach(x=>x.setAttribute("aria-expanded", String(tocOpen))); }));
+  aside.querySelectorAll("[data-toc-ch]").forEach(b=>b.addEventListener("click",()=>{ S.prog.ch= b.dataset.tocCh==="R"? "R" : +b.dataset.tocCh; save(); G=null; S.screen="map"; render(); window.scrollTo({top:0}); }));
+  aside.querySelectorAll("[data-toc-lvl]").forEach(b=>b.addEventListener("click",()=>{ S.remedPlay=false; startLevel(+b.dataset.tocLvl); }));
+}
+{ const _m=renderMap, _p=renderPlay, _e=renderEnd;
+  renderMap=function(){ const r=_m.apply(this,arguments); shell(); return r; };
+  renderPlay=function(){ const r=_p.apply(this,arguments); shell(); return r; };
+  renderEnd=function(){ const r=_e.apply(this,arguments); shell(); return r; }; }
 
 render();
 })();
