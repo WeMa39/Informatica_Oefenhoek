@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Thema · Oefenhoek 3de jaar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@400;500;700&display=swap">
+<style>
+/* Overzichtspagina van één programma of thema. Dezelfde pagina dient als sjabloon voor nieuwe thema's:
+   kopieer de map, pas enkel het blok INSTELLINGEN onderaan aan. */
+:root{
+  --bg:#FFFFFF; --soft:#F4F3FA; --ink:#1C1B3A; --muted:#55546E; --line:#E2E0EE;
+  --word:#2B579A; --excel:#1D7A46; --ppt:#C4421C; --coral:#C94545; --violet:#5B3FC8; --teal:#0B7676; --pink:#B02E6C;
+  --on:#FFFFFF; --sun:#FFD23F;
+  --display:"Fredoka","Segoe UI",system-ui,sans-serif;
+  --body:"Lexend","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13122A; --soft:#1C1B3A; --ink:#F1F0FA; --muted:#B5B3CC; --line:#2F2D52;
+  --word:#8DB3F0; --excel:#6FD39A; --ppt:#F59A7B; --coral:#FF9090; --violet:#B3A2FF; --teal:#5FD1D1; --pink:#F08DBE;
+  --on:#13122A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13122A; --soft:#1C1B3A; --ink:#F1F0FA; --muted:#B5B3CC; --line:#2F2D52;
+  --word:#8DB3F0; --excel:#6FD39A; --ppt:#F59A7B; --coral:#FF9090; --violet:#B3A2FF; --teal:#5FD1D1; --pink:#F08DBE;
+  --on:#13122A; color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);overflow-x:clip}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.05;letter-spacing:-.01em;text-wrap:balance}
+p{margin:0}
+:focus-visible{outline:3px solid var(--sun);outline-offset:3px}
+.in{max-width:1080px;margin:0 auto;padding-left:max(5vw,16px,env(safe-area-inset-left,0px));padding-right:max(5vw,16px,env(safe-area-inset-right,0px))}
+.hero{--c:var(--excel);background:var(--c);color:var(--on);padding-top:calc(env(safe-area-inset-top,0px) + 20px);padding-bottom:34px;margin-top:calc(-1*env(safe-area-inset-top,0px))}
+.back{display:inline-flex;gap:6px;align-items:center;color:inherit;text-decoration:none;font-weight:500;background:color-mix(in srgb,var(--on) 16%,transparent);border-radius:999px;padding:6px 14px;font-size:.95rem}
+.back:hover{background:color-mix(in srgb,var(--on) 26%,transparent)}
+.hrow{display:flex;align-items:center;gap:18px;margin-top:22px}
+.hico{flex:none;width:76px;height:76px;border-radius:20px;background:color-mix(in srgb,var(--on) 18%,transparent);display:grid;place-items:center}
+.hico svg{width:48px;height:48px}
+.hero h1{font-size:clamp(2.2rem,5vw,3.4rem);font-weight:700}
+.hero .lead{margin-top:6px;font-size:1.08rem;max-width:56ch;opacity:.95}
+main{padding-block:34px 40px;display:flex;flex-direction:column;gap:16px}
+.item{--c:var(--excel);display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:18px;align-items:center;background:var(--bg);border:2px solid var(--line);border-radius:20px;padding:18px 20px;text-decoration:none;color:var(--ink)}
+a.item:hover{border-color:var(--c)}
+.num{width:52px;height:52px;border-radius:16px;background:color-mix(in srgb,var(--c) 14%,var(--bg));color:var(--c);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:1.5rem}
+.item h2{font-size:1.4rem;font-weight:600}
+.item p{color:var(--muted);margin-top:4px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.meta span{font-size:.82rem;background:var(--soft);border-radius:999px;padding:2px 10px}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--c);color:var(--on);font-weight:700;border-radius:12px;padding:11px 18px;text-decoration:none;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--c);border:2px solid var(--c)}
+.files{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.item.soon{opacity:.7;border-style:dashed}
+.note{color:var(--muted);font-size:.9rem;margin-top:8px}
+@media (max-width:640px){.item{grid-template-columns:auto minmax(0,1fr)}.item .act{grid-column:1/-1}.files{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<header class="hero" id="hero">
+  <div class="in">
+    <a class="back" href="../">← Oefenhoek</a>
+    <div class="hrow"><div class="hico" id="hico"></div><div><h1 id="titel"></h1><p class="lead" id="intro"></p></div></div>
+  </div>
+</header>
+<main class="in" id="lijst"></main>
+
+<script>
+/* =====================================================================
+   INSTELLINGEN VAN DEZE PAGINA
+   titel, intro, kleur (word, excel, ppt, coral, violet, teal, pink), icoon (zie homepage).
+   ONDERDELEN: één blokje per oefening, in de volgorde waarin leerlingen ze maken.
+     soort "oefening": interactieve oefening op de site -> link naar de map, bv. "schermonderdelen/"
+     soort "opdracht" : werken in het echte programma -> bestanden: [["Fiche","naam-fiche.pdf"],["Opgave","naam-opgave.docx"]]
+                        (zet die bestanden in dezelfde map als deze pagina)
+     link leeg en geen bestanden = "Binnenkort".
+   ===================================================================== */
+const PAGINA = {
+  titel:"Naam van het thema",
+  intro:"Eén of twee zinnen over wat leerlingen hier leren.",
+  kleur:"coral",
+  icoon:"veilig",
+};
+const ONDERDELEN = [
+  { soort:"opdracht", naam:"Eerste opdracht",
+    uitleg:"Wat moeten leerlingen doen?",
+    bestanden:[["Fiche (pdf)","voorbeeld-fiche.pdf"],["Opgave (Word)","voorbeeld-opgave.docx"]],
+    info:["± 20 minuten"] },
+  { soort:"oefening", naam:"Tweede oefening", link:"",
+    uitleg:"Zonder link en zonder bestanden staat er 'Binnenkort'." },
+];
+/* ===================================================================== */
+
+{
+const ICONS = {
+  word:'<path d="M8 12h4.4l2.7 11 3.1-11h3.6l3.1 11 2.7-11H32l-4.9 16h-3.7L20 17.6 16.6 28h-3.7z" fill="currentColor"/>',
+  excel:'<path d="M11 11h4.6l4.4 6.6 4.4-6.6H29l-6.6 9 6.6 9h-4.6L20 22.4 15.6 29H11l6.6-9z" fill="currentColor"/>',
+  ppt:'<path d="M13 11h8a6 6 0 010 12h-4v6h-4zm4 4v4h4a2 2 0 000-4z" fill="currentColor"/>',
+  internet:'<circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" stroke-width="3"/><path d="M6 20h28M20 6c-5 5-5 23 0 28M20 6c5 5 5 23 0 28" fill="none" stroke="currentColor" stroke-width="3"/>',
+  veilig:'<path d="M20 5l13 5v9c0 8-6 14-13 16C13 33 7 27 7 19v-9z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M14 20l4 4 8-8" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  computer:'<rect x="5" y="7" width="30" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M14 33h12M20 27v6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>',
+  code:'<path d="M14 12l-8 8 8 8M26 12l8 8-8 8M23 9l-6 22" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  ai:'<rect x="9" y="9" width="22" height="22" rx="5" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 4v5M25 4v5M15 31v5M25 31v5M4 15h5M4 25h5M31 15h5M31 25h5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="20" r="4" fill="currentColor"/>',
+  beeld:'<rect x="5" y="8" width="30" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="14" cy="16" r="3" fill="currentColor"/><path d="M7 30l9-9 6 6 4-4 8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>',
+  boek:'<path d="M6 9c5-2 10-2 14 1 4-3 9-3 14-1v22c-5-2-10-2-14 1-4-3-9-3-14-1z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M20 10v22" stroke="currentColor" stroke-width="3"/>'
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = id => document.getElementById(id);
+const c = `var(--${PAGINA.kleur || "coral"})`;
+document.title = PAGINA.titel + " · Oefenhoek 3de jaar";
+$("hero").style.setProperty("--c", c);
+$("titel").textContent = PAGINA.titel;
+$("intro").textContent = PAGINA.intro;
+$("hico").innerHTML = `<svg viewBox="0 0 40 40" aria-hidden="true">${ICONS[PAGINA.icoon] || ICONS.boek}</svg>`;
+
+$("lijst").innerHTML = ONDERDELEN.map((o, i) => {
+  const files = o.bestanden || [];
+  const open = !!o.link || files.length > 0;
+  const meta = (o.info || []).map(x => `<span>${esc(x)}</span>`).join("");
+  const soort = o.soort === "opdracht" ? "Opdracht in het echte programma" : "Oefening op de site";
+  const head = `<div class="num">${i + 1}</div><div><h2>${esc(o.naam)}</h2><p>${esc(o.uitleg)}</p><div class="meta"><span>${soort}</span>${meta}</div></div>`;
+  if (!open) return `<div class="item soon" style="--c:${c}">${head}<div class="act"><span class="btn ghost">Binnenkort</span></div></div>`;
+  if (o.link && !files.length) return `<a class="item" style="--c:${c}" href="${esc(o.link)}">${head}<div class="act"><span class="btn">Start →</span></div></a>`;
+  const btns = (o.link ? `<a class="btn" href="${esc(o.link)}">Start →</a>` : "") +
+    files.map(([l, f], k) => `<a class="btn${k || o.link ? " ghost" : ""}" href="${esc(f)}" download>${esc(l)}</a>`).join("");
+  return `<div class="item" style="--c:${c}">${head}<div class="act files">${btns}</div></div>`;
+}).join("") + `<p class="note">Dit is een oefenomgeving: ze lijkt op het echte programma, maar is het niet. Probeer daarna alles ook in het echte programma.</p>`;
+}
+</script>
+</body>
+</html>

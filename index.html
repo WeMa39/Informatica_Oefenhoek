@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Oefenhoek informatica · 3de jaar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@400;500;700&display=swap">
+<style>
+/* VOICE  everyday, voor leerlingen van ~14 jaar: vrolijk maar rustig
+   IDEA   een prikbord/bureau in de klas: elke kaart is een plek waar je kunt oefenen
+   PICTURE een laptop met Word en een zwevend Excel-blad, cursor en punten-sticker
+   COLOUR zonnig geel veld, inktblauw, Word-blauw, Excel-groen, koraal en paars voor thema's
+   TYPE   Fredoka (titels) + Lexend (tekst, goed leesbaar)
+   LAYOUT laptop: geel veld met titel links en tekening rechts; telefoon: titel, tekening, kaarten onder elkaar */
+:root{
+  --bg:#FFFFFF; --soft:#F4F3FA; --ink:#1C1B3A; --muted:#55546E; --line:#E2E0EE;
+  --sun:#FFD23F; --sun-ink:#1C1B3A; --sun-deep:#F5B700;
+  --word:#2B579A; --excel:#1D7A46; --ppt:#C4421C; --coral:#E85D5D; --violet:#6C4FD8; --teal:#0E8A8A; --pink:#C2367A;
+  --on:#FFFFFF;
+  --display:"Fredoka","Segoe UI",system-ui,sans-serif;
+  --body:"Lexend","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13122A; --soft:#1C1B3A; --ink:#F1F0FA; --muted:#B5B3CC; --line:#2F2D52;
+  --sun:#2A2756; --sun-ink:#FFE07A; --sun-deep:#FFD23F;
+  --word:#8DB3F0; --excel:#6FD39A; --ppt:#F59A7B; --coral:#FF9090; --violet:#B3A2FF; --teal:#5FD1D1; --pink:#F08DBE;
+  --on:#13122A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13122A; --soft:#1C1B3A; --ink:#F1F0FA; --muted:#B5B3CC; --line:#2F2D52;
+  --sun:#2A2756; --sun-ink:#FFE07A; --sun-deep:#FFD23F;
+  --word:#8DB3F0; --excel:#6FD39A; --ppt:#F59A7B; --coral:#FF9090; --violet:#B3A2FF; --teal:#5FD1D1; --pink:#F08DBE;
+  --on:#13122A; color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);overflow-x:clip}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.05;letter-spacing:-.01em;text-wrap:balance}
+p{margin:0}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--sun-deep);outline-offset:3px}
+.in{max-width:1180px;margin:0 auto;padding-left:max(5vw,16px,env(safe-area-inset-left,0px));padding-right:max(5vw,16px,env(safe-area-inset-right,0px))}
+
+/* geel veld bovenaan */
+.hero{background:var(--sun);color:var(--sun-ink);padding-top:calc(env(safe-area-inset-top,0px) + 22px);padding-bottom:40px;margin-top:calc(-1*env(safe-area-inset-top,0px))}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:28px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:700;font-size:1.25rem}
+.year{background:var(--sun-ink);color:var(--sun);font-family:var(--display);font-weight:700;border-radius:999px;padding:4px 14px;font-size:1rem}
+.herogrid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:32px;align-items:center}
+.hero h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:700}
+.hero .lead{font-size:1.15rem;margin-top:14px;max-width:34ch}
+.steps{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:10px}
+.steps li{display:flex;align-items:center;gap:12px;background:color-mix(in srgb,var(--bg) 70%,transparent);border-radius:14px;padding:10px 14px;font-weight:500}
+.steps b.n{flex:none;width:34px;height:34px;border-radius:10px;background:var(--sun-ink);color:var(--sun);display:grid;place-items:center;font-family:var(--display);font-size:1.1rem}
+.art svg{width:100%;height:auto;display:block}
+
+/* secties */
+.sec{padding-block:44px 8px}
+.sechead{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.sechead h2{font-size:clamp(1.7rem,3.4vw,2.3rem);font-weight:700}
+.sechead p{color:var(--muted);max-width:52ch}
+
+/* programma-kaarten */
+.progs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:20px}
+.card{--c:var(--word);display:flex;flex-direction:column;background:var(--bg);border:2px solid var(--line);border-radius:22px;overflow:hidden;text-decoration:none;color:var(--ink);transition:transform .15s,border-color .15s}
+a.card:hover{transform:translateY(-3px);border-color:var(--c)}
+.card .top{background:var(--c);color:var(--on);padding:20px 22px;display:flex;align-items:center;gap:16px;min-height:112px}
+.card .ico{flex:none;width:64px;height:64px;border-radius:18px;background:color-mix(in srgb,var(--on) 18%,transparent);display:grid;place-items:center}
+.card .ico svg{width:40px;height:40px}
+.card h3{font-size:2rem;font-weight:700}
+.card .sub{font-size:.95rem;opacity:.9}
+.card .body{padding:18px 22px 22px;display:flex;flex-direction:column;gap:14px;flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
+.chips li{background:color-mix(in srgb,var(--c) 12%,var(--bg));color:var(--ink);border-radius:999px;padding:4px 12px;font-size:.88rem}
+.go{margin-top:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:8px;background:var(--c);color:var(--on);font-weight:700;border-radius:12px;padding:12px 20px}
+.go::after{content:"→";font-size:1.1em}
+.card.soon{opacity:.75}
+.card.soon .go{background:transparent;color:var(--muted);border:2px dashed var(--line)}
+.card.soon .go::after{content:""}
+
+/* thema-kaarten (kleiner) */
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:16px}
+.theme{--c:var(--coral);display:flex;gap:14px;align-items:flex-start;background:color-mix(in srgb,var(--c) 10%,var(--bg));border:2px solid transparent;border-radius:18px;padding:16px;text-decoration:none;color:var(--ink);transition:transform .15s,border-color .15s}
+a.theme:hover{transform:translateY(-3px);border-color:var(--c)}
+.theme .ico{flex:none;width:52px;height:52px;border-radius:14px;background:var(--c);color:var(--on);display:grid;place-items:center}
+.theme .ico svg{width:30px;height:30px}
+.theme h3{font-size:1.3rem;font-weight:600}
+.theme p{font-size:.92rem;color:var(--muted);margin-top:4px}
+.theme .tag{display:inline-block;margin-top:8px;font-size:.8rem;font-weight:700;color:var(--c)}
+.theme.empty{grid-column:1/-1;max-width:560px;background:transparent;border:2px dashed var(--line);align-items:center}
+.theme.empty .ico{background:var(--soft);color:var(--muted)}
+
+.foot{padding-block:40px 36px;color:var(--muted);font-size:.9rem}
+@media (max-width:760px){
+  .herogrid{grid-template-columns:1fr;gap:18px}
+  .art{order:-1;max-width:420px}
+  .hero .lead{max-width:none}
+}
+@media (prefers-reduced-motion:reduce){.card,.theme{transition:none}a.card:hover,a.theme:hover{transform:none}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="in">
+    <div class="bar">
+      <div class="logo"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><rect x="2" y="5" width="30" height="20" rx="4" fill="currentColor"/><rect x="5" y="8" width="24" height="14" rx="2" fill="var(--sun)"/><rect x="11" y="27" width="12" height="3" rx="1.5" fill="currentColor"/><path d="M14 11l7 5-3 .6 1.8 3.4-1.6.8-1.8-3.4-2.4 2z" fill="currentColor"/></svg>Oefenhoek informatica</div>
+      <span class="year">3de jaar</span>
+    </div>
+    <div class="herogrid">
+      <div>
+        <h1 id="hallo">Klaar om te oefenen?</h1>
+        <p class="lead">Kies hieronder wat je wil oefenen. Je werkt op je eigen tempo en verdient punten voor elke juiste stap.</p>
+        <ol class="steps" aria-label="Zo werkt het">
+          <li><b class="n">1</b>Kies een programma of een thema</li>
+          <li><b class="n">2</b>Vul je naam en klas in</li>
+          <li><b class="n">3</b>Lever je code in bij je leerkracht</li>
+        </ol>
+      </div>
+      <div class="art" aria-hidden="true">
+        <svg viewBox="0 0 520 380">
+          <ellipse cx="250" cy="352" rx="210" ry="16" fill="#1C1B3A" opacity=".12"/>
+          <!-- laptop -->
+          <rect x="70" y="60" width="340" height="230" rx="16" fill="#1C1B3A"/>
+          <rect x="84" y="74" width="312" height="200" rx="6" fill="#FFFFFF"/>
+          <rect x="84" y="74" width="312" height="26" rx="6" fill="#2B579A"/>
+          <rect x="84" y="94" width="312" height="6" fill="#2B579A"/>
+          <circle cx="98" cy="87" r="4" fill="#fff" opacity=".7"/><circle cx="111" cy="87" r="4" fill="#fff" opacity=".7"/>
+          <rect x="84" y="100" width="312" height="22" fill="#EEF1F7"/>
+          <g fill="#BFC8DA"><rect x="94" y="107" width="22" height="8" rx="2"/><rect x="122" y="107" width="22" height="8" rx="2"/><rect x="150" y="107" width="22" height="8" rx="2"/><rect x="186" y="107" width="40" height="8" rx="2"/></g>
+          <rect x="120" y="132" width="240" height="142" fill="#FBFBFD"/>
+          <rect x="140" y="146" width="130" height="12" rx="3" fill="#2B579A"/>
+          <g fill="#C9CFDC"><rect x="140" y="170" width="200" height="6" rx="3"/><rect x="140" y="182" width="186" height="6" rx="3"/><rect x="140" y="194" width="196" height="6" rx="3"/><rect x="140" y="216" width="8" height="8" rx="4"/><rect x="156" y="217" width="150" height="6" rx="3"/><rect x="140" y="232" width="8" height="8" rx="4"/><rect x="156" y="233" width="120" height="6" rx="3"/></g>
+          <rect x="140" y="180" width="80" height="10" fill="#FFD23F" opacity=".55"/>
+          <path d="M30 290h420l-24 30H54z" fill="#2E2C55"/>
+          <rect x="200" y="294" width="80" height="8" rx="4" fill="#4A4878"/>
+          <!-- excel blad -->
+          <g transform="rotate(7 420 150)">
+            <rect x="344" y="96" width="160" height="128" rx="12" fill="#FFFFFF" stroke="#1C1B3A" stroke-width="3"/>
+            <rect x="344" y="96" width="160" height="26" rx="12" fill="#1D7A46"/>
+            <rect x="344" y="110" width="160" height="12" fill="#1D7A46"/>
+            <g stroke="#D4DAD6" stroke-width="2"><line x1="344" y1="146" x2="504" y2="146"/><line x1="344" y1="170" x2="504" y2="170"/><line x1="344" y1="194" x2="504" y2="194"/><line x1="384" y1="122" x2="384" y2="222"/><line x1="434" y1="122" x2="434" y2="222"/></g>
+            <rect x="436" y="148" width="66" height="20" fill="none" stroke="#1D7A46" stroke-width="3"/>
+            <g fill="#8BB59C"><rect x="392" y="130" width="30" height="7" rx="3"/><rect x="442" y="130" width="40" height="7" rx="3"/><rect x="392" y="154" width="24" height="7" rx="3"/><rect x="392" y="178" width="34" height="7" rx="3"/><rect x="442" y="178" width="30" height="7" rx="3"/></g>
+          </g>
+          <!-- cursor -->
+          <path d="M300 200l34 22-14 3 9 17-8 4-9-17-11 9z" fill="#FFFFFF" stroke="#1C1B3A" stroke-width="3" stroke-linejoin="round"/>
+          <!-- punten-sticker -->
+          <g transform="rotate(-10 70 80)">
+            <circle cx="70" cy="80" r="44" fill="#E85D5D"/>
+            <circle cx="70" cy="80" r="36" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 5" opacity=".7"/>
+            <text x="70" y="90" text-anchor="middle" font-family="Fredoka,Segoe UI,sans-serif" font-weight="700" font-size="30" fill="#fff">+10</text>
+          </g>
+          <!-- sterren -->
+          <path d="M470 50l6 13 14 2-10 10 3 14-13-7-13 7 3-14-10-10 14-2z" fill="#1C1B3A"/>
+          <path d="M28 196l4 8 9 1-7 6 2 9-8-4-8 4 2-9-7-6 9-1z" fill="#1C1B3A" opacity=".8"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="in">
+  <section class="sec" aria-labelledby="h-prog">
+    <div class="sechead"><h2 id="h-prog">Programma's</h2><p>Leer de grote programma's stap voor stap kennen.</p></div>
+    <div class="progs" id="progs"></div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-thema">
+    <div class="sechead"><h2 id="h-thema">Thema's</h2><p>Kortere onderwerpen die er doorheen het jaar bijkomen.</p></div>
+    <div class="themes" id="themes"></div>
+  </section>
+
+  <p class="foot">Dit zijn oefenomgevingen: ze lijken op de echte programma's, maar zijn het niet. Probeer daarna alles ook in het echte programma.</p>
+</main>
+
+<script>
+/* =====================================================================
+   HIER PAS JE DE KAARTEN AAN
+   Een nieuw programma of thema toevoegen = één blokje { ... } kopiëren,
+   de tekst aanpassen en een komma laten staan tussen de blokjes.
+
+   naam     : titel op de kaart
+   link     : de map op de site, bv. "excel/" (leeg laten = "Binnenkort")
+   uitleg   : één korte zin
+   onderwerpen : (enkel programma's) lijstje met wat je leert
+   kleur    : word, excel, ppt, coral, violet, teal of pink
+   icoon    : word, excel, ppt, internet, veilig, computer, code, ai, beeld of boek
+   ===================================================================== */
+const PROGRAMMAS = [
+  { naam:"Word", link:"word/", kleur:"word", icoon:"word",
+    sub:"4 hoofdstukken · 19 levels",
+    uitleg:"Het lint leren kennen en een tekst netjes opmaken.",
+    onderwerpen:["Teken- en alineaopmaak","Stijlen","Opsomming en nummering","Tabellen"] },
+  { naam:"Excel", link:"excel/", kleur:"excel", icoon:"excel",
+    sub:"rekenblad",
+    uitleg:"Ken jij alle onderdelen van het Excel-venster?",
+    onderwerpen:["Schermonderdelen"] },
+];
+
+const THEMAS = [
+  /* Voorbeeld (haal de // weg om het te gebruiken):
+  { naam:"Veilig online", link:"veilig-online/", kleur:"coral", icoon:"veilig",
+    uitleg:"Sterke wachtwoorden en phishing herkennen." },
+  */
+];
+/* ===================================================================== */
+
+{
+const ICONS = {
+  word:'<rect x="4" y="5" width="32" height="30" rx="6" fill="currentColor" opacity=".25"/><path d="M8 12h4.4l2.7 11 3.1-11h3.6l3.1 11 2.7-11H32l-4.9 16h-3.7L20 17.6 16.6 28h-3.7z" fill="currentColor"/>',
+  excel:'<rect x="4" y="5" width="32" height="30" rx="6" fill="currentColor" opacity=".25"/><path d="M11 11h4.6l4.4 6.6 4.4-6.6H29l-6.6 9 6.6 9h-4.6L20 22.4 15.6 29H11l6.6-9z" fill="currentColor"/>',
+  ppt:'<rect x="4" y="5" width="32" height="30" rx="6" fill="currentColor" opacity=".25"/><path d="M13 11h8a6 6 0 010 12h-4v6h-4zm4 4v4h4a2 2 0 000-4z" fill="currentColor"/>',
+  internet:'<circle cx="20" cy="20" r="14" fill="none" stroke="currentColor" stroke-width="3"/><path d="M6 20h28M20 6c-5 5-5 23 0 28M20 6c5 5 5 23 0 28" fill="none" stroke="currentColor" stroke-width="3"/>',
+  veilig:'<path d="M20 5l13 5v9c0 8-6 14-13 16C13 33 7 27 7 19v-9z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M14 20l4 4 8-8" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  computer:'<rect x="5" y="7" width="30" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="3"/><path d="M14 33h12M20 27v6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>',
+  code:'<path d="M14 12l-8 8 8 8M26 12l8 8-8 8M23 9l-6 22" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>',
+  ai:'<rect x="9" y="9" width="22" height="22" rx="5" fill="none" stroke="currentColor" stroke-width="3"/><path d="M15 4v5M25 4v5M15 31v5M25 31v5M4 15h5M4 25h5M31 15h5M31 25h5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="20" r="4" fill="currentColor"/>',
+  beeld:'<rect x="5" y="8" width="30" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="14" cy="16" r="3" fill="currentColor"/><path d="M7 30l9-9 6 6 4-4 8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>',
+  boek:'<path d="M6 9c5-2 10-2 14 1 4-3 9-3 14-1v22c-5-2-10-2-14 1-4-3-9-3-14-1z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M20 10v22" stroke="currentColor" stroke-width="3"/>'
+};
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ico = n => `<svg viewBox="0 0 40 40" aria-hidden="true">${ICONS[n] || ICONS.boek}</svg>`;
+const kleur = k => `--c:var(--${esc(k || "coral")})`;
+
+document.getElementById("progs").innerHTML = PROGRAMMAS.map(p => {
+  const open = !!p.link, tag = open ? "a" : "div";
+  return `<${tag} class="card${open ? "" : " soon"}" style="${kleur(p.kleur)}"${open ? ` href="${esc(p.link)}"` : ' aria-disabled="true"'}>
+    <div class="top"><div class="ico">${ico(p.icoon)}</div><div><h3>${esc(p.naam)}</h3>${p.sub ? `<div class="sub">${esc(p.sub)}</div>` : ""}</div></div>
+    <div class="body"><p>${esc(p.uitleg)}</p>
+      ${(p.onderwerpen || []).length ? `<ul class="chips" aria-label="Onderwerpen">${p.onderwerpen.map(o => `<li>${esc(o)}</li>`).join("")}</ul>` : ""}
+      <span class="go">${open ? "Start met " + esc(p.naam) : "Binnenkort"}</span></div></${tag}>`;
+}).join("");
+
+const th = document.getElementById("themes");
+th.innerHTML = THEMAS.length ? THEMAS.map(t => {
+  const open = !!t.link, tag = open ? "a" : "div";
+  return `<${tag} class="theme" style="${kleur(t.kleur)}"${open ? ` href="${esc(t.link)}"` : ' aria-disabled="true"'}>
+    <div class="ico">${ico(t.icoon)}</div><div><h3>${esc(t.naam)}</h3><p>${esc(t.uitleg)}</p><span class="tag">${open ? "Bekijk →" : "Binnenkort"}</span></div></${tag}>`;
+}).join("") : `<div class="theme empty"><div class="ico">${ico("boek")}</div><div><h3>Nog even geduld</h3><p>Hier verschijnen nieuwe thema's zodra je leerkracht ze toevoegt.</p></div></div>`;
+
+/* Begroeting met de naam die je in Word gebruikte (blijft enkel op deze computer). */
+try {
+  const last = JSON.parse(localStorage.getItem("lk:last"));
+  const vn = last && last.name ? String(last.name).trim().split(/\s+/)[0] : "";
+  if (vn) document.getElementById("hallo").textContent = "Hoi " + vn + ", klaar om te oefenen?";
+} catch (e) {}
+}
+</script>
+</body>
+</html>
